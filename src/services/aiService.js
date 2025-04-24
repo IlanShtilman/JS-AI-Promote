@@ -73,34 +73,37 @@ const getErrorMessage = (error) => {
 
 export const generateWithOpenAI = async (title, promotionalText, language) => {
   if (!openai) {
-    return 'OpenAI Error: API key not configured';
+    return language === 'Hebrew' ? 'שגיאה: מפתח API של OpenAI לא מוגדר' : 'OpenAI Error: API key not configured';
   }
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',  // Changed from gpt-4 to a valid model
+      model: 'gpt-4o-mini',  
       messages: [
         {
           role: 'system',
           content: language === 'Hebrew' 
-            ? 'אתה מומחה לכתיבת תוכן שיווקי לפליירים עסקיים. כתוב 2 משפטים קצרים, ממוקדים ומשכנעים שמתאימים לפרסום של עסק. השתמש בשפה מושכת, הדגש את היתרונות והצע ערך ברור ללקוח. התמקד בהצעות, מבצעים או הנחות אם הם רלוונטיים.'
-            : 'You are an expert at writing marketing content for business flyers. Write 2 short, focused and persuasive sentences suitable for business promotion. Use engaging language, emphasize benefits and offer clear value to the customer. Focus on offers, deals or discounts if relevant.'
+            ? 'אתה מומחה בכתיבת טקסט פרסומי. עליך לכתוב טקסט פרסומי קצר ואפקטיבי בדיוק כפי שנדרש, ללא תוספות או הקדמות. הטקסט צריך להיות בעברית, בשתי שורות, עם ירידת שורה ביניהן.'
+            : 'You are an expert in writing promotional text. Write a short and effective promotional text exactly as requested, without any additions or prefixes. The text should be in English, in two lines, with a line break between them.'
         },
         {
           role: 'user',
           content: language === 'Hebrew'
-            ? `כותרת מוצר/שירות: ${title}\nמידע נוסף: ${promotionalText || 'לא הוזן מידע נוסף'}\n\nכתוב 2 משפטי פרסום אטרקטיביים בעברית עבור פלייר שמקדם מוצר/שירות זה. התמקד במבצעים והטבות אם הם קיימים.`
-            : `Product/Service Title: ${title}\nAdditional Info: ${promotionalText || 'No additional info provided'}\n\nWrite 2 attractive promotional sentences in English for a flyer promoting this product/service. Focus on special offers and benefits if they exist.`
+            ? `כתוב טקסט פרסומי קצר בשתי שורות עבור: ${promotionalText || title}`
+            : `Write a short promotional text in two lines for: ${promotionalText || title}`
         }
       ],
-      max_tokens: 100,
+      max_tokens: 150,
       temperature: 0.7
     });
 
-    return limitToTwoSentences(response.choices[0].message.content);
+    let text = response.choices[0].message.content.trim();
+    // Remove any prefixes like "Here's your text:" or similar
+    text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
+    return text;
   } catch (error) {
     console.error('OpenAI Error:', error);
-    return `OpenAI Error: ${getErrorMessage(error)}`;
+    throw error;
   }
 };
 
@@ -136,7 +139,7 @@ export const generateWithClaude = async (title, promotionalText, language) => {
 
 export const generateWithGroq = async (title, promotionalText, language) => {
   if (!groq) {
-    return 'Groq Error: API key not configured';
+    return language === 'Hebrew' ? 'שגיאה: מפתח API של Groq לא מוגדר' : 'Groq Error: API key not configured';
   }
 
   try {
@@ -146,60 +149,121 @@ export const generateWithGroq = async (title, promotionalText, language) => {
         {
           role: 'system',
           content: language === 'Hebrew'
-            ? 'אתה כותב תוכן פרסומי מקצועי לפליירים עסקיים. המטרה שלך היא לכתוב בדיוק 2 משפטים קצרים, חדים ומשכנעים שמתאימים לפרסום מסחרי. התמקד במבצעים והטבות מיוחדות, הדגש את ההנחות ואת הערך שהלקוח יקבל.'
-            : 'You are a professional copywriter for business flyers. Your goal is to write exactly 2 short, sharp and persuasive sentences suitable for commercial promotion. Focus on special deals and offers, emphasize discounts and the value the customer will receive.'
+            ? 'כתוב טקסט פרסומי בדיוק כפי שמתבקש, ללא הקדמות או תוספות. הטקסט צריך להיות בשתי שורות עם ירידת שורה ביניהן.'
+            : 'Write promotional text exactly as requested, without any prefixes or additions. The text should be in two lines with a line break between them.'
         },
         {
           role: 'user',
           content: language === 'Hebrew'
-            ? `מוצר/שירות: ${title}\nמידע נוסף: ${promotionalText || 'לא הוזן מידע נוסף'}\n\nכתוב 2 משפטי פרסום שיווקיים מעולים בעברית עבור פלייר עסקי. התמקד בהנחות, מבצעים מיוחדים או הטבות אם הם רלוונטיים.`
-            : `Product/Service: ${title}\nAdditional Info: ${promotionalText || 'No additional info provided'}\n\nWrite 2 excellent marketing sentences in English for a business flyer. Focus on discounts, special deals or benefits if they are relevant.`
+            ? `כתוב טקסט פרסומי בשתי שורות עבור: ${promotionalText || title}`
+            : `Write promotional text in two lines for: ${promotionalText || title}`
         }
       ],
-      max_tokens: 100,
+      max_tokens: 150,
       temperature: 0.7
     });
 
-    return limitToTwoSentences(response.choices[0].message.content);
+    let text = response.choices[0].message.content.trim();
+    // Remove any prefixes
+    text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
+    return text;
   } catch (error) {
     console.error('Groq Error:', error);
-    return `Groq Error: ${getErrorMessage(error)}`;
+    throw error;
   }
 };
 
 export const generateWithGemini = async (title, promotionalText, language) => {
   if (!genAI) {
-    return 'Gemini Error: API key not configured';
+    return language === 'Hebrew' ? 'שגיאה: מפתח API של Gemini לא מוגדר' : 'Gemini Error: API key not configured';
   }
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = language === 'Hebrew'
-      ? `מוצר/שירות: ${title}\nמידע נוסף: ${promotionalText || 'לא הוזן מידע נוסף'}\n\nאתה מומחה לכתיבת תוכן שיווקי לפליירים מסחריים. כתוב בדיוק 2 משפטי פרסום מעולים, קצרים ומשכנעים בעברית עבור פלייר שמקדם את המוצר/שירות הזה. התמקד במבצעים מיוחדים, הנחות או הטבות ללקוח. הפוך את המשפטים למושכים ומשכנעים.`
-      : `Product/Service: ${title}\nAdditional Info: ${promotionalText || 'No additional info provided'}\n\nYou are an expert at writing marketing content for commercial flyers. Write exactly 2 excellent, short and persuasive promotional sentences in English for a flyer promoting this product/service. Focus on special deals, discounts or customer benefits. Make the sentences catchy and convincing.`;
+      ? `כתוב טקסט פרסומי בשתי שורות בלבד עבור: ${promotionalText || title}\n\nחשוב: כתוב רק את הטקסט הפרסומי, ללא כל תוספת או הקדמה.`
+      : `Write promotional text in exactly two lines for: ${promotionalText || title}\n\nImportant: Write only the promotional text, without any additions or prefixes.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return limitToTwoSentences(response.text());
+    let text = response.text().trim();
+    // Remove any prefixes and clean up the text
+    text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
+    return text;
   } catch (error) {
     console.error('Gemini Error:', error);
-    return `Gemini Error: ${getErrorMessage(error)}`;
+    throw error;
   }
 };
 
 // Export this before the individual functions to avoid the reference error
 export const generateAllTexts = async (title, promotionalText, language) => {
-  const results = await Promise.all([
-    generateWithOpenAI(title, promotionalText, language),
-    generateWithClaude(title, promotionalText, language),
-    generateWithGroq(title, promotionalText, language),
-    generateWithGemini(title, promotionalText, language)
-  ]);
+  const results = {};
+  const isHebrew = language === 'Hebrew';
 
-  return {
-    openai: results[0],
-    claude: results[1],
-    groq: results[2],
-    gemini: results[3]
-  };
+  try {
+    // OpenAI
+    try {
+      const openaiResult = await generateWithOpenAI(title, promotionalText, language);
+      results.openai = openaiResult;
+    } catch (error) {
+      console.error('OpenAI Error:', error);
+      results.openai = isHebrew ? 'שגיאה בקבלת תוצאות מ-OpenAI' : 'Error getting results from OpenAI';
+    }
+
+    // Claude
+    try {
+      const claudeResult = await generateWithClaude(title, promotionalText, language);
+      results.claude = claudeResult;
+    } catch (error) {
+      console.error('Claude Error:', error);
+      results.claude = isHebrew ? 'שגיאה בקבלת תוצאות מ-Claude' : 'Error getting results from Claude';
+    }
+
+    // Groq
+    try {
+      const groqResult = await generateWithGroq(title, promotionalText, language);
+      results.groq = groqResult;
+    } catch (error) {
+      console.error('Groq Error:', error);
+      results.groq = isHebrew ? 'שגיאה בקבלת תוצאות מ-Groq' : 'Error getting results from Groq';
+    }
+
+    // Gemini
+    try {
+      const geminiResult = await generateWithGemini(title, promotionalText, language);
+      results.gemini = geminiResult;
+    } catch (error) {
+      console.error('Gemini Error:', error);
+      results.gemini = isHebrew ? 'שגיאה בקבלת תוצאות מ-Gemini' : 'Error getting results from Gemini';
+    }
+
+    // Validate and format results
+    const cleanAndValidateText = (text, isHebrew) => {
+      // Remove any prefixes like "Here's your text:" or similar
+      text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
+      
+      // Split into lines and filter out empty ones
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      // If we have less than 2 lines, add a default second line
+      if (lines.length < 2) {
+        lines.push(isHebrew ? 'בואו לגלות עוד!' : 'Come discover more!');
+      }
+      
+      // Take only the first two lines
+      return lines.slice(0, 2).join('\n');
+    };
+
+    Object.keys(results).forEach(model => {
+      if (results[model]) {
+        results[model] = cleanAndValidateText(results[model], isHebrew);
+      }
+    });
+
+    return results;
+  } catch (error) {
+    console.error('Error generating texts:', error);
+    throw error;
+  }
 }; 
