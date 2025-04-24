@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 const MotionPaper = motion(Paper);
@@ -151,15 +150,6 @@ const DesignModeSelection = ({ language, onModeSelect }) => {
           icon={<AutoFixHighIcon />}
           onClick={() => onModeSelect('ai-suggested')}
           gradient="linear-gradient(135deg, #FF9800 0%, #F57C00 100%)"
-        />
-        <ModeSelectionWindow
-          title={language === 'Hebrew' ? 'AI חכם' : 'AI Smart'}
-          description={language === 'Hebrew'
-            ? 'תן ל-AI המתקדם שלנו ליצור עיצובים מרהיבים בשבילך. מופעל על-ידי בינה מלאכותית חדשנית שתתאים את העיצוב בדיוק לצרכים שלך.'
-            : 'Let our advanced AI create stunning designs for you. Powered by innovative artificial intelligence that will perfectly match your needs.'}
-          icon={<AutoAwesomeIcon />}
-          onClick={() => onModeSelect('ai')}
-          gradient="linear-gradient(135deg, #6B1FA6 0%, #4A148C 100%)"
         />
       </Box>
     </motion.div>
