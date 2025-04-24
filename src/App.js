@@ -40,6 +40,8 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import DesignModeSelection from './components/DesignModeSelection';
 import ManualFlierDesigner from './components/ManualFlierDesigner';
+import AIFlierDesigner from './components/AIFlierDesigner';
+import AIInfoCollection from './components/AIInfoCollection';
 
 // Wrap MUI components with motion
 const MotionContainer = motion(Container);
@@ -171,7 +173,8 @@ function App() {
   const [activeGuide, setActiveGuide] = useState(null);
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [selectedMode, setSelectedMode] = useState(null);
-  const [currentStage, setCurrentStage] = useState('input'); // 'input', 'design-mode', 'manual-design'
+  const [currentStage, setCurrentStage] = useState('input');
+  const [aiDesignInfo, setAiDesignInfo] = useState(null);
 
   // RTL cache
   const cacheRtl = createCache({
@@ -439,16 +442,26 @@ function App() {
     setSelectedMode(mode);
     if (mode === 'manual') {
       setCurrentStage('manual-design');
+    } else if (mode === 'ai-suggested') {
+      setCurrentStage('ai-info-collection');
     }
-    // Handle other modes as needed
+  };
+
+  const handleAIInfoSubmit = (formData) => {
+    setAiDesignInfo(formData);
+    setCurrentStage('ai-flier-design');
   };
 
   const content = (
     <MotionContainer
-      maxWidth="md"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      maxWidth="xl"
+      sx={{
+        minHeight: '100vh',
+        py: 4,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
     >
       {currentStage === 'input' ? (
         <>
@@ -639,6 +652,24 @@ function App() {
           promotionText={promotionalText}
           userPhoto={userPhoto}
           imagenAIImage={imagenAIImage}
+        />
+      ) : currentStage === 'ai-info-collection' ? (
+        <AIInfoCollection
+          language={language}
+          onSubmit={handleAIInfoSubmit}
+          initialData={{
+            businessType: '',
+            targetAudience: '',
+          }}
+        />
+      ) : currentStage === 'ai-flier-design' ? (
+        <AIFlierDesigner
+          selectedText={selectedText?.text}
+          logo={logo}
+          language={language}
+          title={title}
+          promotionText={promotionalText}
+          designInfo={aiDesignInfo}
         />
       ) : null}
       <Snackbar 
