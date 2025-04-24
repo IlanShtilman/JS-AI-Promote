@@ -35,6 +35,11 @@ import { prefixer } from 'stylis';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import { generateAllTexts } from './services/aiService';
+import DesignServicesIcon from '@mui/icons-material/DesignServices';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import DesignModeSelection from './components/DesignModeSelection';
+import ManualFlierDesigner from './components/ManualFlierDesigner';
 
 // Wrap MUI components with motion
 const MotionContainer = motion(Container);
@@ -115,6 +120,39 @@ const HoverGuide = React.memo(({ id, children }) => {
   );
 });
 
+// Add this component before the App component
+const ModeSelectionWindow = ({ title, description, icon, onClick }) => (
+  <Paper
+    elevation={3}
+    sx={{
+      p: 4,
+      m: 2,
+      width: '300px',
+      height: '300px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      cursor: 'pointer',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      '&:hover': {
+        transform: 'scale(1.02)',
+        boxShadow: 6,
+      },
+    }}
+    onClick={onClick}
+  >
+    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {React.cloneElement(icon, { sx: { fontSize: 64, color: 'primary.main' } })}
+    </Box>
+    <Typography variant="h5" sx={{ mt: 3, mb: 2, fontWeight: 'bold', textAlign: 'center' }}>
+      {title}
+    </Typography>
+    <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
+      {description}
+    </Typography>
+  </Paper>
+);
+
 function App() {
   const [language, setLanguage] = useState('Hebrew');
   const [title, setTitle] = useState('');
@@ -127,8 +165,13 @@ function App() {
   const [generatedTexts, setGeneratedTexts] = useState({});
   const [selectedText, setSelectedText] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [userPhoto, setUserPhoto] = useState(null);
+  const [imagenAIImage, setImagenAIImage] = useState(null);
   const audioRef = useRef(null);
   const [activeGuide, setActiveGuide] = useState(null);
+  const [showModeSelection, setShowModeSelection] = useState(false);
+  const [selectedMode, setSelectedMode] = useState(null);
+  const [currentStage, setCurrentStage] = useState('input'); // 'input', 'design-mode', 'manual-design'
 
   // RTL cache
   const cacheRtl = createCache({
@@ -151,6 +194,24 @@ function App() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => setLogo(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUserPhotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setUserPhoto(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAIImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setImagenAIImage(e.target.result);
       reader.readAsDataURL(file);
     }
   };
@@ -370,6 +431,18 @@ function App() {
     </MotionPaper>
   ));
 
+  const handleContinueWithSelected = () => {
+    setCurrentStage('design-mode');
+  };
+
+  const handleModeSelect = (mode) => {
+    setSelectedMode(mode);
+    if (mode === 'manual') {
+      setCurrentStage('manual-design');
+    }
+    // Handle other modes as needed
+  };
+
   const content = (
     <MotionContainer
       maxWidth="md"
@@ -377,158 +450,197 @@ function App() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <Typography variant="h3" component="h1" align="center" gutterBottom>
-            AI-Powered Flier Creation
-          </Typography>
-          <Typography variant="subtitle1" align="center" gutterBottom>
-            Create professional promotional materials in seconds with advanced AI
-          </Typography>
-        </motion.div>
-
-        <MotionPaper
-          sx={{ mt: 4, p: 3, position: 'relative' }}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-          <HoverGuide id="language">
-            <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel id="language-label">Language</InputLabel>
-              <Select
-                labelId="language-label"
-                value={language}
-                onChange={handleLanguageChange}
-                label="Language"
-                sx={{
-                  textAlign: 'left',
-                  '& .MuiSelect-select': {
-                    display: 'flex',
-                    alignItems: 'center',
-                    paddingLeft: '14px'
-                  }
-                }}
-              >
-                <MenuItem value="Hebrew" sx={{ justifyContent: 'flex-start' }}>Hebrew</MenuItem>
-                <MenuItem value="English" sx={{ justifyContent: 'flex-start' }}>English</MenuItem>
-              </Select>
-            </FormControl>
-          </HoverGuide>
-
-          <HoverGuide id="logo">
-            <MotionBox sx={{ textAlign: 'center', mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                לוגו העסק
+      {currentStage === 'input' ? (
+        <>
+          <Box sx={{ mt: 4, mb: 4 }}>
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <Typography variant="h3" component="h1" align="center" gutterBottom>
+                AI-Powered Flier Creation
               </Typography>
-              <AnimatePresence mode="wait">
-                {logo && (
-                  <MotionBox
-                    sx={{ mb: 2 }}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3 }}
+              <Typography variant="subtitle1" align="center" gutterBottom>
+                Create professional promotional materials in seconds with advanced AI
+              </Typography>
+            </motion.div>
+
+            <MotionPaper
+              sx={{ mt: 4, p: 3, position: 'relative' }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              <HoverGuide id="language">
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                  <InputLabel id="language-label">Language</InputLabel>
+                  <Select
+                    labelId="language-label"
+                    value={language}
+                    onChange={handleLanguageChange}
+                    label="Language"
+                    sx={{
+                      textAlign: 'left',
+                      '& .MuiSelect-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        paddingLeft: '14px'
+                      }
+                    }}
                   >
-                    <img src={logo} alt="Business Logo" style={{ maxWidth: '200px' }} />
-                  </MotionBox>
-                )}
-              </AnimatePresence>
+                    <MenuItem value="Hebrew" sx={{ justifyContent: 'flex-start' }}>Hebrew</MenuItem>
+                    <MenuItem value="English" sx={{ justifyContent: 'flex-start' }}>English</MenuItem>
+                  </Select>
+                </FormControl>
+              </HoverGuide>
+
+              <HoverGuide id="logo">
+                <MotionBox sx={{ textAlign: 'center', mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    לוגו העסק
+                  </Typography>
+                  <AnimatePresence mode="wait">
+                    {logo && (
+                      <MotionBox
+                        sx={{ mb: 2 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <img src={logo} alt="Business Logo" style={{ maxWidth: '200px' }} />
+                      </MotionBox>
+                    )}
+                  </AnimatePresence>
+                  <Button
+                    variant="contained"
+                    component="label"
+                    startIcon={<CloudUploadIcon />}
+                    sx={{ 
+                      '& .MuiButton-startIcon': {
+                        marginRight: '16px',
+                        marginLeft: '8px'
+                      },
+                      padding: '6px 16px 6px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    העלאת לוגו
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                    />
+                  </Button>
+                </MotionBox>
+              </HoverGuide>
+
+              <HoverGuide id="title">
+                <div style={{ marginBottom: '24px' }}>
+                  <MemoizedTextField
+                    label="כותרת"
+                    value={title}
+                    onChange={handleTitleChange}
+                    dir="rtl"
+                    InputProps={{
+                      endAdornment: <InputControls inputType="title" text={title} />
+                    }}
+                  />
+                </div>
+              </HoverGuide>
+
+              <HoverGuide id="promotional">
+                <div style={{ marginBottom: '24px' }}>
+                  <MemoizedTextField
+                    label="טקסט פרסומי"
+                    multiline
+                    rows={4}
+                    value={promotionalText}
+                    onChange={handlePromotionalTextChange}
+                    dir="rtl"
+                    InputProps={{
+                      endAdornment: <InputControls inputType="promotional" text={promotionalText} />
+                    }}
+                  />
+                </div>
+              </HoverGuide>
+
+              <HoverGuide id="generate">
+                <div style={{ marginBottom: '24px' }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={handleGenerateFlier}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={24} color="inherit" />
+                        <span>מייצר טקסט...</span>
+                      </Box>
+                    ) : (
+                      'צור טקסט'
+                    )}
+                  </Button>
+                </div>
+              </HoverGuide>
+
+              {Object.entries(generatedTexts).length > 0 && (
+                <Box sx={{ mt: 4, position: 'relative' }}>
+                  <Typography variant="h5" gutterBottom align="center">
+                    {language === 'Hebrew' ? 'בחר את הטקסט המועדף עליך' : 'Choose Your Preferred Text'}
+                  </Typography>
+                  {Object.entries(generatedTexts).map(([model, text]) => (
+                    <TextContainer key={model} model={model} text={text} />
+                  ))}
+                </Box>
+              )}
+            </MotionPaper>
+          </Box>
+          {Object.entries(generatedTexts).length > 0 && selectedText && (
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mt: 4 }}>
               <Button
-                variant="contained"
-                component="label"
-                startIcon={<CloudUploadIcon />}
-                sx={{ 
-                  '& .MuiButton-startIcon': {
-                    marginRight: '16px',
-                    marginLeft: '8px'
-                  },
-                  padding: '6px 16px 6px 12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                העלאת לוגו
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                />
-              </Button>
-            </MotionBox>
-          </HoverGuide>
-
-          <HoverGuide id="title">
-            <div style={{ marginBottom: '24px' }}>
-              <MemoizedTextField
-                label="כותרת"
-                value={title}
-                onChange={handleTitleChange}
-                dir="rtl"
-                InputProps={{
-                  endAdornment: <InputControls inputType="title" text={title} />
-                }}
-              />
-            </div>
-          </HoverGuide>
-
-          <HoverGuide id="promotional">
-            <div style={{ marginBottom: '24px' }}>
-              <MemoizedTextField
-                label="טקסט פרסומי"
-                multiline
-                rows={4}
-                value={promotionalText}
-                onChange={handlePromotionalTextChange}
-                dir="rtl"
-                InputProps={{
-                  endAdornment: <InputControls inputType="promotional" text={promotionalText} />
-                }}
-              />
-            </div>
-          </HoverGuide>
-
-          <HoverGuide id="generate">
-            <div style={{ marginBottom: '24px' }}>
-              <Button
-                fullWidth
                 variant="contained"
                 color="primary"
                 size="large"
-                onClick={handleGenerateFlier}
-                disabled={loading}
+                endIcon={<ArrowForwardIcon />}
+                onClick={handleContinueWithSelected}
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2,
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                }}
               >
-                {loading ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CircularProgress size={24} color="inherit" />
-                    <span>מייצר טקסט...</span>
-                  </Box>
-                ) : (
-                  'צור טקסט'
-                )}
+                {language === 'Hebrew' ? 'המשך עם הטקסט הנבחר' : 'Continue with Selected Items'}
               </Button>
-            </div>
-          </HoverGuide>
-
-          {Object.entries(generatedTexts).length > 0 && (
-            <Box sx={{ mt: 4, position: 'relative' }}>
-              <Typography variant="h5" gutterBottom align="center">
-                {language === 'Hebrew' ? 'בחר את הטקסט המועדף עליך' : 'Choose Your Preferred Text'}
-              </Typography>
-              {Object.entries(generatedTexts).map(([model, text]) => (
-                <TextContainer key={model} model={model} text={text} />
-              ))}
             </Box>
           )}
-        </MotionPaper>
-      </Box>
-      <audio ref={audioRef} style={{ display: 'none' }} />
+        </>
+      ) : currentStage === 'design-mode' ? (
+        <DesignModeSelection 
+          language={language}
+          onModeSelect={handleModeSelect}
+        />
+      ) : currentStage === 'manual-design' ? (
+        <ManualFlierDesigner
+          selectedText={selectedText?.text}
+          logo={logo}
+          language={language}
+          title={title}
+          promotionTitle={title}
+          promotionText={promotionalText}
+          userPhoto={userPhoto}
+          imagenAIImage={imagenAIImage}
+        />
+      ) : null}
       <Snackbar 
         open={!!error} 
         autoHideDuration={6000} 
