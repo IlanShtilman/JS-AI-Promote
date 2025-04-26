@@ -71,36 +71,36 @@ const getErrorMessage = (error) => {
   return 'An unknown error occurred';
 };
 
-export const generateWithOpenAI = async (title, promotionalText, language) => {
-  if (!openai) {
-    return language === 'Hebrew' ? 'שגיאה: מפתח API של OpenAI לא מוגדר' : 'OpenAI Error: API key not configured';
-  }
-
+const generateWithBackend = async (title, promotionalText, language) => {
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',  
-      messages: [
-        {
-          role: 'system',
-          content: language === 'Hebrew' 
-            ? 'אתה מומחה בכתיבת טקסט פרסומי. עליך לכתוב טקסט פרסומי קצר ואפקטיבי בדיוק כפי שנדרש, ללא תוספות או הקדמות. הטקסט צריך להיות בעברית, בשתי שורות, עם ירידת שורה ביניהן.'
-            : 'You are an expert in writing promotional text. Write a short and effective promotional text exactly as requested, without any additions or prefixes. The text should be in English, in two lines, with a line break between them.'
-        },
-        {
-          role: 'user',
-          content: language === 'Hebrew'
-            ? `כתוב טקסט פרסומי קצר בשתי שורות עבור: ${promotionalText || title}`
-            : `Write a short promotional text in two lines for: ${promotionalText || title}`
-        }
-      ],
-      max_tokens: 150,
-      temperature: 0.7
+    const response = await fetch('http://localhost:8081/api/v1/openai/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: language === 'Hebrew'
+          ? `כתוב טקסט פרסומי קצר בשתי שורות עבור: ${promotionalText || title}`
+          : `Write a short promotional text in two lines for: ${promotionalText || title}`,
+        temperature: 0.7
+      })
     });
 
-    let text = response.choices[0].message.content.trim();
-    // Remove any prefixes like "Here's your text:" or similar
-    text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
-    return text;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.generatedText;
+  } catch (error) {
+    console.error('Backend Error:', error);
+    throw error;
+  }
+};
+
+export const generateWithOpenAI = async (title, promotionalText, language) => {
+  try {
+    return await generateWithBackend(title, promotionalText, language);
   } catch (error) {
     console.error('OpenAI Error:', error);
     throw error;
@@ -174,25 +174,29 @@ export const generateWithGroq = async (title, promotionalText, language) => {
 };
 
 export const generateWithGemini = async (title, promotionalText, language) => {
-  if (!genAI) {
-    return language === 'Hebrew' ? 'שגיאה: מפתח API של Gemini לא מוגדר' : 'Gemini Error: API key not configured';
-  }
-
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const prompt = language === 'Hebrew'
-      ? `כתוב טקסט פרסומי בשתי שורות בלבד עבור: ${promotionalText || title}\n\nחשוב: כתוב רק את הטקסט הפרסומי, ללא כל תוספת או הקדמה.`
-      : `Write promotional text in exactly two lines for: ${promotionalText || title}\n\nImportant: Write only the promotional text, without any additions or prefixes.`;
+    const response = await fetch('http://localhost:8081/api/v1/gemini/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: language === 'Hebrew'
+          ? `כתוב טקסט פרסומי קצר בשתי שורות עבור: ${promotionalText || title}`
+          : `Write a short promotional text in two lines for: ${promotionalText || title}`,
+        temperature: 0.7
+      })
+    });
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let text = response.text().trim();
-    // Remove any prefixes and clean up the text
-    text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
-    return text;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.generatedText;
   } catch (error) {
     console.error('Gemini Error:', error);
-    throw error;
+    return language === 'Hebrew' ? 'שגיאה בקבלת תוצאות מ-Gemini' : 'Error getting results from Gemini';
   }
 };
 
