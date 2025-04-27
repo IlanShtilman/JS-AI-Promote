@@ -480,6 +480,7 @@ function App() {
   };
 
   const handleSummaryConfirm = () => {
+    console.log('Sending this object to the API:', summaryInfo);
     setAiDesignInfo(summaryInfo);
     setCurrentStage('ai-flier-design');
   };
