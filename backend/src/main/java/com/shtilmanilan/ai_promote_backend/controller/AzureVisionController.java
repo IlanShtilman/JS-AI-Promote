@@ -1,0 +1,37 @@
+package com.shtilmanilan.ai_promote_backend.controller;
+
+import com.shtilmanilan.ai_promote_backend.model.AzureVisionResponse;
+import com.shtilmanilan.ai_promote_backend.service.AzureVisionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/vision")
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
+public class AzureVisionController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AzureVisionController.class);
+    private final AzureVisionService azureVisionService;
+
+    public AzureVisionController(AzureVisionService azureVisionService) {
+        this.azureVisionService = azureVisionService;
+    }
+
+    @PostMapping("/analyze")
+    public AzureVisionResponse analyzeImage(@RequestBody String base64Image) {
+        logger.info("Received image analysis request");
+        try {
+            // Log the first 100 characters of the base64 image to verify it's being received correctly
+            logger.info("Received base64 image (first 100 chars): {}", 
+                base64Image.length() > 100 ? base64Image.substring(0, 100) + "..." : base64Image);
+            
+            AzureVisionResponse response = azureVisionService.analyzeImage(base64Image);
+            logger.info("Successfully processed image analysis");
+            return response;
+        } catch (Exception e) {
+            logger.error("Error processing image analysis", e);
+            throw e;
+        }
+    }
+} 

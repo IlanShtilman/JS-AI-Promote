@@ -682,16 +682,13 @@ function App() {
     </MotionContainer>
   );
 
-  return isRTL ? (
-    <CacheProvider value={cacheRtl}>
+  return (
+    <CacheProvider value={isRTL ? cacheRtl : cacheLtr}>
       <ThemeProvider theme={theme}>
-        {content}
-      </ThemeProvider>
-    </CacheProvider>
-  ) : (
-    <CacheProvider value={cacheLtr}>
-      <ThemeProvider theme={theme}>
-        {content}
+        <Box dir={direction}>
+          {/* Rest of your existing App component */}
+          {content}
+        </Box>
       </ThemeProvider>
     </CacheProvider>
   );
