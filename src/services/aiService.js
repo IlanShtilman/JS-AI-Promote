@@ -108,68 +108,56 @@ export const generateWithOpenAI = async (title, promotionalText, language) => {
 };
 
 export const generateWithClaude = async (title, promotionalText, language) => {
-  if (!anthropic) {
-    return 'Claude Error: API key not configured';
-  }
-
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-3-opus-20240229',
-      max_tokens: 100,
-      temperature: 0.7,
-      system: language === 'Hebrew'
-        ? "אתה מומחה לכתיבת תוכן שיווקי לפליירים ופרסומים עסקיים. תפקידך לכתוב בדיוק 2 משפטים קצרים, משכנעים ואפקטיביים המתאימים לפרסום מסחרי. התמקד בהטבות, מבצעים מיוחדים או הנחות אם הם רלוונטיים, והבלט את היתרונות הייחודיים."
-        : "You are an expert at writing marketing content for business flyers and advertisements. Your task is to write exactly 2 short, persuasive and effective sentences suitable for commercial promotion. Focus on benefits, special deals or discounts if relevant, and highlight unique advantages.",
-      messages: [
-        {
-          role: "user",
-          content: language === 'Hebrew'
-            ? `מוצר/שירות: ${title}\nמידע נוסף: ${promotionalText || 'לא הוזן מידע נוסף'}\n\nכתוב 2 משפטי פרסום מעולים בעברית לפלייר מסחרי שמקדם את המוצר/שירות הזה. הדגש מבצעים מיוחדים או הנחות אם הם רלוונטיים.`
-            : `Product/Service: ${title}\nAdditional Info: ${promotionalText || 'No additional info provided'}\n\nWrite 2 excellent promotional sentences in English for a commercial flyer promoting this product/service. Emphasize special deals or discounts if relevant.`
-        }
-      ]
+    const response = await fetch('http://localhost:8081/api/v1/claude/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: language === 'Hebrew'
+          ? `כתוב טקסט פרסומי קצר בשתי שורות עבור: ${promotionalText || title}`
+          : `Write a short promotional text in two lines for: ${promotionalText || title}`,
+        temperature: 0.7
+      })
     });
 
-    return limitToTwoSentences(response.content[0].text);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.generatedText;
   } catch (error) {
     console.error('Claude Error:', error);
-    return `Claude Error: ${getErrorMessage(error)}`;
+    return language === 'Hebrew' ? 'שגיאה בקבלת תוצאות מ-Claude' : 'Error getting results from Claude';
   }
 };
 
 export const generateWithGroq = async (title, promotionalText, language) => {
-  if (!groq) {
-    return language === 'Hebrew' ? 'שגיאה: מפתח API של Groq לא מוגדר' : 'Groq Error: API key not configured';
-  }
-
   try {
-    const response = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // 
-      messages: [
-        {
-          role: 'system',
-          content: language === 'Hebrew'
-            ? 'כתוב טקסט פרסומי בדיוק כפי שמתבקש, ללא הקדמות או תוספות. הטקסט צריך להיות בשתי שורות עם ירידת שורה ביניהן.'
-            : 'Write promotional text exactly as requested, without any prefixes or additions. The text should be in two lines with a line break between them.'
-        },
-        {
-          role: 'user',
-          content: language === 'Hebrew'
-            ? `כתוב טקסט פרסומי בשתי שורות עבור: ${promotionalText || title}`
-            : `Write promotional text in two lines for: ${promotionalText || title}`
-        }
-      ],
-      max_tokens: 150,
-      temperature: 0.7
+    const response = await fetch('http://localhost:8081/api/v1/groq/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: language === 'Hebrew'
+          ? `כתוב טקסט פרסומי קצר בשתי שורות עבור: ${promotionalText || title}`
+          : `Write a short promotional text in two lines for: ${promotionalText || title}`,
+        temperature: 0.7
+      })
     });
 
-    let text = response.choices[0].message.content.trim();
-    // Remove any prefixes
-    text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
-    return text;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.generatedText;
   } catch (error) {
     console.error('Groq Error:', error);
-    throw error;
+    return language === 'Hebrew' ? 'שגיאה בקבלת תוצאות מ-Groq' : 'Error getting results from Groq';
   }
 };
 
