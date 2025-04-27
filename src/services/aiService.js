@@ -1,75 +1,5 @@
-import { OpenAI } from 'openai';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import Anthropic from '@anthropic-ai/sdk';
-import { Groq } from 'groq-sdk';
 
 
-
-// Simple check of environment variables
-console.log('Checking environment variables...');
-console.log('OPENAI_API_KEY:', process.env.REACT_APP_OPENAI_API_KEY ? 'Found' : 'Missing');
-console.log('CLAUDE_API_KEY:', process.env.REACT_APP_CLAUDE_API_KEY ? 'Found' : 'Missing');
-console.log('GROQ_API_KEY:', process.env.REACT_APP_GROQ_API_KEY ? 'Found' : 'Missing');
-console.log('GEMINI_API_KEY:', process.env.REACT_APP_GEMINI_API_KEY ? 'Found' : 'Missing');
-
-// Initialize variables
-const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
-const CLAUDE_API_KEY = process.env.REACT_APP_CLAUDE_API_KEY;
-const GROQ_API_KEY = process.env.REACT_APP_GROQ_API_KEY;
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-
-// Initialize clients only if API keys are available
-let openai, anthropic, groq, genAI;
-
-try {
-  if (OPENAI_API_KEY) {
-    openai = new OpenAI({ 
-      apiKey: OPENAI_API_KEY, 
-      dangerouslyAllowBrowser: true 
-    });
-    console.log('OpenAI client initialized');
-  }
-  if (CLAUDE_API_KEY) {
-    anthropic = new Anthropic({ 
-      apiKey: CLAUDE_API_KEY, 
-      dangerouslyAllowBrowser: true 
-    });
-    console.log('Claude client initialized');
-  }
-  if (GROQ_API_KEY) {
-    groq = new Groq({ 
-      apiKey: GROQ_API_KEY,
-      dangerouslyAllowBrowser: true 
-    });
-    console.log('Groq client initialized');
-  }
-  if (GEMINI_API_KEY) {
-    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    console.log('Gemini client initialized');
-  }
-} catch (error) {
-  console.error('Error initializing AI clients:', error);
-}
-
-const limitToTwoSentences = (text) => {
-  const sentences = text.match(/[^.!?]+[.!?](\s|$)/g) || [];
-  return sentences.slice(0, 2).join('').trim();
-};
-
-const getErrorMessage = (error) => {
-  if (error.response?.data?.error?.message) {
-    return error.response.data.error.message;
-  }
-  if (error.response?.data?.error) {
-    return typeof error.response.data.error === 'string' 
-      ? error.response.data.error 
-      : JSON.stringify(error.response.data.error);
-  }
-  if (error.message) {
-    return error.message;
-  }
-  return 'An unknown error occurred';
-};
 
 const generateWithBackend = async (title, promotionalText, language) => {
   try {
@@ -258,4 +188,19 @@ export const generateAllTexts = async (title, promotionalText, language) => {
     console.error('Error generating texts:', error);
     throw error;
   }
-}; 
+};
+
+export async function generateFlierConfig(infoObject) {
+  const response = await fetch('http://localhost:8081/api/flier/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(infoObject)
+  });
+  if (!response.ok) throw new Error('Failed to generate flier config');
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error('Invalid JSON returned from backend');
+  }
+} 

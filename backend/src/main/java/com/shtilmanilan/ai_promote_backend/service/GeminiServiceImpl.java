@@ -62,7 +62,7 @@ public class GeminiServiceImpl implements GeminiService {
                 
                 Map<String, Object> generationConfig = new HashMap<>();
                 generationConfig.put("temperature", request.getTemperature());
-                generationConfig.put("maxOutputTokens", 150);
+                generationConfig.put("maxOutputTokens", 2000);
                 requestBody.put("generationConfig", generationConfig);
                 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);

@@ -34,7 +34,7 @@ import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
-import { generateAllTexts } from './services/aiService';
+import { generateAllTexts, generateFlierConfig } from './services/aiService';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -479,10 +479,18 @@ function App() {
     setCurrentStage('ai-info-collection');
   };
 
-  const handleSummaryConfirm = () => {
-    console.log('Sending this object to the API:', summaryInfo);
-    setAiDesignInfo(summaryInfo);
-    setCurrentStage('ai-flier-design');
+  const handleSummaryConfirm = async () => {
+    try {
+      setLoading(true);
+      const config = await generateFlierConfig(summaryInfo);
+      console.log('AI-generated flier config:', config);
+      setAiDesignInfo(config);
+      setCurrentStage('ai-flier-design');
+    } catch (err) {
+      setError('Failed to generate flier config: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const content = (
