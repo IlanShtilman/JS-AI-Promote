@@ -62,7 +62,7 @@ public class OpenAIServiceImpl implements OpenAIService {
                 requestBody.put("messages", messages);
                 
                 requestBody.put("temperature", request.getTemperature());
-                requestBody.put("max_tokens", 150);
+                requestBody.put("max_tokens", 2000);
                 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
                 

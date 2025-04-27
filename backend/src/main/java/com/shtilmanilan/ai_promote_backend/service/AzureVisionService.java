@@ -1,6 +1,8 @@
 package com.shtilmanilan.ai_promote_backend.service;
 
 import com.shtilmanilan.ai_promote_backend.model.AzureVisionResponse;
+import com.shtilmanilan.ai_promote_backend.model.FlierConfig;
+import com.shtilmanilan.ai_promote_backend.model.FlierInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -128,5 +130,49 @@ public class AzureVisionService {
         result.setBusinessType("general business");
 
         return result;
+    }
+
+    public FlierConfig generateFlierConfig(FlierInfo info) {
+        FlierConfig config = new FlierConfig();
+
+        // Layout
+        FlierConfig.Layout layout = new FlierConfig.Layout();
+        layout.orientation = info.orientation;
+        layout.imagePosition = "center";
+        layout.imageSize = "large";
+        layout.textPosition = "bottom";
+        layout.textAlignment = "center";
+        config.layout = layout;
+
+        // Color Palette
+        FlierConfig.ColorPalette palette = new FlierConfig.ColorPalette();
+        palette.background = info.azureVision.colors != null ? info.azureVision.colors.background : "black";
+        palette.text = "white";
+        palette.accentColor = info.azureVision.colors != null ? info.azureVision.colors.accent : "yellow";
+        config.colorPalette = palette;
+
+        // Font
+        FlierConfig.Font font = new FlierConfig.Font();
+        font.title = "bold, sans-serif, large";
+        font.body = "regular, sans-serif, medium";
+        font.promotionalText = "bold, sans-serif, extra-large";
+        config.font = font;
+
+        // Mood
+        config.mood = "energetic"; // You can map this from info.moodLevel
+
+        // Content
+        FlierConfig.Content content = new FlierConfig.Content();
+        content.title = info.title;
+        content.promotionalText = info.promotionalText;
+        config.content = content;
+
+        // Additional Design
+        FlierConfig.AdditionalDesign add = new FlierConfig.AdditionalDesign();
+        add.imageEffects = "light filter for warmth";
+        add.textEffect = "highlight discount with a box around it";
+        config.additionalDesign = add;
+
+        return config;
     }
 } 
