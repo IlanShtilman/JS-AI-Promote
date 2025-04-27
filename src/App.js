@@ -42,6 +42,7 @@ import DesignModeSelection from './components/DesignModeSelection';
 import ManualFlierDesigner from './components/ManualFlierDesigner';
 import AIFlierDesigner from './components/AIFlierDesigner';
 import AIInfoCollection from './components/AIInfoCollection';
+import AIFlierSummary from './components/AIFlierSummary';
 
 // Wrap MUI components with motion
 const MotionContainer = motion(Container);
@@ -175,6 +176,7 @@ function App() {
   const [selectedMode, setSelectedMode] = useState(null);
   const [currentStage, setCurrentStage] = useState('input');
   const [aiDesignInfo, setAiDesignInfo] = useState(null);
+  const [summaryInfo, setSummaryInfo] = useState(null);
 
   // RTL cache
   const cacheRtl = createCache({
@@ -445,7 +447,40 @@ function App() {
   };
 
   const handleAIInfoSubmit = (formData) => {
-    setAiDesignInfo(formData);
+    // Assemble the full info object
+    const fullInfoObject = {
+      logo: logo || null,
+      title: title || '',
+      promotionalText: selectedText?.text || '',
+      // All fields from AIInfoCollection
+      targetAudience: formData.targetAudience,
+      businessType: formData.businessType,
+      stylePreference: formData.stylePreference,
+      colorScheme: formData.colorScheme,
+      moodLevel: formData.moodLevel,
+      imagePreference: formData.imagePreference,
+      uploadedImage: formData.uploadedImage || null,
+      uploadType: formData.uploadType,
+      flierSize: formData.flierSize,
+      orientation: formData.orientation,
+      // Azure Vision results (if present)
+      azureVision: formData.sceneType || formData.detectedObjects || formData.description || formData.colors ? {
+        sceneType: formData.sceneType,
+        description: formData.description,
+        objects: formData.detectedObjects,
+        colors: formData.colors
+      } : null
+    };
+    setSummaryInfo(fullInfoObject);
+    setCurrentStage('summary');
+  };
+
+  const handleSummaryBack = () => {
+    setCurrentStage('ai-info-collection');
+  };
+
+  const handleSummaryConfirm = () => {
+    setAiDesignInfo(summaryInfo);
     setCurrentStage('ai-flier-design');
   };
 
@@ -658,6 +693,12 @@ function App() {
             businessType: '',
             targetAudience: '',
           }}
+        />
+      ) : currentStage === 'summary' ? (
+        <AIFlierSummary
+          info={summaryInfo}
+          onBack={handleSummaryBack}
+          onConfirm={handleSummaryConfirm}
         />
       ) : currentStage === 'ai-flier-design' ? (
         <AIFlierDesigner
