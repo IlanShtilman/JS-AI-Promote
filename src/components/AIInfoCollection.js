@@ -19,7 +19,8 @@ import {
   Grid,
   Tooltip,
   FormHelperText,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -27,6 +28,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ImageSearchIcon from '@mui/icons-material/ImageSearch';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockIcon from '@mui/icons-material/Lock';
+import { analyzeImageWithAzure } from '../services/azureVisionService';
 
 const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) => (
   <Paper
@@ -99,6 +101,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   });
 
   const [showErrors, setShowErrors] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const validateForm = () => {
     const newErrors = {
@@ -147,10 +150,39 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     console.log('Enhanced upload coming soon!');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setShowErrors(true);
-    if (validateForm()) {
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      if (formData.imagePreference === 'upload' && formData.uploadedImage) {
+        setIsAnalyzing(true);
+        console.log('Analyzing uploaded image...');
+        const analysisResult = await analyzeImageWithAzure(formData.uploadedImage);
+        console.log('Azure Vision analysis result:', analysisResult);
+        
+        // Update form data with analysis results
+        const updatedFormData = {
+          ...formData,
+          businessType: analysisResult.businessType || formData.businessType,
+          colorScheme: analysisResult.colors?.primary || formData.colorScheme,
+          sceneType: analysisResult.sceneType,
+          detectedObjects: analysisResult.objects,
+          description: analysisResult.description
+        };
+        
+        onSubmit(updatedFormData);
+      } else {
+        onSubmit(formData);
+      }
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      // Continue with original form data if analysis fails
       onSubmit(formData);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -356,7 +388,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
               variant="contained"
               size="large"
               onClick={handleSubmit}
-              endIcon={<ArrowForwardIcon />}
+              endIcon={isAnalyzing ? <CircularProgress size={24} color="inherit" /> : <ArrowForwardIcon />}
+              disabled={isAnalyzing}
               sx={{
                 mt: 4,
                 py: 2,
@@ -366,7 +399,10 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                 },
               }}
             >
-              {isRTL ? 'המשך לעיצוב' : 'Continue to Design'}
+              {isAnalyzing 
+                ? (isRTL ? 'מנתח תמונה...' : 'Analyzing image...')
+                : (isRTL ? 'המשך לעיצוב' : 'Continue to Design')
+              }
             </Button>
           </Stack>
         </Paper>
