@@ -90,14 +90,18 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     moodLevel: 50, // 0-100: professional to playful
     imagePreference: 'system', // 'system' or 'upload'
     uploadedImage: null,
-    uploadType: 'regular' // 'regular' or 'enhanced'
+    uploadType: 'regular', // 'regular' or 'enhanced'
+    flierSize: 'A4', // New field
+    orientation: 'portrait' // New field
   });
 
   const [errors, setErrors] = useState({
     targetAudience: false,
     businessType: false,
     colorScheme: false,
-    imageUpload: false
+    imageUpload: false,
+    flierSize: false,
+    orientation: false
   });
 
   const [showErrors, setShowErrors] = useState(false);
@@ -108,7 +112,9 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
       targetAudience: !formData.targetAudience.trim(),
       businessType: !formData.businessType.trim(),
       colorScheme: !formData.colorScheme,
-      imageUpload: formData.imagePreference === 'upload' && !formData.uploadedImage
+      imageUpload: formData.imagePreference === 'upload' && !formData.uploadedImage,
+      flierSize: !formData.flierSize,
+      orientation: !formData.orientation
     };
 
     setErrors(newErrors);
@@ -383,6 +389,38 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                 </Box>
               )}
             </Box>
+
+            {/* Flier Size Selection */}
+            <FormControl fullWidth sx={{ mt: 2 }} error={showErrors && errors.flierSize}>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                {isRTL ? 'גודל פלייר' : 'Flier Size'}
+              </Typography>
+              <RadioGroup
+                row
+                value={formData.flierSize}
+                onChange={e => setFormData({ ...formData, flierSize: e.target.value })}
+                name="flier-size-group"
+              >
+                <FormControlLabel value="A4" control={<Radio />} label="A4" />
+                <FormControlLabel value="A5" control={<Radio />} label="A5" />
+              </RadioGroup>
+            </FormControl>
+
+            {/* Orientation Selection */}
+            <FormControl fullWidth sx={{ mt: 2 }} error={showErrors && errors.orientation}>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                {isRTL ? 'כיוון הדף' : 'Orientation'}
+              </Typography>
+              <RadioGroup
+                row
+                value={formData.orientation}
+                onChange={e => setFormData({ ...formData, orientation: e.target.value })}
+                name="orientation-group"
+              >
+                <FormControlLabel value="portrait" control={<Radio />} label={isRTL ? 'לאורך' : 'Portrait'} />
+                <FormControlLabel value="landscape" control={<Radio />} label={isRTL ? 'לרוחב' : 'Landscape'} />
+              </RadioGroup>
+            </FormControl>
 
             <Button
               variant="contained"
