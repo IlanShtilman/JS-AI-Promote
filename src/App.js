@@ -25,7 +25,7 @@ import MicIcon from '@mui/icons-material/Mic';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { motion, AnimatePresence } from 'framer-motion';
-import { startSpeechRecognition, stopSpeechRecognition } from './services/speechService';
+import { startSpeechRecognition, stopSpeechRecognition, playAudio } from './services/speechService';
 import { textToSpeech } from './services/elevenLabsService';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import rtlPlugin from 'stylis-plugin-rtl';
@@ -282,17 +282,14 @@ function App() {
 
     try {
       setIsPlaying(true);
+      console.log("Converting text to speech:", text);
       const audioUrl = await textToSpeech(text);
-      
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.play();
-        audioRef.current.onended = () => {
-          setIsPlaying(false);
-          URL.revokeObjectURL(audioUrl);
-        };
-      }
+      playAudio(audioUrl);
+      setTimeout(() => {
+        setIsPlaying(false);
+      }, 10000);
     } catch (err) {
+      console.error("TTS Error:", err);
       setError('Failed to convert text to speech');
       setIsPlaying(false);
     }

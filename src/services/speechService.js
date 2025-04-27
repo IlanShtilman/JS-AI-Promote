@@ -26,4 +26,32 @@ export const stopSpeechRecognition = () => {
   } catch (error) {
     console.error('Error stopping speech recognition:', error);
   }
+};
+
+export const playAudio = (audioUrl) => {
+  try {
+    const audio = new Audio(audioUrl);
+    audio.volume = 1.0;
+    
+    audio.onplay = () => {
+      console.log('Audio playback started');
+    };
+    
+    audio.onerror = (err) => {
+      console.error('Audio playback error:', err);
+    };
+    
+    audio.onended = () => {
+      console.log('Audio playback completed');
+    };
+    
+    audio.play().catch(err => {
+      console.error('Error playing audio:', err);
+    });
+    
+    return audio;
+  } catch (error) {
+    console.error('Error in playAudio function:', error);
+    throw error;
+  }
 }; 
