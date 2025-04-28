@@ -20,7 +20,12 @@ import {
   Tooltip,
   FormHelperText,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -107,6 +112,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     orientation: 'portrait' // New field
   });
 
+  const [enhancedUploadOpen, setEnhancedUploadOpen] = useState(false);
+
   const [errors, setErrors] = useState({
     targetAudience: false,
     businessType: false,
@@ -164,8 +171,11 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   };
 
   const handleEnhancedUpload = () => {
-    // This will be implemented later with Claid integration
-    console.log('Enhanced upload coming soon!');
+    setEnhancedUploadOpen(true);
+  };
+
+  const handleEnhancedUploadClose = () => {
+    setEnhancedUploadOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -206,6 +216,35 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
 
   return (
     <Container maxWidth="md">
+      <Dialog
+        open={enhancedUploadOpen}
+        onClose={handleEnhancedUploadClose}
+        dir={direction}
+        maxWidth="md"
+      >
+        <DialogTitle sx={{ textAlign: isRTL ? 'right' : 'left', fontWeight: 'bold' }}>
+          {isRTL ? 'העלאה משופרת' : 'Enhanced Upload'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ textAlign: 'center', fontSize: '1.5rem', my: 4, fontWeight: 'bold' }}>
+            יאאלה גל סומך עליך
+          </DialogContentText>
+          <Box sx={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              {isRTL ? 'כאן יופיע כלי שיפור התמונה' : 'Image enhancement tool will appear here'}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEnhancedUploadClose} color="primary">
+            {isRTL ? 'סגור' : 'Close'}
+          </Button>
+          <Button onClick={handleEnhancedUploadClose} color="primary" variant="contained">
+            {isRTL ? 'אישור' : 'Confirm'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -408,7 +447,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                           />
                         }
                         onClick={handleEnhancedUpload}
-                        disabled={true} // Will be enabled when Claid integration is ready
+                        disabled={false}
                         preview={formData.uploadType === 'enhanced' ? formData.uploadedImage : null}
                       />
                     </Grid>
