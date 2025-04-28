@@ -34,6 +34,8 @@ import ImageSearchIcon from '@mui/icons-material/ImageSearch';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockIcon from '@mui/icons-material/Lock';
 import { analyzeImageWithAzure } from '../services/azureVisionService';
+import ImprovePopUp from './ImprovePopUp/ImprovePopUp';
+
 
 const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) => (
   <Paper
@@ -113,6 +115,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   });
 
   const [enhancedUploadOpen, setEnhancedUploadOpen] = useState(false);
+  const [isImproveOpen, setIsImproveOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState('');
 
   const [errors, setErrors] = useState({
     targetAudience: false,
@@ -178,6 +182,11 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     setEnhancedUploadOpen(false);
   };
 
+  const handleEnhancedUploadOpen = (imageUrl) => {
+    setSelectedImageUrl(imageUrl);
+    setIsImproveOpen(true);
+  };
+
   const handleSubmit = async () => {
     setShowErrors(true);
     if (!validateForm()) {
@@ -215,34 +224,29 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   };
 
   return (
-    <Container maxWidth="md">
+    <div className={`ai-info-container ${isImproveOpen ? 'popup-open' : ''}`}>
+      <ImprovePopUp 
+        isOpen={isImproveOpen}
+        onClose={handleEnhancedUploadClose}
+        imageUrl={selectedImageUrl}
+      />
+
       <Dialog
         open={enhancedUploadOpen}
         onClose={handleEnhancedUploadClose}
-        dir={direction}
-        maxWidth="md"
+        maxWidth="lg"
+        fullWidth
       >
         <DialogTitle sx={{ textAlign: isRTL ? 'right' : 'left', fontWeight: 'bold' }}>
           {isRTL ? 'העלאה משופרת' : 'Enhanced Upload'}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ textAlign: 'center', fontSize: '1.5rem', my: 4, fontWeight: 'bold' }}>
-            יאאלה גל סומך עליך
-          </DialogContentText>
-          <Box sx={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              {isRTL ? 'כאן יופיע כלי שיפור התמונה' : 'Image enhancement tool will appear here'}
-            </Typography>
-          </Box>
+          <ImprovePopUp 
+            isOpen={enhancedUploadOpen}
+            onClose={handleEnhancedUploadClose}
+            imageUrl={selectedImageUrl}
+          />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEnhancedUploadClose} color="primary">
-            {isRTL ? 'סגור' : 'Close'}
-          </Button>
-          <Button onClick={handleEnhancedUploadClose} color="primary" variant="contained">
-            {isRTL ? 'אישור' : 'Confirm'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <motion.div
@@ -516,7 +520,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
           </Stack>
         </Paper>
       </motion.div>
-    </Container>
+    </div>
   );
 };
 

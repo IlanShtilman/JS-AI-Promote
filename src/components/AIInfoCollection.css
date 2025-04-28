@@ -1,0 +1,20 @@
+.ai-info-container {
+    position: relative;
+    transition: filter 0.3s ease;
+}
+
+.ai-info-container.popup-open {
+    filter: brightness(0.5);
+    pointer-events: none;
+}
+
+/* Ensure the popup is always on top */
+.popup-overlay {
+    z-index: 1000;
+}
+
+/* Ensure the background decorations are visible but don't interfere with clicks */
+.popup-background {
+    z-index: 999;
+    pointer-events: none;
+} 
