@@ -78,6 +78,18 @@ const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) 
   </Paper>
 );
 
+const businessTypes = [
+  { value: 'cafe', label: 'Caffe - בית קפה' },
+  { value: 'restaurant', label: 'Restaurant - מסעדה' },
+  // ...add more as needed
+];
+
+const targetAudiences = [
+  { value: 'families', label: 'Families - משפחות' },
+  { value: 'young_adults', label: 'Young Adults - צעירים' },
+  // ...add more as needed
+];
+
 const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   const isRTL = language === 'Hebrew';
   const direction = isRTL ? 'rtl' : 'ltr';
@@ -233,27 +245,47 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         >
           <Stack spacing={4} dir={direction}>
             <FormControl fullWidth error={showErrors && errors.targetAudience}>
-              <TextField
-                label={isRTL ? 'קהל יעד *' : 'Target Audience *'}
+              <InputLabel>{isRTL ? 'קהל יעד *' : 'Target Audience *'}</InputLabel>
+              <Select
                 value={formData.targetAudience}
                 onChange={handleInputChange('targetAudience')}
+                label={isRTL ? 'קהל יעד *' : 'Target Audience *'}
                 dir={direction}
-                placeholder={isRTL ? 'למשל: צעירים, משפחות, אנשי עסקים' : 'e.g., Young adults, Families, Business professionals'}
                 error={showErrors && errors.targetAudience}
-                helperText={showErrors && errors.targetAudience ? (isRTL ? 'שדה חובה' : 'This field is required') : ''}
-              />
+              >
+                {targetAudiences.map((audience) => (
+                  <MenuItem key={audience.value} value={audience.value}>
+                    {audience.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              {showErrors && errors.targetAudience && (
+                <FormHelperText error>
+                  {isRTL ? 'שדה חובה' : 'This field is required'}
+                </FormHelperText>
+              )}
             </FormControl>
 
             <FormControl fullWidth error={showErrors && errors.businessType}>
-              <TextField
-                label={isRTL ? 'סוג העסק *' : 'Business Type *'}
+              <InputLabel>{isRTL ? 'סוג העסק *' : 'Business Type *'}</InputLabel>
+              <Select
                 value={formData.businessType}
                 onChange={handleInputChange('businessType')}
+                label={isRTL ? 'סוג העסק *' : 'Business Type *'}
                 dir={direction}
-                placeholder={isRTL ? 'למשל: מסעדה, חנות בגדים, משרד עורכי דין' : 'e.g., Restaurant, Clothing store, Law firm'}
                 error={showErrors && errors.businessType}
-                helperText={showErrors && errors.businessType ? (isRTL ? 'שדה חובה' : 'This field is required') : ''}
-              />
+              >
+                {businessTypes.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    {type.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              {showErrors && errors.businessType && (
+                <FormHelperText error>
+                  {isRTL ? 'שדה חובה' : 'This field is required'}
+                </FormHelperText>
+              )}
             </FormControl>
 
             <FormControl fullWidth>
