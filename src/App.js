@@ -43,6 +43,7 @@ import ManualFlierDesigner from './components/ManualFlierDesigner';
 import AIFlierDesigner from './components/AIFlierDesigner';
 import AIInfoCollection from './components/AIInfoCollection';
 import AIFlierSummary from './components/AIFlierSummary';
+import AIFlier from './components/AIFlier';
 
 // Wrap MUI components with motion
 const MotionContainer = motion(Container);
@@ -710,14 +711,23 @@ function App() {
           onConfirm={handleSummaryConfirm}
         />
       ) : currentStage === 'ai-flier-design' ? (
-        <AIFlierDesigner
-          selectedText={selectedText?.text}
-          logo={logo}
-          language={language}
-          title={title}
-          promotionText={promotionalText}
-          designInfo={aiDesignInfo}
-        />
+        <>
+          <AIFlier
+            config={aiDesignInfo}
+            flyerContent={{
+              title: summaryInfo?.title,
+              promotionalText: summaryInfo?.promotionalText,
+              logo: summaryInfo?.logo,
+              image: summaryInfo?.uploadedImage,
+              callToAction: summaryInfo?.callToAction || 'Your CTA here',
+            }}
+          />
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Button variant="outlined" color="primary" onClick={() => setCurrentStage('summary')}>
+              Back to Summary
+            </Button>
+          </Box>
+        </>
       ) : null}
       <Snackbar 
         open={!!error} 
