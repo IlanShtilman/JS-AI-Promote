@@ -1,10 +1,12 @@
 # AI-Promote
 
-A full-stack application for generating promotional content using various AI models (OpenAI, Claude, Groq, and Gemini).
+A full-stack application for generating promotional content and flyer designs using multiple AI models (OpenAI, Claude, Groq, Gemini) and a modern, interactive React frontend.
 
 ## Features
 
-- Generate promotional content using multiple AI models
+- Generate promotional content and flyer layouts using multiple AI models
+- AI Assist panel for reviewing and previewing AI-generated flyer suggestions
+- Manual flyer designer for full user control
 - Support for both English and Hebrew languages
 - Modern React frontend with Material-UI
 - Spring Boot backend with AI integration
@@ -16,14 +18,14 @@ A full-stack application for generating promotional content using various AI mod
 - React
 - Material-UI
 - Axios for API calls
+- html2canvas, qrcode.react, react-color, etc.
 - Environment variables for configuration
 
 ### Backend
 - Spring Boot
 - Java
 - Maven
-- OpenAI API
-- Gemini API
+- OpenAI, Gemini, Claude, Groq APIs
 
 ## Getting Started
 
@@ -34,6 +36,8 @@ A full-stack application for generating promotional content using various AI mod
 - API keys for:
   - OpenAI
   - Gemini
+  - Claude
+  - Groq
 
 ### Frontend Setup
 1. Navigate to the project root directory
@@ -45,6 +49,8 @@ A full-stack application for generating promotional content using various AI mod
    ```
    REACT_APP_OPENAI_API_KEY=your_openai_key
    REACT_APP_GEMINI_API_KEY=your_gemini_key
+   REACT_APP_CLAUDE_API_KEY=your_claude_key
+   REACT_APP_GROQ_API_KEY=your_groq_key
    ```
 4. Start the development server:
    ```bash
@@ -69,25 +75,91 @@ AI-Promote/
 ├── backend/                 # Spring Boot backend
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/       # Java source files
-│   │   │   └── resources/  # Configuration files
-│   │   └── test/           # Test files
-│   └── pom.xml             # Maven configuration
-├── public/                  # Static files
+│   │   │   ├── java/
+│   │   │   │   ├── controller/   # API controllers
+│   │   │   │   ├── service/      # AI and utility services
+│   │   │   │   ├── model/        # Data models
+│   │   │   │   └── config/       # API key and web config
+│   │   │   └── resources/        # Configuration files
+│   │   └── test/                 # Test files
+│   ├── pom.xml                   # Maven configuration
+│   ├── mvnw, mvnw.cmd            # Maven wrapper
+│   └── .gitignore, .gitattributes
+├── public/                  # Static files and assets
+│   ├── assets/              # App images (e.g., Phone-APP.png)
+│   └── images/              # User-uploaded or sample images
 ├── src/                     # React frontend source
-│   ├── components/         # React components
-│   ├── services/           # API services
-│   └── App.js              # Main application file
-├── .env                    # Environment variables
-├── package.json            # Node.js dependencies
-└── README.md               # This file
+│   ├── components/          # React components
+│   │   ├── FlyerRenderer.js
+│   │   ├── ManualFlierDesigner.js
+│   │   ├── AIFlierSummary.js
+│   │   ├── AIInfoCollection.js
+│   │   ├── DesignModeSelection.js
+│   │   ├── DesignSuggestions.js
+│   │   └── ...
+│   ├── services/            # API and utility services
+│   │   ├── aiService.js
+│   │   ├── azureVisionService.js
+│   │   ├── speechService.js
+│   │   ├── elevenLabsService.js
+│   │   └── imagenService.js
+│   ├── App.js               # Main application file
+│   ├── index.js, index.css
+├── .env                     # Environment variables
+├── package.json, package-lock.json
+├── README.md                # This file
+└── .vscode/                 # VSCode settings
 ```
+
+## Backend Services & Controllers
+
+- **Controllers:**
+  - `FlierController.java` (flyer generation endpoints)
+  - `OpenAIController.java`, `GeminiController.java`, `ClaudeController.java`, `GroqController.java` (AI endpoints)
+  - `AzureVisionController.java` (image analysis)
+  - `ErrorHandlerController.java` (error handling)
+- **Services:**
+  - `FlierGeminiService.java`, `OpenAIServiceImpl.java`, `GeminiServiceImpl.java`, `ClaudeServiceImpl.java`, `GroqServiceImpl.java`, `AzureVisionService.java`
+- **Models:**
+  - `FlierInfo.java`, `FlierConfig.java`, `AzureVisionResponse.java`, `TextGenerationRequest.java`, `TextGenerationResponse.java`
+- **Config:**
+  - `ApiKeyConfig.java`, `GeminiApiKeyConfig.java`, `ClaudeApiKeyConfig.java`, `GroqApiKeyConfig.java`, `WebConfig.java`
+
+## Frontend Components & Services
+
+- **Main Components:**
+  - `FlyerRenderer.js` (AI flyer preview)
+  - `ManualFlierDesigner.js` (manual flyer editor)
+  - `AIFlierSummary.js`, `AIInfoCollection.js`, `DesignModeSelection.js`, `DesignSuggestions.js`
+- **Services:**
+  - `aiService.js`, `azureVisionService.js`, `speechService.js`, `elevenLabsService.js`, `imagenService.js`
+
+## AI Assist / Approval Workflow
+
+- After generating a flyer with AI, users can view the AI's suggested layout, colors, fonts, and rationale in a dedicated "AI Assist" panel or window.
+- The `FlyerRenderer` component previews the AI-generated flyer config.
+- Users can review the AI's suggestions and rationale before proceeding.
+- The manual designer remains the main tool for flyer creation and editing; AI suggestions are provided as inspiration.
 
 ## API Endpoints
 
 ### Backend
-- `POST /api/v1/openai/generate` - Generate content using OpenAI
-- `POST /api/v1/gemini/generate` - Generate content using Gemini
+- `POST /api/flier/generate` - Generate flyer config using Gemini
+- `POST /api/openai/generate` - Generate content using OpenAI
+- `POST /api/gemini/generate` - Generate content using Gemini
+- `POST /api/claude/generate` - Generate content using Claude
+- `POST /api/groq/generate` - Generate content using Groq
+- `POST /api/azure-vision/analyze` - Analyze image with Azure Vision
+
+## Assets
+- App images and assets are in `public/assets/` (e.g., `Phone-APP.png`)
+- User-uploaded images are stored in `public/images/` (if applicable)
+
+## Usage
+
+1. Fill out flyer details and generate with AI.
+2. Review the AI's suggestions in the AI Assist panel.
+3. Use the manual designer to create and edit your flyer, optionally using AI suggestions as inspiration.
 
 ## Contributing
 
