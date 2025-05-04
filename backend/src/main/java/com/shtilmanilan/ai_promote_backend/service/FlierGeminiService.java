@@ -25,14 +25,16 @@ public class FlierGeminiService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String generateFlierConfig(FlierInfo flierInfo) throws Exception {
-        logger.info("Generating flyer config using Gemini for: {}", flierInfo.title);
+        logger.info("Generating flyer styling advice using Gemini for: {}", flierInfo.title);
 
-        // System and user prompts
-        String systemPrompt = "You are an expert flyer designer. Analyze the provided specifications and return a structured flyer design. " +
-                "Return only valid JSON following the specified schema. Focus on readability and visual hierarchy while maintaining brand colors.";
+        // System and user prompts - updated to focus on styling advice
+        String systemPrompt = "You are an expert flyer design stylist. Analyze the provided specifications and return styling suggestions. " +
+                "Return only valid JSON following the specified schema. Focus on color harmony, font choices, and visual appeal.";
         String userPrompt = String.format(
-                "Generate a promotional flyer design based on these specifications: %s. " +
-                "Return a JSON object with the following structure: {layout: string, elementPositions: object, colorApplications: object, fontSelections: object, designRationale: string}",
+                "Provide styling advice for a promotional flyer based on these specifications: %s. " +
+                "Do not create a complete layout, as that will be handled by our layout engine. " +
+                "Instead, focus on suggesting appropriate colors, fonts, and visual elements. " +
+                "Return a JSON object with the following structure: {colorApplications: object, fontSelections: object, designRationale: string}",
                 objectMapper.writeValueAsString(flierInfo)
         );
 
@@ -80,5 +82,40 @@ public class FlierGeminiService {
             }
         }
         throw new RuntimeException("No valid response from Gemini API");
+    }
+
+    public String generateBasicFlierConfig(FlierInfo flierInfo) {
+        try {
+            Map<String, Object> config = new HashMap<>();
+            
+            // Basic layout structure
+            config.put("layout", "standard");
+            
+            // Element positions
+            Map<String, Object> positions = new HashMap<>();
+            positions.put("image", Map.of("x", 50, "y", 40));
+            config.put("elementPositions", positions);
+            
+            // Colors based on preferences
+            Map<String, Object> colors = new HashMap<>();
+            colors.put("background", flierInfo.colorScheme != null && flierInfo.colorScheme.equals("warm") ? "#fff8f0" : "#ffffff");
+            colors.put("title", "#000000");
+            colors.put("promotionalText", "#333333");
+            config.put("colorApplications", colors);
+            
+            // Font selections
+            Map<String, Object> fonts = new HashMap<>();
+            fonts.put("title", "Heebo");
+            fonts.put("promotionalText", "Assistant");
+            config.put("fontSelections", fonts);
+            
+            // Rationale
+            config.put("designRationale", "Basic layout generated as a fallback");
+            
+            return objectMapper.writeValueAsString(config);
+        } catch (Exception e) {
+            logger.error("Error generating basic flier config: {}", e.getMessage());
+            return "{}";
+        }
     }
 } 

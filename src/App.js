@@ -65,11 +65,17 @@ function App() {
   const handleSummaryConfirm = async () => {
     try {
       setLoading(true);
+      console.log('Starting flier generation process with summary info:', summaryInfo);
+      
+      // Call the updated generateFlierConfig function that uses both
+      // the AI styling advice and the layout engine
       const config = await generateFlierConfig(summaryInfo);
-      console.log('AI-generated flier config:', config);
+      
+      console.log('Combined AI and layout engine flier config:', config);
       setAiDesignInfo(config);
       setCurrentStage('ai-flier-design');
     } catch (err) {
+      console.error('Error during flier generation:', err);
       setError('Failed to generate flier config: ' + err.message);
     } finally {
       setLoading(false);
