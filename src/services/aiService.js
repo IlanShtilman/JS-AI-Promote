@@ -1,5 +1,5 @@
-
-
+// Import the layout engine for fallback
+import { generateLayout } from './layoutEngine';
 
 const generateWithBackend = async (title, promotionalText, language) => {
   try {
@@ -190,17 +190,70 @@ export const generateAllTexts = async (title, promotionalText, language) => {
   }
 };
 
-export async function generateFlierConfig(infoObject) {
-  const response = await fetch('http://localhost:8081/api/flier/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(infoObject)
-  });
-  if (!response.ok) throw new Error('Failed to generate flier config');
-  const text = await response.text();
+// New function to get style advice from the AI
+export async function getAIStyleAdvice(infoObject) {
   try {
-    return JSON.parse(text);
-  } catch (e) {
-    throw new Error('Invalid JSON returned from backend');
+    console.log("Requesting AI style advice for flier:", infoObject);
+    
+    const response = await fetch('http://localhost:8081/api/flier/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(infoObject)
+    });
+    
+    if (!response.ok) {
+      console.error("AI style advice API error status:", response.status);
+      const errorText = await response.text();
+      console.error("AI style advice API error response:", errorText);
+      return null;
+    }
+    
+    const text = await response.text();
+    try {
+      // Try to parse the response as JSON
+      const jsonResponse = JSON.parse(text);
+      console.log("Successfully received AI style advice");
+      return jsonResponse;
+    } catch (e) {
+      console.error("JSON parse error in AI style advice:", e);
+      console.error("Invalid JSON response:", text);
+      return null;
+    }
+  } catch (error) {
+    console.error("Network or other error during AI style advice:", error);
+    return null;
+  }
+}
+
+// Updated to use both AI style advice and the layout engine
+export async function generateFlierConfig(infoObject) {
+  try {
+    console.log("Generating flier configuration with combined AI and layout engine approach");
+    
+    // Step 1: Get AI style advice
+    const aiStyleAdvice = await getAIStyleAdvice(infoObject);
+    console.log("AI style advice received:", aiStyleAdvice);
+    
+    // Step 2: Feed that advice to the layout engine
+    const { generateLayout } = await import('./layoutEngine.js');
+    
+    // Combine the input data with the AI advice
+    const combinedData = {
+      ...infoObject,
+      aiSuggestions: aiStyleAdvice
+    };
+    
+    // Generate the deterministic layout with AI input
+    const finalConfig = generateLayout(combinedData);
+    console.log("Final flier configuration generated:", finalConfig);
+    
+    return finalConfig;
+  } catch (error) {
+    console.error("Error in flier generation process:", error);
+    
+    // Fall back to pure layout engine if combined approach fails
+    console.log("Using frontend layout engine as complete fallback");
+    const { generateLayout } = await import('./layoutEngine.js');
+    return generateLayout(infoObject);
   }
 } 
