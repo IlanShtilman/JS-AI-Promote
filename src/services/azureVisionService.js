@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Use our backend service instead of direct Azure API
+// Use our backend service for Azure API
 export const analyzeImageWithAzure = async (imageInput) => {
   try {
     let base64Image;
@@ -25,8 +25,10 @@ export const analyzeImageWithAzure = async (imageInput) => {
     // Send to our backend endpoint
     const backendResponse = await axios.post('http://localhost:8081/api/vision/analyze', base64Image, {
       headers: {
-        'Content-Type': 'text/plain'
-      }
+        'Content-Type': 'text/plain',
+        'Accept': 'application/json'
+      },
+      withCredentials: false // This can help with CORS issues
     });
 
     console.log('Backend Vision API response received:', backendResponse.data);
@@ -37,107 +39,30 @@ export const analyzeImageWithAzure = async (imageInput) => {
     if (error.response) {
       console.error('Response data:', JSON.stringify(error.response.data));
       console.error('Response status:', error.response.status);
+      console.error('Response headers:', JSON.stringify(error.response.headers));
+    } else if (error.request) {
+      console.error('No response received from server. Request:', error.request);
+    } else {
+      console.error('Error setting up request:', error.message);
     }
     
-    // Fallback to mock if anything fails
-    console.log('Falling back to mock implementation...');
-    return mockAnalyzeImage(imageInput);
+    // Instead of falling back to mock, throw the error
+    throw new Error('Failed to analyze image with Azure Vision API. Check server logs for details.');
   }
 };
 
-// Mock implementation as a fallback
-const mockAnalyzeImage = async (imageUrl) => {
-  console.log('Using mock Azure Vision implementation');
-  
-  // Wait a moment to simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Generate some random colors based on the image URL (repeatable hash)
-  const hash = hashCode(imageUrl);
-  const randomColorSeed = Math.abs(hash) % 360;
-  
-  // Create some mock data
-  const mockResult = {
-    sceneType: 'business',
-    objects: ['chair', 'desk', 'computer', 'person'],
-    colors: {
-      primary: hslToHex(randomColorSeed, 70, 60),
-      secondary: hslToHex((randomColorSeed + 30) % 360, 60, 70),
-      accent: hslToHex((randomColorSeed + 180) % 360, 80, 50),
-      background: '#FFFFFF',
-      semanticColors: {}
-    },
-    atmosphere: 'professional and modern',
-    lighting: 'bright natural',
-    description: 'A modern business environment with professional layout',
-    businessType: 'office'
-  };
-
-  console.log('Returning mock Azure Vision data:', mockResult);
-  return mockResult;
-};
-
-// Helper function to generate a hash code from a string
-function hashCode(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+// Test function to check if the backend is accessible
+export const testBackendConnection = async () => {
+  try {
+    console.log('Testing connection to backend server...');
+    const response = await axios.get('http://localhost:8081/api/vision/test');
+    console.log('Backend server is accessible:', response.data);
+    return { success: true, message: response.data };
+  } catch (error) {
+    console.error('Failed to connect to backend server:', error);
+    return { 
+      success: false, 
+      message: 'Could not connect to backend server. Please ensure the backend is running.'
+    };
   }
-  return hash;
-}
-
-// Helper function to convert HSL to Hex color
-function hslToHex(h, s, l) {
-  l /= 100;
-  const a = s * Math.min(l, 1 - l) / 100;
-  const f = (n) => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
-}
-
-// Functions for processing Azure Vision results
-const determineAtmosphere = (categories, color) => {
-  // Logic to determine atmosphere based on categories and colors
-  const isWarm = color.dominantColors.some(c => 
-    ['red', 'orange', 'yellow'].includes(c.toLowerCase())
-  );
-  
-  const isProfessional = categories.some(cat => 
-    ['building_office', 'building_corporate'].includes(cat.name)
-  );
-
-  if (isProfessional) return 'professional and modern';
-  if (isWarm) return 'warm and inviting';
-  return 'neutral and balanced';
-};
-
-const determineLighting = (color) => {
-  const brightness = color.accentColor;
-  if (brightness > 0.7) return 'bright natural';
-  if (brightness > 0.4) return 'balanced artificial';
-  return 'dim ambient';
-};
-
-const determineBusinessType = (categories) => {
-  const businessTypes = {
-    'building_restaurant': 'restaurant',
-    'building_retail': 'retail',
-    'building_office': 'office',
-    'building_corporate': 'corporate',
-    'building_hotel': 'hospitality',
-    'building_medical': 'medical'
-  };
-
-  for (const category of categories) {
-    if (businessTypes[category.name]) {
-      return businessTypes[category.name];
-    }
-  }
-
-  return 'general business';
 }; 

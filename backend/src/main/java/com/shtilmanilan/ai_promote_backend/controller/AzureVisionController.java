@@ -4,6 +4,7 @@ import com.shtilmanilan.ai_promote_backend.model.AzureVisionResponse;
 import com.shtilmanilan.ai_promote_backend.service.AzureVisionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,7 +19,7 @@ public class AzureVisionController {
         this.azureVisionService = azureVisionService;
     }
 
-    @PostMapping("/analyze")
+    @PostMapping(value = "/analyze", consumes = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public AzureVisionResponse analyzeImage(@RequestBody String base64Image) {
         logger.info("Received image analysis request");
         try {
@@ -33,5 +34,11 @@ public class AzureVisionController {
             logger.error("Error processing image analysis", e);
             throw e;
         }
+    }
+
+    @GetMapping("/test")
+    public String testEndpoint() {
+        logger.info("Test endpoint called");
+        return "Azure Vision API is working!";
     }
 } 

@@ -81,8 +81,6 @@ function App() {
     setCurrentStage('design-mode');
   };
 
-  // Add console log to debug logo state before passing it to AIInfoCollection
-  console.log("Current logo in App.js:", logo);
 
   return (
     <Box>

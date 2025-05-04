@@ -14,9 +14,9 @@ const InfoRow = ({ label, value }) => (
 const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
   const isRTL = language === 'Hebrew';
   
-  // Debug the info object to check for logo
+  // Debug the info object to check for logo and colors
   console.log("Summary info received:", info);
-  console.log("Logo data:", info.logo);
+  console.log("Colors data:", info.colors);
   
   // Map the values to display labels
   const getDisplayValue = (key, value) => {
@@ -32,7 +32,17 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
         'warm': 'Warm - חם',
         'cool': 'Cool - קר',
         'neutral': 'Neutral - ניטרלי',
-        'vibrant': 'Vibrant - תוסס'
+        'vibrant': 'Vibrant - תוסס',
+        'black': 'Black - שחור',
+        'white': 'White - לבן',
+        'blue': 'Blue - כחול',
+        'red': 'Red - אדום',
+        'green': 'Green - ירוק',
+        'yellow': 'Yellow - צהוב',
+        'purple': 'Purple - סגול',
+        'orange': 'Orange - כתום',
+        'brown': 'Brown - חום',
+        'gray': 'Gray - אפור'
       }
     };
     
@@ -41,6 +51,26 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
     }
     
     return value;
+  };
+
+  // Helper function to translate color names to Hebrew
+  const translateColorNameToHebrew = (colorName) => {
+    const hebrewColorNames = {
+      'foreground': 'קדמה',
+      'background': 'רקע',
+      'border': 'גבול',
+      'text': 'טקסט',
+      'link': 'קישור',
+      'button': 'כפתור',
+      'header': 'כותרת',
+      'footer': 'כותרת תחתונה',
+      'accent': 'הדגשה',
+      'primary': 'ראשי',
+      'secondary': 'משני',
+      'highlight': 'מודגש'
+    };
+    
+    return hebrewColorNames[colorName.toLowerCase()] || colorName;
   };
 
   return (
@@ -101,6 +131,67 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
             </Typography>
             {info.stylePreference && <InfoRow label={isRTL ? 'סגנון עיצוב' : 'Style Preference'} value={getDisplayValue('stylePreference', info.stylePreference)} />}
             {info.colorScheme && <InfoRow label={isRTL ? 'סכמת צבעים' : 'Color Scheme'} value={getDisplayValue('colorScheme', info.colorScheme)} />}
+            
+            {/* Color details section */}
+            {info.colors && (
+              <Box className="flier-summary-colors-section">
+                <Typography variant="subtitle2" className="flier-summary-label">{isRTL ? 'צבעים מדויקים' : 'Color Details'}</Typography>
+                <Box className="flier-summary-color-swatches">
+                  {info.colors.primary && (
+                    <Box className="flier-summary-color-item">
+                      <Box 
+                        className="flier-summary-color-swatch" 
+                        sx={{ backgroundColor: info.colors.primary, border: '1px solid #ddd' }}
+                      />
+                      <Typography variant="caption">{isRTL ? 'ראשי:' : 'Primary:'} {info.colors.primary}</Typography>
+                    </Box>
+                  )}
+                  {info.colors.secondary && (
+                    <Box className="flier-summary-color-item">
+                      <Box 
+                        className="flier-summary-color-swatch" 
+                        sx={{ backgroundColor: info.colors.secondary, border: '1px solid #ddd' }}
+                      />
+                      <Typography variant="caption">{isRTL ? 'משני:' : 'Secondary:'} {info.colors.secondary}</Typography>
+                    </Box>
+                  )}
+                  {info.colors.accent && (
+                    <Box className="flier-summary-color-item">
+                      <Box 
+                        className="flier-summary-color-swatch" 
+                        sx={{ backgroundColor: info.colors.accent, border: '1px solid #ddd' }}
+                      />
+                      <Typography variant="caption">{isRTL ? 'הדגשה:' : 'Accent:'} {info.colors.accent}</Typography>
+                    </Box>
+                  )}
+                  {info.colors.background && (
+                    <Box className="flier-summary-color-item">
+                      <Box 
+                        className="flier-summary-color-swatch" 
+                        sx={{ backgroundColor: info.colors.background, border: '1px solid #ddd' }}
+                      />
+                      <Typography variant="caption">{isRTL ? 'רקע:' : 'Background:'} {info.colors.background}</Typography>
+                    </Box>
+                  )}
+                  
+                  {/* Display semantic colors if available */}
+                  {info.colors.semanticColors && Object.entries(info.colors.semanticColors).length > 0 && 
+                    Object.entries(info.colors.semanticColors).map(([key, value]) => (
+                      <Box key={key} className="flier-summary-color-item">
+                        <Box 
+                          className="flier-summary-color-swatch" 
+                          sx={{ backgroundColor: value, border: '1px solid #ddd' }}
+                        />
+                        <Typography variant="caption">
+                          {isRTL ? translateColorNameToHebrew(key) : key}: {value}
+                        </Typography>
+                      </Box>
+                    ))
+                  }
+                </Box>
+              </Box>
+            )}
+            
             {info.flierSize && <InfoRow label={isRTL ? 'גודל פלייר' : 'Flier Size'} value={info.flierSize} />}
             {info.orientation && <InfoRow label={isRTL ? 'כיוון הדף' : 'Orientation'} value={isRTL ? (info.orientation === 'portrait' ? 'לאורך' : 'לרוחב') : info.orientation} />}
           </Box>

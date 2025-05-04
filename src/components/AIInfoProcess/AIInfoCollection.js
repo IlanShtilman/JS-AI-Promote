@@ -25,7 +25,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  Snackbar
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -33,7 +34,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ImageSearchIcon from '@mui/icons-material/ImageSearch';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockIcon from '@mui/icons-material/Lock';
-import { analyzeImageWithAzure } from '../../services/azureVisionService';
+import { analyzeImageWithAzure, testBackendConnection } from '../../services/azureVisionService';
 import { assembleSummaryInfo } from './summaryUtils';
 import './AIInfoCollection.css';
 
@@ -112,6 +113,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
 
   const [showErrors, setShowErrors] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
   const validateForm = () => {
     const newErrors = {
@@ -179,29 +181,99 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         console.log('Azure Vision analysis result:', analysisResult);
         
         // Update form data with analysis results
-        // Only use Azure detected businessType if user hasn't selected one
         const updatedFormData = {
           ...formData,
           // Only use Azure business type if the user hasn't explicitly chosen one
           businessType: formData.businessType || analysisResult.businessType,
-          colorScheme: analysisResult.colors?.primary || formData.colorScheme,
           sceneType: analysisResult.sceneType,
           detectedObjects: analysisResult.objects,
-          description: analysisResult.description
+          description: analysisResult.description,
+          // Add the colors object from the analysis
+          colors: analysisResult.colors
         };
         
         const summaryInfo = assembleSummaryInfo(updatedFormData, initialData);
         onSubmit(summaryInfo);
       } else {
-        onSubmit(formData);
+        // Generate default colors based on the selected colorScheme
+        const defaultColors = generateDefaultColors(formData.colorScheme);
+        const formDataWithColors = {
+          ...formData,
+          colors: defaultColors
+        };
+        
+        const summaryInfo = assembleSummaryInfo(formDataWithColors, initialData);
+        onSubmit(summaryInfo);
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
-      // Continue with original form data if analysis fails
-      onSubmit(formData);
+      setSnackbar({
+        open: true,
+        message: `שגיאה בניתוח התמונה: ${error.message}`,
+        severity: 'error'
+      });
+      
+      // Generate default colors based on the selected colorScheme
+      const defaultColors = generateDefaultColors(formData.colorScheme);
+      const formDataWithColors = {
+        ...formData,
+        colors: defaultColors
+      };
+      
+      const summaryInfo = assembleSummaryInfo(formDataWithColors, initialData);
+      onSubmit(summaryInfo);
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Helper function to generate colors based on colorScheme selection
+  const generateDefaultColors = (colorScheme) => {
+    // Define color mappings for different schemes
+    const colorMappings = {
+      'warm': {
+        primary: '#FF5722',
+        secondary: '#FF9800',
+        accent: '#FFC107',
+        background: '#FFFFFF'
+      },
+      'cool': {
+        primary: '#2196F3',
+        secondary: '#03A9F4',
+        accent: '#00BCD4',
+        background: '#FFFFFF'
+      },
+      'neutral': {
+        primary: '#607D8B',
+        secondary: '#9E9E9E',
+        accent: '#795548',
+        background: '#F5F5F5'
+      },
+      'vibrant': {
+        primary: '#E91E63',
+        secondary: '#9C27B0',
+        accent: '#673AB7',
+        background: '#FFFFFF'
+      }
+    };
+    
+    // Return mapped colors or fallback to warm colors
+    return colorMappings[colorScheme] || colorMappings['warm'];
+  };
+
+  // Test backend connection
+  const handleTestBackend = async () => {
+    const result = await testBackendConnection();
+    setSnackbar({
+      open: true, 
+      message: result.message,
+      severity: result.success ? 'success' : 'error'
+    });
+  };
+
+  // Close snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -246,6 +318,19 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         >
           מידע נוסף לעיצוב
         </Typography>
+
+        {/* Add debug controls for advanced users */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Button 
+            size="small" 
+            variant="outlined" 
+            color="info" 
+            onClick={handleTestBackend}
+            sx={{ fontSize: '0.7rem' }}
+          >
+            בדוק חיבור לשרת
+          </Button>
+        </Box>
 
         {showErrors && Object.values(errors).some(error => error) && (
           <Alert severity="error" className="aiinfo-error-alert">
@@ -463,6 +548,14 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
           </Stack>
         </Paper>
       </motion.div>
+
+      {/* Add snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        message={snackbar.message}
+      />
     </Container>
   );
 };

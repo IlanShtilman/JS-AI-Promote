@@ -206,4 +206,44 @@
   margin-bottom: 8px;
   max-height: 80px;
   object-fit: cover;
+}
+
+/* Color swatches styling */
+.flier-summary-colors-section {
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+
+.flier-summary-color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.flier-summary-color-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(50% - 6px);
+}
+
+.flier-summary-color-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* RTL support for color swatches */
+.rtl-layout .flier-summary-color-item {
+  direction: rtl;
+}
+
+/* Responsive adjustments for color swatches */
+@media (max-width: 600px) {
+  .flier-summary-color-item {
+    width: 100%;
+  }
 } 
