@@ -108,10 +108,25 @@ public class AzureVisionService {
         if (response.containsKey("color")) {
             Map<String, Object> colorData = (Map<String, Object>) response.get("color");
             AzureVisionResponse.Colors colors = new AzureVisionResponse.Colors();
-            colors.setPrimary((String) colorData.get("dominantColorForeground"));
-            colors.setSecondary((String) colorData.get("dominantColorBackground"));
-            colors.setAccent("#FFA726"); // Default accent color
-            colors.setBackground("#FFFFFF"); // Default background
+            
+            // Get primary and secondary colors
+            String primaryColor = (String) colorData.get("dominantColorForeground");
+            String secondaryColor = (String) colorData.get("dominantColorBackground");
+            
+            colors.setPrimary(primaryColor);
+            colors.setSecondary(secondaryColor);
+            
+            // Get dominant colors array for more intelligent color selection
+            java.util.List<String> dominantColors = (java.util.List<String>) colorData.get("dominantColors");
+            
+            // Determine accent color - pick a complementary or contrasting color
+            String accentColor = determineAccentColor(primaryColor, secondaryColor, dominantColors);
+            colors.setAccent(accentColor);
+            
+            // Determine appropriate background - usually white or very light versions of dominant colors
+            String backgroundColor = determineBackgroundColor(primaryColor, secondaryColor);
+            colors.setBackground(backgroundColor);
+            
             result.setColors(colors);
         }
 
@@ -130,6 +145,75 @@ public class AzureVisionService {
         result.setBusinessType("general business");
 
         return result;
+    }
+
+    // Helper method to determine a good accent color based on primary and secondary colors
+    private String determineAccentColor(String primary, String secondary, java.util.List<String> dominantColors) {
+        // If we have at least 3 dominant colors, use the third one as accent
+        if (dominantColors != null && dominantColors.size() >= 3) {
+            return getHexForColorName(dominantColors.get(2));
+        }
+        
+        // If primary is a warm color, use a cool accent and vice versa
+        if (isWarmColor(primary)) {
+            return "#2196F3"; // Cool blue
+        } else {
+            return "#FF9800"; // Warm orange
+        }
+    }
+    
+    // Helper method to determine a good background color
+    private String determineBackgroundColor(String primary, String secondary) {
+        // Default to white for most cases
+        if (isLightColor(primary) && isLightColor(secondary)) {
+            return "#F5F5F5"; // Very light gray for better contrast
+        } else {
+            return "#FFFFFF"; // White
+        }
+    }
+    
+    // Helper method to check if a color is considered "warm"
+    private boolean isWarmColor(String colorName) {
+        String color = colorName.toLowerCase();
+        return color.contains("red") || color.contains("orange") || color.contains("yellow") || 
+               color.contains("brown") || color.contains("pink");
+    }
+    
+    // Helper method to check if a color is considered "light"
+    private boolean isLightColor(String colorName) {
+        String color = colorName.toLowerCase();
+        return color.contains("white") || color.contains("light") || color.contains("pale") || 
+               color.contains("beige") || color.contains("cream");
+    }
+    
+    // Helper method to convert common color names to hex values
+    private String getHexForColorName(String colorName) {
+        if (colorName == null) return "#FFA726";
+        
+        switch (colorName.toLowerCase()) {
+            case "red": return "#F44336";
+            case "pink": return "#E91E63";
+            case "purple": return "#9C27B0";
+            case "deep purple": return "#673AB7";
+            case "indigo": return "#3F51B5";
+            case "blue": return "#2196F3";
+            case "light blue": return "#03A9F4";
+            case "cyan": return "#00BCD4";
+            case "teal": return "#009688";
+            case "green": return "#4CAF50";
+            case "light green": return "#8BC34A";
+            case "lime": return "#CDDC39";
+            case "yellow": return "#FFEB3B";
+            case "amber": return "#FFC107";
+            case "orange": return "#FF9800";
+            case "deep orange": return "#FF5722";
+            case "brown": return "#795548";
+            case "grey": case "gray": return "#9E9E9E";
+            case "blue grey": case "blue gray": return "#607D8B";
+            case "black": return "#212121";
+            case "white": return "#FFFFFF";
+            default: return "#FFA726"; // Default orange accent
+        }
     }
 
     public FlierConfig generateFlierConfig(FlierInfo info) {
