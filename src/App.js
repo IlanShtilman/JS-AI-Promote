@@ -5,7 +5,6 @@ import {
   Button, 
   Snackbar,
   Alert,
-  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { generateFlierConfig } from './services/aiService';
@@ -13,7 +12,7 @@ import DesignModeSelection from './components/DesignModeSelection/DesignModeSele
 import ManualFlierDesigner from './components/ManualFlierDesigner/ManualFlierDesigner';
 import AIInfoCollection from './components/AIInfoProcess/AIInfoCollection';
 import AIFlierSummary from './components/AIFlierSummary/AIFlierSummary';
-import AIFlier from './components/AIFlier';
+import AIFlier from './components/AIFlier/AIFlier';
 import StageUserInfo from './components/StageUserInfo/StageUserInfo';
 import AITextResults from './components/AITextResults/AITextResults';
 

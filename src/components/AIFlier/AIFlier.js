@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
-import './ManualFlierDesigner/ManualFlierDesigner.css';
+import './AIFlier.css';
 
 const FONT_OPTIONS = [
   { value: 'Heebo', label: 'Heebo' },
@@ -271,33 +271,22 @@ const AIFlier = ({ config, flyerContent }) => {
   const sideColumnHeight = flyerHeight; // Match exactly to the flyer height
   
   return (
-    <div className={`flier-designer-container ${isRTL ? 'rtl' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: 20, maxWidth: '100%', margin: '0 auto' }}>
-      {/* Image Controls - Now on the left side */}
-      <div className="image-controls" style={{ 
-        width: 320, 
-        padding: 25, 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: 12, 
-        position: 'sticky', 
-        top: 20, 
-        marginTop: topMargin, 
-        height: `${sideColumnHeight}px`, 
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)', 
-        zIndex: 20, 
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <h3 style={{ fontSize: '1.4rem', marginBottom: 20, color: '#2c3e50', fontWeight: 600 }}>{isRTL ? 'הגדרות תמונה' : 'Image Settings'}</h3>
+    <div className={`flier-designer-container ${isRTL ? 'rtl' : ''}`}>
+      {/* Image Controls - Left side panel */}
+      <div className="side-panel" style={{ height: `${sideColumnHeight}px`, marginTop: topMargin }}>
+        <h3 className="panel-title">{isRTL ? 'הגדרות תמונה' : 'Image Settings'}</h3>
         
-        <div className="image-preview" style={uploadedImage ? { backgroundImage: `url(${uploadedImage})`, width: '100%', height: 200, border: '2px dashed #cbd5e0', borderRadius: 12, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', transition: 'all 0.3s ease' } : { width: '100%', height: 200, border: '2px dashed #cbd5e0', borderRadius: 12, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', transition: 'all 0.3s ease' }}>
+        <div 
+          className={`image-preview ${uploadedImage ? 'image-preview-with-image' : ''}`} 
+          style={uploadedImage ? { backgroundImage: `url(${uploadedImage})` } : {}}
+        >
           {!uploadedImage && (
-            <span style={{ color: '#718096', fontSize: '1.1rem' }}>{isRTL ? 'טרם נבחרה תמונה' : 'No image uploaded'}</span>
+            <span className="no-image-text">{isRTL ? 'טרם נבחרה תמונה' : 'No image uploaded'}</span>
           )}
         </div>
         
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div className="control-group" style={{ backgroundColor: 'white', padding: 15, borderRadius: 8, marginBottom: 15, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div className="control-group">
             <input
               type="file"
               accept="image/*"
@@ -305,22 +294,7 @@ const AIFlier = ({ config, flyerContent }) => {
               style={{ display: 'none' }}
               id="imageUpload"
             />
-            <label htmlFor="imageUpload" className="image-upload-button" style={{
-              width: '100%',
-              padding: '12px 20px',
-              backgroundColor: '#4299e1',
-              color: 'white',
-              border: 'none',
-              borderRadius: 6,
-              fontSize: '1.1rem',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              marginBottom: 0,
-            }}>
+            <label htmlFor="imageUpload" className="image-upload-button">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
               </svg>
@@ -329,49 +303,15 @@ const AIFlier = ({ config, flyerContent }) => {
           </div>
           
           {uploadedImage && (
-            <div className="switch-container" style={{ 
-              backgroundColor: 'white',
-              padding: '12px 15px',
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginTop: 15,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              gap: 10
-            }}>
-              <span style={{ fontSize: '1rem', color: '#4a5568', fontWeight: 500, flex: 1 }}>{isRTL ? 'תמונת רקע' : 'Background Image'}</span>
-              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: 52, height: 26, margin: 0 }}>
+            <div className="switch-container">
+              <span className="switch-label">{isRTL ? 'תמונת רקע' : 'Background Image'}</span>
+              <label className="switch">
                 <input
                   type="checkbox"
                   checked={isBackgroundImage}
                   onChange={(e) => setIsBackgroundImage(e.target.checked)}
-                  style={{ opacity: 0, width: 0, height: 0 }}
                 />
-                <span className="slider" style={{ 
-                  position: 'absolute',
-                  cursor: 'pointer',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: isBackgroundImage ? '#4299e1' : '#cbd5e0',
-                  transition: '.3s',
-                  borderRadius: 26,
-                }}>
-                  <span style={{
-                    position: 'absolute',
-                    content: '""',
-                    height: 20,
-                    width: 20,
-                    left: isBackgroundImage ? 29 : 3,
-                    bottom: 3,
-                    backgroundColor: 'white',
-                    transition: '.3s',
-                    borderRadius: '50%',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                  }}></span>
-                </span>
+                <span className="slider"></span>
               </label>
             </div>
           )}
@@ -380,22 +320,7 @@ const AIFlier = ({ config, flyerContent }) => {
         {/* Back to Summary button */}
         <button 
           onClick={() => window.history.back()}
-          style={{ 
-            marginTop: 'auto', 
-            marginBottom: 10,
-            background: '#e2e8f0', 
-            color: '#2d3748', 
-            border: 'none', 
-            borderRadius: 8, 
-            padding: '10px 16px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            gap: 8,
-            width: '100%',
-            cursor: 'pointer',
-            fontWeight: 500
-          }}
+          className="back-button"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/>
@@ -403,61 +328,36 @@ const AIFlier = ({ config, flyerContent }) => {
           {isRTL ? 'חזרה לסיכום' : 'Back to Summary'}
         </button>
         
-        {/* Reset to AI button - moved to the bottom */}
+        {/* Reset to AI button */}
         <button 
           onClick={resetToAI}
-          style={{ 
-            marginTop: 0, 
-            background: '#f0f7ff', 
-            color: '#0d47a1', 
-            border: '1px solid #bfdaff', 
-            borderRadius: 8, 
-            padding: '10px 16px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            gap: 8,
-            width: '100%',
-            cursor: 'pointer',
-            fontWeight: 500
-          }}
+          className="reset-button"
         >
           <span style={{ fontSize: 18 }}>✨</span>
           {isRTL ? 'חזור להמלצות ה-AI' : 'Reset to AI Suggestions'}
         </button>
       </div>
 
-      {/* Flyer Preview */}
-      <div className="flier-preview" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Flier Preview */}
+      <div className="flier-preview">
         <div
           ref={flyerCanvasRef}
           className="flier-canvas"
           style={{
             backgroundColor,
             borderRadius: `${borderRadius}px`,
-            width: 600,
-            height: flyerHeight,
-            position: 'relative',
             backgroundImage: isBackgroundImage && uploadedImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${uploadedImage})` : 'none',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-            overflow: 'hidden',
-            padding: 40,
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 20,
           }}
         >
-          <div className="phone-preview" style={{ position: 'absolute', left: -180, top: '50%', transform: isRTL ? 'translateY(-50%) rotate(-15deg)' : 'translateY(-50%) rotate(15deg)', width: 600, height: 'auto', zIndex: 5, pointerEvents: 'none' }}>
+          <div className="phone-preview">
             <img 
               src="/assets/Phone-APP.png" 
               alt="myBenefitz App Preview" 
               className="phone-image"
-              style={{ width: '100%', height: 'auto', filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))' }}
             />
           </div>
           {logo && (
-            <div className="flier-logo" style={{ position: 'absolute', top: 20, left: 20, width: 100, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 8, zIndex: 2 }}>
+            <div className="flier-logo">
               <img src={logo} alt="Business Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
             </div>
           )}
@@ -501,25 +401,19 @@ const AIFlier = ({ config, flyerContent }) => {
                 left: `${imagePosition.x}%`,
                 top: `${imagePosition.y}%`,
                 position: 'absolute',
-                maxWidth: 300,
-                maxHeight: 300,
                 transform: 'translate(-50%, -50%)',
-                borderRadius: 12,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
                 zIndex: 3,
-                cursor: 'move',
-                userSelect: 'none',
               }}
               onMouseDown={handleDragStart}
             />
           )}
           {qrLink && (
-            <div className="qr-code-container" style={{ position: 'absolute', left: isRTL ? 'auto' : 40, right: isRTL ? 40 : 'auto', bottom: 80, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 20, zIndex: 2 }}>
-              <div className="qr-code" style={{ background: 'white', padding: 10, borderRadius: 8, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+            <div className={`qr-code-container ${isRTL ? 'rtl' : ''}`}>
+              <div className="qr-code">
                 <QRCodeSVG value={qrLink} size={120} />
               </div>
-              <div className="qr-instructions" style={{ background: 'rgba(255, 255, 255, 0.95)', padding: '12px 16px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 12, boxShadow: '0 2px 6px rgba(0,0,0,0.1)', maxWidth: 220 }}>
-                <div className="qr-scan-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4299e1', marginTop: 3 }}>
+              <div className="qr-instructions">
+                <div className="qr-scan-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 3H4V6H7V3Z" fill="currentColor"/>
                     <path d="M20 3H17V6H20V3Z" fill="currentColor"/>
@@ -528,42 +422,28 @@ const AIFlier = ({ config, flyerContent }) => {
                     <path d="M20 11H4V13H20V11Z" fill="currentColor"/>
                   </svg>
                 </div>
-                <div className="qr-text" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <p className="primary" style={{ margin: 0, lineHeight: 1.3, fontSize: '0.95rem', color: '#2d3748', fontWeight: 600 }}>{isRTL ? 'סרקו את הקוד לקבלת ההטבה' : 'Scan the code to get the benefit'}</p>
-                  <p className="secondary" style={{ margin: 0, lineHeight: 1.3, fontSize: '0.85rem', color: '#4a5568', fontWeight: 400 }}>{isRTL ? 'פתחו את המצלמה בנייד' : 'Open your phone camera'}</p>
-                  <p className="secondary" style={{ margin: 0, lineHeight: 1.3, fontSize: '0.85rem', color: '#4a5568', fontWeight: 400 }}>{isRTL ? 'כוונו לקוד וקבלו את ההטבה' : 'Point at the code and get your benefit'}</p>
+                <div className="qr-text">
+                  <p className="primary">{isRTL ? 'סרקו את הקוד לקבלת ההטבה' : 'Scan the code to get the benefit'}</p>
+                  <p className="secondary">{isRTL ? 'פתחו את המצלמה בנייד' : 'Open your phone camera'}</p>
+                  <p className="secondary">{isRTL ? 'כוונו לקוד וקבלו את ההטבה' : 'Point at the code and get your benefit'}</p>
                 </div>
               </div>
             </div>
           )}
-          <div className="flier-footer" style={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', padding: 10, fontSize: '1em', fontFamily: 'Arial, sans-serif' }}>
+          <div className="flier-footer">
             {isRTL ? (
-              <>באפליקציה השכונתית <span className="brand-name" style={{ color: '#0b6bf2', fontWeight: 700 }}>myBenefitz</span> תומכת בעסקים הקטנים השכונתיים</>
+              <>באפליקציה השכונתית <span className="brand-name">myBenefitz</span> תומכת בעסקים הקטנים השכונתיים</>
             ) : (
-              <><span className="brand-name" style={{ color: '#0b6bf2', fontWeight: 700 }}>myBenefitz</span> The neighborhood app supporting local small businesses</>
+              <><span className="brand-name">myBenefitz</span> The neighborhood app supporting local small businesses</>
             )}
           </div>
         </div>
       </div>
 
       {/* Controls Panel */}
-      <div className="flier-controls" style={{ 
-        width: 300, 
-        padding: 20, 
-        backgroundColor: '#f5f5f5', 
-        borderRadius: 8, 
-        position: 'sticky', 
-        top: 20, 
-        marginTop: topMargin, 
-        height: `${sideColumnHeight}px`, 
-        overflow: 'auto', 
-        zIndex: 20,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        {/* Vibe/Template Combo Box */}
+      <div className="side-panel" style={{ height: `${sideColumnHeight}px`, marginTop: topMargin }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-          <div className="control-group" style={{ marginBottom: 15 }}>
+          <div className="control-group">
             <label htmlFor="vibeSelect" style={{ display: 'block', marginBottom: 5, fontWeight: 'bold' }}>
               {isRTL ? 'סגנון / תבנית' : 'Vibe / Template'}
             </label>
@@ -571,7 +451,7 @@ const AIFlier = ({ config, flyerContent }) => {
               id="vibeSelect" 
               value={vibe} 
               onChange={handleVibeChange} 
-              style={{ width: '100%', padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+              className="form-control"
             >
               {VIBE_TEMPLATES.map(v => (
                 <option key={v.value} value={v.value}>{v.icon} {v.label}</option>
@@ -587,21 +467,15 @@ const AIFlier = ({ config, flyerContent }) => {
               value={flierTitle}
               onChange={(e) => setFlierTitle(e.target.value)}
               placeholder={flyerContent.title || (isRTL ? 'הכנס כותרת' : 'Enter title')}
-              style={{ 
-                width: '100%', 
-                padding: 8, 
-                border: '1px solid #ddd', 
-                borderRadius: 4, 
-                backgroundColor: 'white',
-                direction: isRTL ? 'rtl' : 'ltr' 
-              }}
+              className={`form-control ${isRTL ? 'rtl-control' : ''}`}
             />
             <div className="font-controls" style={{ display: 'flex', gap: 10, marginBottom: 15 }}>
               <select
                 value={titleFont}
                 onChange={(e) => setTitleFont(e.target.value)}
                 title={isRTL ? 'בחר פונט' : 'Select font'}
-                style={{ flex: 1, padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+                className="form-control"
+                style={{ flex: 1 }}
               >
                 {FONT_OPTIONS.map(font => (
                   <option key={font.value} value={font.value}>{font.label}</option>
@@ -614,7 +488,8 @@ const AIFlier = ({ config, flyerContent }) => {
                 min="20"
                 max="80"
                 title={isRTL ? 'גודל פונט' : 'Font size'}
-                style={{ width: 80, padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+                className="form-control"
+                style={{ width: 80 }}
               />
             </div>
           </div>
@@ -626,23 +501,16 @@ const AIFlier = ({ config, flyerContent }) => {
               value={flierText}
               onChange={(e) => setFlierText(e.target.value)}
               placeholder={flyerContent.promotionalText || (isRTL ? 'הכנס טקסט פרסומי' : 'Enter promotional text')}
-              style={{ 
-                width: '100%', 
-                padding: 8, 
-                border: '1px solid #ddd', 
-                borderRadius: 4, 
-                backgroundColor: 'white',
-                direction: isRTL ? 'rtl' : 'ltr',
-                height: 100,
-                resize: 'vertical'
-              }}
+              className={`form-control ${isRTL ? 'rtl-control' : ''}`}
+              style={{ height: 100, resize: 'vertical' }}
             />
             <div className="font-controls" style={{ display: 'flex', gap: 10, marginBottom: 15 }}>
               <select
                 value={textFont}
                 onChange={(e) => setTextFont(e.target.value)}
                 title={isRTL ? 'בחר פונט' : 'Select font'}
-                style={{ flex: 1, padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+                className="form-control"
+                style={{ flex: 1 }}
               >
                 {FONT_OPTIONS.map(font => (
                   <option key={font.value} value={font.value}>{font.label}</option>
@@ -655,7 +523,8 @@ const AIFlier = ({ config, flyerContent }) => {
                 min="12"
                 max="40"
                 title={isRTL ? 'גודל פונט' : 'Font size'}
-                style={{ width: 80, padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+                className="form-control"
+                style={{ width: 80 }}
               />
             </div>
           </div>
@@ -685,7 +554,7 @@ const AIFlier = ({ config, flyerContent }) => {
               value={qrLink}
               onChange={(e) => setQrLink(e.target.value)}
               placeholder={isRTL ? 'הכנס קישור ליצירת QR' : 'Enter link for QR code'}
-              style={{ width: '100%', padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+              className="form-control"
             />
           </div>
 
@@ -696,7 +565,7 @@ const AIFlier = ({ config, flyerContent }) => {
               id="backgroundColor"
               value={backgroundColor}
               onChange={(e) => setBackgroundColor(e.target.value)}
-              style={{ width: '100%', padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+              className="form-control"
             />
           </div>
 
@@ -707,7 +576,7 @@ const AIFlier = ({ config, flyerContent }) => {
               id="titleColor"
               value={titleColor}
               onChange={(e) => setTitleColor(e.target.value)}
-              style={{ width: '100%', padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+              className="form-control"
             />
           </div>
 
@@ -718,7 +587,7 @@ const AIFlier = ({ config, flyerContent }) => {
               id="textColor"
               value={textColor}
               onChange={(e) => setTextColor(e.target.value)}
-              style={{ width: '100%', padding: 8, border: '1px solid #ddd', borderRadius: 4, backgroundColor: 'white' }}
+              className="form-control"
             />
           </div>
         </div>
@@ -726,23 +595,6 @@ const AIFlier = ({ config, flyerContent }) => {
         <button 
           className="download-button"
           onClick={handleDownloadFlier}
-          style={{
-            width: '100%',
-            padding: '12px 20px',
-            backgroundColor: '#10B981',
-            color: 'white',
-            border: 'none',
-            borderRadius: 6,
-            fontSize: '1.1rem',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            marginTop: 'auto',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/>

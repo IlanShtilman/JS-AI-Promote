@@ -16,7 +16,6 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
   
   // Debug the info object to check for logo and colors
   console.log("Summary info received:", info);
-  console.log("Colors data:", info.colors);
   
   // Map the values to display labels
   const getDisplayValue = (key, value) => {
