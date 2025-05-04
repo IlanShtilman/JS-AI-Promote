@@ -33,23 +33,14 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ImageSearchIcon from '@mui/icons-material/ImageSearch';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockIcon from '@mui/icons-material/Lock';
-import { analyzeImageWithAzure } from '../services/azureVisionService';
+import { analyzeImageWithAzure } from '../../services/azureVisionService';
+import { assembleSummaryInfo } from './summaryUtils';
+import './AIInfoCollection.css';
 
 const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) => (
   <Paper
     elevation={2}
-    sx={{
-      p: 3,
-      height: '100%',
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      transition: 'all 0.3s ease',
-      position: 'relative',
-      opacity: disabled ? 0.7 : 1,
-      '&:hover': !disabled && {
-        transform: 'translateY(-4px)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-      },
-    }}
+    className={`${disabled ? 'aiinfo-disabled-paper' : 'aiinfo-paper'}`}
     onClick={!disabled ? onClick : undefined}
   >
     <Stack spacing={2} alignItems="center" height="100%">
@@ -96,20 +87,16 @@ const targetAudiences = [
 ];
 
 const AIInfoCollection = ({ language, onSubmit, initialData }) => {
-  const isRTL = language === 'Hebrew';
-  const direction = isRTL ? 'rtl' : 'ltr';
-
   const [formData, setFormData] = useState({
-    targetAudience: '',
-    businessType: '',
-    stylePreference: 'modern', // modern, classic, minimalist, bold
-    colorScheme: '',
-    moodLevel: 50, // 0-100: professional to playful
-    imagePreference: 'system', // 'system' or 'upload'
+    targetAudience: targetAudiences[0].value,
+    businessType: businessTypes[0].value,
+    stylePreference: 'modern',
+    colorScheme: 'warm',
+    imagePreference: 'system',
     uploadedImage: null,
-    uploadType: 'regular', // 'regular' or 'enhanced'
-    flierSize: 'A4', // New field
-    orientation: 'portrait' // New field
+    uploadType: 'regular',
+    flierSize: 'A4',
+    orientation: 'portrait'
   });
 
   const [enhancedUploadOpen, setEnhancedUploadOpen] = useState(false);
@@ -192,16 +179,19 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         console.log('Azure Vision analysis result:', analysisResult);
         
         // Update form data with analysis results
+        // Only use Azure detected businessType if user hasn't selected one
         const updatedFormData = {
           ...formData,
-          businessType: analysisResult.businessType || formData.businessType,
+          // Only use Azure business type if the user hasn't explicitly chosen one
+          businessType: formData.businessType || analysisResult.businessType,
           colorScheme: analysisResult.colors?.primary || formData.colorScheme,
           sceneType: analysisResult.sceneType,
           detectedObjects: analysisResult.objects,
           description: analysisResult.description
         };
         
-        onSubmit(updatedFormData);
+        const summaryInfo = assembleSummaryInfo(updatedFormData, initialData);
+        onSubmit(summaryInfo);
       } else {
         onSubmit(formData);
       }
@@ -215,32 +205,31 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   };
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" className="aiinfo-collection-container">
       <Dialog
         open={enhancedUploadOpen}
         onClose={handleEnhancedUploadClose}
-        dir={direction}
         maxWidth="md"
       >
-        <DialogTitle sx={{ textAlign: isRTL ? 'right' : 'left', fontWeight: 'bold' }}>
-          {isRTL ? 'העלאה משופרת' : 'Enhanced Upload'}
+        <DialogTitle className="aiinfo-dialog-title">
+          העלאה משופרת
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ textAlign: 'center', fontSize: '1.5rem', my: 4, fontWeight: 'bold' }}>
+          <DialogContentText className="aiinfo-dialog-content-text">
             יאאלה גל סומך עליך
           </DialogContentText>
-          <Box sx={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              {isRTL ? 'כאן יופיע כלי שיפור התמונה' : 'Image enhancement tool will appear here'}
+          <Box className="aiinfo-dialog-box">
+            <Typography variant="body1" color="text.secondary" className="aiinfo-dialog-italic">
+              העלאה משופרת תופיע כאן
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleEnhancedUploadClose} color="primary">
-            {isRTL ? 'סגור' : 'Close'}
+            סגור
           </Button>
           <Button onClick={handleEnhancedUploadClose} color="primary" variant="contained">
-            {isRTL ? 'אישור' : 'Confirm'}
+            אישור
           </Button>
         </DialogActions>
       </Dialog>
@@ -253,43 +242,28 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         <Typography 
           variant="h3" 
           align="center" 
-          sx={{ 
-            mb: 4,
-            mt: 4,
-            fontWeight: 700,
-            background: 'linear-gradient(45deg, #FF9800 30%, #F57C00 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
+          className="aiinfo-collection-title"
         >
-          {isRTL ? 'מידע נוסף לעיצוב' : 'Additional Design Information'}
+          מידע נוסף לעיצוב
         </Typography>
 
         {showErrors && Object.values(errors).some(error => error) && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {isRTL 
-              ? 'אנא מלא את כל השדות הנדרשים לפני שתמשיך'
-              : 'Please fill in all required fields before continuing'
-            }
+          <Alert severity="error" className="aiinfo-error-alert">
+            אנא מלא את כל השדות הנדרשים לפני שתמשיך
           </Alert>
         )}
 
         <Paper 
           elevation={3} 
-          sx={{ 
-            p: 4,
-            borderRadius: '16px',
-            backgroundColor: '#fff',
-          }}
+          className="aiinfo-collection-paper"
         >
-          <Stack spacing={4} dir={direction}>
+          <Stack spacing={4}>
             <FormControl fullWidth error={showErrors && errors.targetAudience}>
-              <InputLabel>{isRTL ? 'קהל יעד *' : 'Target Audience *'}</InputLabel>
+              <InputLabel>קהל יעד *</InputLabel>
               <Select
                 value={formData.targetAudience}
                 onChange={handleInputChange('targetAudience')}
-                label={isRTL ? 'קהל יעד *' : 'Target Audience *'}
-                dir={direction}
+                label="קהל יעד *"
                 error={showErrors && errors.targetAudience}
               >
                 {targetAudiences.map((audience) => (
@@ -300,18 +274,17 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
               </Select>
               {showErrors && errors.targetAudience && (
                 <FormHelperText error>
-                  {isRTL ? 'שדה חובה' : 'This field is required'}
+                  שדה חובה
                 </FormHelperText>
               )}
             </FormControl>
 
             <FormControl fullWidth error={showErrors && errors.businessType}>
-              <InputLabel>{isRTL ? 'סוג העסק *' : 'Business Type *'}</InputLabel>
+              <InputLabel>סוג העסק *</InputLabel>
               <Select
                 value={formData.businessType}
                 onChange={handleInputChange('businessType')}
-                label={isRTL ? 'סוג העסק *' : 'Business Type *'}
-                dir={direction}
+                label="סוג העסק *"
                 error={showErrors && errors.businessType}
               >
                 {businessTypes.map((type) => (
@@ -322,89 +295,74 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
               </Select>
               {showErrors && errors.businessType && (
                 <FormHelperText error>
-                  {isRTL ? 'שדה חובה' : 'This field is required'}
+                  שדה חובה
                 </FormHelperText>
               )}
             </FormControl>
 
             <FormControl fullWidth>
-              <InputLabel>{isRTL ? 'סגנון עיצוב' : 'Design Style'}</InputLabel>
+              <InputLabel>Design Style</InputLabel>
               <Select
                 value={formData.stylePreference}
                 onChange={handleInputChange('stylePreference')}
-                label={isRTL ? 'סגנון עיצוב' : 'Design Style'}
+                label="Design Style"
               >
-                <MenuItem value="modern">{isRTL ? 'מודרני' : 'Modern'}</MenuItem>
-                <MenuItem value="classic">{isRTL ? 'קלאסי' : 'Classic'}</MenuItem>
-                <MenuItem value="minimalist">{isRTL ? 'מינימליסטי' : 'Minimalist'}</MenuItem>
-                <MenuItem value="bold">{isRTL ? 'נועז' : 'Bold'}</MenuItem>
+                <MenuItem value="modern">Modern - מודרני</MenuItem>
+                <MenuItem value="classic">Classic - קלאסי</MenuItem>
+                <MenuItem value="minimalist">Minimalist - מינימליסטי</MenuItem>
+                <MenuItem value="bold">Bold - נועז</MenuItem>
               </Select>
             </FormControl>
 
             <FormControl fullWidth error={showErrors && errors.colorScheme}>
-              <InputLabel>{isRTL ? 'סכמת צבעים *' : 'Color Scheme *'}</InputLabel>
+              <InputLabel>Color Scheme *</InputLabel>
               <Select
                 value={formData.colorScheme}
                 onChange={handleInputChange('colorScheme')}
-                label={isRTL ? 'סכמת צבעים *' : 'Color Scheme *'}
+                label="Color Scheme *"
                 error={showErrors && errors.colorScheme}
               >
-                <MenuItem value="warm">{isRTL ? 'חם' : 'Warm'}</MenuItem>
-                <MenuItem value="cool">{isRTL ? 'קר' : 'Cool'}</MenuItem>
-                <MenuItem value="neutral">{isRTL ? 'ניטרלי' : 'Neutral'}</MenuItem>
-                <MenuItem value="vibrant">{isRTL ? 'תוסס' : 'Vibrant'}</MenuItem>
+                <MenuItem value="warm">Warm - חם</MenuItem>
+                <MenuItem value="cool">Cool - קר</MenuItem>
+                <MenuItem value="neutral">Neutral - ניטרלי</MenuItem>
+                <MenuItem value="vibrant">Vibrant - תוסס</MenuItem>
               </Select>
               {showErrors && errors.colorScheme && (
-                <FormHelperText>{isRTL ? 'אנא בחר סכמת צבעים' : 'Please select a color scheme'}</FormHelperText>
+                <FormHelperText>Please select a color scheme</FormHelperText>
               )}
             </FormControl>
 
-            <Box>
-              <Typography gutterBottom>
-                {isRTL ? 'רמת הרשמיות' : 'Professional to Playful'}
-              </Typography>
-              <Slider
-                value={formData.moodLevel}
-                onChange={(e, newValue) => setFormData({ ...formData, moodLevel: newValue })}
-                valueLabelDisplay="auto"
-                marks={[
-                  { value: 0, label: isRTL ? 'רשמי' : 'Professional' },
-                  { value: 100, label: isRTL ? 'קליל' : 'Playful' }
-                ]}
-              />
-            </Box>
-
-            <Box sx={{ border: '1px solid #e0e0e0', borderRadius: '8px', p: 3 }}>
+            <Box className="aiinfo-flier-image-box">
               <Typography variant="h6" gutterBottom>
-                {isRTL ? 'תמונות בפלייר *' : 'Flier Images *'}
+                תמונות בפלייר *
               </Typography>
               <RadioGroup
+                row
+                className="rtl-row-group"
                 value={formData.imagePreference}
                 onChange={handleInputChange('imagePreference')}
               >
-                <FormControlLabel 
+                <FormControlLabel
                   value="system"
                   control={<Radio />}
                   label={
                     <Stack direction="row" alignItems="center" spacing={1}>
                       <ImageSearchIcon color="primary" />
-                      <Typography>
-                        {isRTL ? 'תן למערכת לבחור תמונות מתאימות' : 'Let the system choose appropriate images'}
-                      </Typography>
+                      <Typography>תן למערכת לבחור תמונות מתאימות</Typography>
                     </Stack>
                   }
+                  labelPlacement="start"
                 />
-                <FormControlLabel 
+                <FormControlLabel
                   value="upload"
                   control={<Radio />}
                   label={
                     <Stack direction="row" alignItems="center" spacing={1}>
                       <CloudUploadIcon color="primary" />
-                      <Typography>
-                        {isRTL ? 'העלה תמונה משלך' : 'Upload your own image'}
-                      </Typography>
+                      <Typography>העלה תמונה משלך</Typography>
                     </Stack>
                   }
+                  labelPlacement="start"
                 />
               </RadioGroup>
               
@@ -413,11 +371,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={6}>
                       <UploadWindow
-                        title={isRTL ? 'העלאה רגילה' : 'Regular Upload'}
-                        description={isRTL 
-                          ? 'העלה תמונה מהמחשב שלך'
-                          : 'Upload an image from your computer'
-                        }
+                        title="העלאה רגילה"
+                        description="העלה תמונה מהמחשב שלך"
                         icon={
                           <CloudUploadIcon 
                             sx={{ fontSize: 40, color: 'primary.main' }}
@@ -436,11 +391,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <UploadWindow
-                        title={isRTL ? 'העלאה משופרת' : 'Enhanced Upload'}
-                        description={isRTL 
-                          ? 'העלה ושפר את איכות התמונה באופן אוטומטי'
-                          : 'Upload and automatically enhance image quality'
-                        }
+                        title="העלאה משופרת"
+                        description="העלה ושפר את איכות התמונה באופן אוטומטי"
                         icon={
                           <AutoFixHighIcon 
                             sx={{ fontSize: 40, color: 'primary.main' }}
@@ -454,7 +406,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                   </Grid>
                   {showErrors && errors.imageUpload && (
                     <Typography color="error" sx={{ mt: 2 }}>
-                      {isRTL ? 'אנא העלה תמונה' : 'Please upload an image'}
+                      אנא העלה תמונה
                     </Typography>
                   )}
                 </Box>
@@ -462,34 +414,36 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
             </Box>
 
             {/* Flier Size Selection */}
-            <FormControl fullWidth sx={{ mt: 2 }} error={showErrors && errors.flierSize}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                {isRTL ? 'גודל פלייר' : 'Flier Size'}
+            <FormControl fullWidth className="aiinfo-flier-size" error={showErrors && errors.flierSize}>
+              <Typography variant="h6" gutterBottom>
+                גודל פלייר
               </Typography>
               <RadioGroup
                 row
+                className="rtl-row-group"
                 value={formData.flierSize}
                 onChange={e => setFormData({ ...formData, flierSize: e.target.value })}
                 name="flier-size-group"
               >
-                <FormControlLabel value="A4" control={<Radio />} label="A4" />
-                <FormControlLabel value="A5" control={<Radio />} label="A5" />
+                <FormControlLabel value="A4" control={<Radio />} label="A4" labelPlacement="start" />
+                <FormControlLabel value="A5" control={<Radio />} label="A5" labelPlacement="start" />
               </RadioGroup>
             </FormControl>
 
             {/* Orientation Selection */}
-            <FormControl fullWidth sx={{ mt: 2 }} error={showErrors && errors.orientation}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                {isRTL ? 'כיוון הדף' : 'Orientation'}
+            <FormControl fullWidth className="aiinfo-orientation" error={showErrors && errors.orientation}>
+              <Typography variant="h6" gutterBottom>
+                כיוון הדף
               </Typography>
               <RadioGroup
                 row
+                className="rtl-row-group"
                 value={formData.orientation}
                 onChange={e => setFormData({ ...formData, orientation: e.target.value })}
                 name="orientation-group"
               >
-                <FormControlLabel value="portrait" control={<Radio />} label={isRTL ? 'לאורך' : 'Portrait'} />
-                <FormControlLabel value="landscape" control={<Radio />} label={isRTL ? 'לרוחב' : 'Landscape'} />
+                <FormControlLabel value="portrait" control={<Radio />} label="לאורך" labelPlacement="start" />
+                <FormControlLabel value="landscape" control={<Radio />} label="לרוחב" labelPlacement="start" />
               </RadioGroup>
             </FormControl>
 
@@ -499,18 +453,11 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
               onClick={handleSubmit}
               endIcon={isAnalyzing ? <CircularProgress size={24} color="inherit" /> : <ArrowForwardIcon />}
               disabled={isAnalyzing}
-              sx={{
-                mt: 4,
-                py: 2,
-                background: 'linear-gradient(45deg, #FF9800 30%, #F57C00 90%)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #F57C00 30%, #FF9800 90%)',
-                },
-              }}
+              className="aiinfo-continue-btn"
             >
               {isAnalyzing 
-                ? (isRTL ? 'מנתח תמונה...' : 'Analyzing image...')
-                : (isRTL ? 'המשך לעיצוב' : 'Continue to Design')
+                ? 'מנתח תמונה...'
+                : 'המשך לעיצוב'
               }
             </Button>
           </Stack>

@@ -9,10 +9,10 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { generateFlierConfig } from './services/aiService';
-import DesignModeSelection from './components/DesignModeSelection';
-import ManualFlierDesigner from './components/ManualFlierDesigner';
-import AIInfoCollection from './components/AIInfoCollection';
-import AIFlierSummary from './components/AIFlierSummary';
+import DesignModeSelection from './components/DesignModeSelection/DesignModeSelection';
+import ManualFlierDesigner from './components/ManualFlierDesigner/ManualFlierDesigner';
+import AIInfoCollection from './components/AIInfoProcess/AIInfoCollection';
+import AIFlierSummary from './components/AIFlierSummary/AIFlierSummary';
 import AIFlier from './components/AIFlier';
 import StageUserInfo from './components/StageUserInfo/StageUserInfo';
 import AITextResults from './components/AITextResults/AITextResults';
@@ -59,35 +59,6 @@ function App() {
     }
   };
 
-  const handleAIInfoSubmit = (formData) => {
-    // Assemble the full info object
-    const fullInfoObject = {
-      logo: logo || null,
-      title: title || '',
-      promotionalText: selectedText?.text || '',
-      // All fields from AIInfoCollection
-      targetAudience: formData.targetAudience,
-      businessType: formData.businessType,
-      stylePreference: formData.stylePreference,
-      colorScheme: formData.colorScheme,
-      moodLevel: formData.moodLevel,
-      imagePreference: formData.imagePreference,
-      uploadedImage: formData.uploadedImage || null,
-      uploadType: formData.uploadType,
-      flierSize: formData.flierSize,
-      orientation: formData.orientation,
-      // Azure Vision results (if present)
-      azureVision: formData.sceneType || formData.detectedObjects || formData.description || formData.colors ? {
-        sceneType: formData.sceneType,
-        description: formData.description,
-        objects: formData.detectedObjects,
-        colors: formData.colors
-      } : null
-    };
-    setSummaryInfo(fullInfoObject);
-    setCurrentStage('summary');
-  };
-
   const handleSummaryBack = () => {
     setCurrentStage('ai-info-collection');
   };
@@ -109,6 +80,9 @@ function App() {
   const handleContinueWithSelected = () => {
     setCurrentStage('design-mode');
   };
+
+  // Add console log to debug logo state before passing it to AIInfoCollection
+  console.log("Current logo in App.js:", logo);
 
   return (
     <Box>
@@ -160,10 +134,16 @@ function App() {
         ) : currentStage === 'ai-info-collection' ? (
           <AIInfoCollection
             language={language}
-            onSubmit={handleAIInfoSubmit}
+            onSubmit={(summaryInfo) => {
+              setSummaryInfo(summaryInfo);
+              setCurrentStage('summary');
+            }}
             initialData={{
               businessType: '',
               targetAudience: '',
+              logo, // Pass the logo state
+              title, // Pass the title
+              selectedText  // Pass the selected text
             }}
           />
         ) : currentStage === 'summary' ? (
@@ -171,6 +151,7 @@ function App() {
             info={summaryInfo}
             onBack={handleSummaryBack}
             onConfirm={handleSummaryConfirm}
+            language={language}
           />
         ) : currentStage === 'ai-flier-design' ? (
           <>

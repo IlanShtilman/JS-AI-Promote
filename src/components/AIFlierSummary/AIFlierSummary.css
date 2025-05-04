@@ -1,0 +1,209 @@
+/* AIFlierSummary container styles */
+.flier-summary-paper {
+  padding: 32px;
+  max-width: 900px;
+  margin: 48px auto 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.flier-summary-title {
+  text-align: center;
+  margin-bottom: 16px;
+  font-weight: 700;
+  color: #333;
+  font-size: 28px;
+}
+
+/* Logo container at the top */
+.flier-summary-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px 0 24px;
+  min-height: 80px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.flier-summary-header-logo {
+  max-height: 100px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.flier-summary-no-logo {
+  color: #999 !important;
+  font-style: italic;
+}
+
+.flier-summary-divider {
+  margin-bottom: 24px !important;
+  background-color: #e0e0e0 !important;
+}
+
+.flier-summary-content {
+  margin-bottom: 24px;
+}
+
+/* Section styling */
+.flier-summary-section {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.flier-summary-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.flier-summary-section-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  margin-bottom: 16px !important;
+  color: #2196f3;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
+.flier-summary-info-row {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #eaeaea;
+}
+
+.flier-summary-info-row:last-child {
+  border-bottom: none;
+}
+
+.flier-summary-label {
+  color: #757575 !important;
+  font-weight: 600 !important;
+  margin-bottom: 4px !important;
+}
+
+.flier-summary-value {
+  color: #333 !important;
+  font-weight: 400 !important;
+}
+
+/* Vision analysis section */
+.flier-summary-vision-analysis {
+  background-color: #f0f7ff;
+}
+
+.flier-summary-vision-analysis .flier-summary-section-title {
+  color: #1976d2;
+}
+
+/* Image styling */
+.flier-summary-image-container {
+  margin-bottom: 16px;
+}
+
+.flier-summary-image-wrapper {
+  margin-top: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.flier-summary-uploaded-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+}
+
+.flier-summary-bottom-divider {
+  margin: 24px 0 !important;
+  background-color: #e0e0e0 !important;
+}
+
+/* Button styling */
+.flier-summary-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.flier-summary-back-button {
+  padding: 10px 20px !important;
+  font-weight: 600 !important;
+  border-width: 2px !important;
+  transition: all 0.3s ease !important;
+}
+
+.flier-summary-back-button:hover {
+  background-color: rgba(33, 150, 243, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+.flier-summary-confirm-button {
+  padding: 10px 24px !important;
+  font-weight: 600 !important;
+  background: linear-gradient(45deg, #2196F3 30%, #1976D2 90%) !important;
+  box-shadow: 0 3px 5px 2px rgba(33, 150, 243, .3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.flier-summary-confirm-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px 2px rgba(33, 150, 243, .3) !important;
+}
+
+/* RTL support for Hebrew */
+.rtl-layout {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl-layout .flier-summary-section-title {
+  text-align: right;
+}
+
+.rtl-layout .flier-summary-actions {
+  flex-direction: row-reverse;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .flier-summary-paper {
+    padding: 20px;
+    margin: 20px;
+  }
+  
+  .flier-summary-actions {
+    flex-direction: column-reverse;
+    gap: 16px;
+  }
+  
+  .rtl-layout .flier-summary-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .flier-summary-back-button,
+  .flier-summary-confirm-button {
+    width: 100%;
+  }
+}
+
+.flier-summary-fallback-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.flier-summary-fallback-image {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  max-height: 80px;
+  object-fit: cover;
+} 
