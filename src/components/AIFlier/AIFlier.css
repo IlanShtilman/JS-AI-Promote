@@ -1,0 +1,418 @@
+/* AIFlier Container Styles */
+.flier-designer-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.flier-designer-container.rtl {
+  direction: rtl;
+}
+
+/* Side Panel Styles */
+.side-panel {
+  width: 320px;
+  padding: 25px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  position: sticky;
+  top: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 20;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-title {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Image Preview Styles */
+.image-preview {
+  width: 100%;
+  height: 200px;
+  border: 2px dashed #cbd5e0;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.image-preview-with-image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.no-image-text {
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+/* Control Group Styles */
+.control-group {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Image Upload Button Styles */
+.image-upload-button {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.image-upload-button:hover {
+  background-color: #3182ce;
+  transform: translateY(-1px);
+}
+
+/* Switch Container Styles */
+.switch-container {
+  background-color: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  gap: 10px;
+}
+
+.switch-label {
+  font-size: 1rem;
+  color: #4a5568;
+  font-weight: 500;
+  flex: 1;
+}
+
+/* Switch Component Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 26px;
+  margin: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e0;
+  transition: .3s;
+  border-radius: 26px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+input:checked + .slider {
+  background-color: #4299e1;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Button Styles */
+.back-button {
+  margin-top: auto;
+  margin-bottom: 10px;
+  background: #e2e8f0;
+  color: #2d3748;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.back-button:hover {
+  background: #cbd5e0;
+}
+
+.reset-button {
+  margin-top: 0;
+  background: #f0f7ff;
+  color: #0d47a1;
+  border: 1px solid #bfdaff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.reset-button:hover {
+  background: #e3f2fd;
+}
+
+/* Flier Canvas Styles */
+.flier-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flier-canvas {
+  width: 600px;
+  height: 800px;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  overflow: hidden;
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.flier-image-element {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  cursor: move;
+  user-select: none;
+}
+
+.phone-preview {
+  position: absolute;
+  left: -180px;
+  top: 50%;
+  transform: translateY(-50%) rotate(15deg);
+  width: 600px;
+  height: auto;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.rtl .phone-preview {
+  transform: translateY(-50%) rotate(-15deg);
+}
+
+.phone-image {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+.flier-logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+  z-index: 2;
+}
+
+/* QR Code Styles */
+.qr-code-container {
+  position: absolute;
+  left: 40px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+}
+
+.rtl .qr-code-container {
+  left: auto;
+  right: 40px;
+}
+
+.qr-code {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.qr-instructions {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  max-width: 220px;
+}
+
+.qr-scan-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4299e1;
+  margin-top: 3px;
+}
+
+.qr-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qr-text .primary {
+  margin: 0;
+  line-height: 1.3;
+  font-size: 0.95rem;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.qr-text .secondary {
+  margin: 0;
+  line-height: 1.3;
+  font-size: 0.85rem;
+  color: #4a5568;
+  font-weight: 400;
+}
+
+/* Flier Footer */
+.flier-footer {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 10px;
+  font-size: 1em;
+  font-family: Arial, sans-serif;
+}
+
+.brand-name {
+  color: #0b6bf2;
+  font-weight: 700;
+}
+
+/* Download Button */
+.download-button {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #10B981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.download-button:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+/* Form Controls */
+.form-control {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+}
+
+/* Controls for RTL */
+.rtl-control {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .flier-designer-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .side-panel {
+    width: 100%;
+    max-width: 600px;
+    position: relative;
+    top: 0;
+    margin-bottom: 20px;
+  }
+  
+  .flier-preview {
+    width: 100%;
+  }
+  
+  .flier-canvas {
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  .phone-preview {
+    display: none;
+  }
+} 

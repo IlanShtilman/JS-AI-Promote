@@ -113,7 +113,6 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
 
   const [showErrors, setShowErrors] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
   const validateForm = () => {
     const newErrors = {
@@ -207,11 +206,6 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
-      setSnackbar({
-        open: true,
-        message: `שגיאה בניתוח התמונה: ${error.message}`,
-        severity: 'error'
-      });
       
       // Generate default colors based on the selected colorScheme
       const defaultColors = generateDefaultColors(formData.colorScheme);
@@ -261,21 +255,6 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     return colorMappings[colorScheme] || colorMappings['warm'];
   };
 
-  // Test backend connection
-  const handleTestBackend = async () => {
-    const result = await testBackendConnection();
-    setSnackbar({
-      open: true, 
-      message: result.message,
-      severity: result.success ? 'success' : 'error'
-    });
-  };
-
-  // Close snackbar
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
   return (
     <Container maxWidth="md" className="aiinfo-collection-container">
       <Dialog
@@ -318,19 +297,6 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         >
           מידע נוסף לעיצוב
         </Typography>
-
-        {/* Add debug controls for advanced users */}
-        <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Button 
-            size="small" 
-            variant="outlined" 
-            color="info" 
-            onClick={handleTestBackend}
-            sx={{ fontSize: '0.7rem' }}
-          >
-            בדוק חיבור לשרת
-          </Button>
-        </Box>
 
         {showErrors && Object.values(errors).some(error => error) && (
           <Alert severity="error" className="aiinfo-error-alert">
@@ -548,14 +514,6 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
           </Stack>
         </Paper>
       </motion.div>
-
-      {/* Add snackbar for feedback */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        message={snackbar.message}
-      />
     </Container>
   );
 };
