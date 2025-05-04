@@ -1,0 +1,161 @@
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import './AITextResults.css';
+import { Box, Typography, Button, Paper, FormControlLabel, Radio, CircularProgress } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { generateAllTexts } from '../../services/aiService';
+
+const AITextResults = ({
+  language,
+  onSelectText,
+  onContinue,
+  title,
+  promotionalText,
+  triggerGeneration,
+  onError,
+  onLoadingChange
+}) => {
+  const [generatedTexts, setGeneratedTexts] = useState({});
+  const [selectedText, setSelectedText] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const resultsRef = useRef(null);
+  
+  // Handle text generation
+  useEffect(() => {
+    // Only run when triggered from parent component
+    if (triggerGeneration && title) {
+      generateTexts(title, promotionalText, language);
+    }
+  }, [triggerGeneration, title, promotionalText, language]);
+  
+  // Generate texts from AI services
+  const generateTexts = async (title, promotionalText, language) => {
+    setLoading(true);
+    if (onLoadingChange) onLoadingChange(true);
+    
+    try {
+      const results = await generateAllTexts(title, promotionalText, language);
+      const processedResults = {
+        'OpenAI': results.openai || 'No text generated',
+        'Claude': results.claude || 'No text generated',
+        'Groq': results.groq || 'No text generated',
+        'Gemini': results.gemini || 'No text generated'
+      };
+      setGeneratedTexts(processedResults);
+      setSelectedText(null);
+    } catch (err) {
+      if (onError) {
+        onError('Failed to generate text. Please check your API keys and try again.');
+      }
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+      if (onLoadingChange) onLoadingChange(false);
+    }
+  };
+
+  // Handle text selection
+  const handleSelectText = useCallback((model, text) => {
+    const selected = { model, text };
+    setSelectedText(selected);
+    if (onSelectText) onSelectText(selected);
+  }, [onSelectText]);
+
+  // Handle continue button click
+  const handleContinue = () => {
+    if (onContinue && selectedText) {
+      onContinue(selectedText);
+    }
+  };
+
+  // Scroll to results when they are generated
+  useEffect(() => {
+    if (!loading && Object.keys(generatedTexts).length > 0 && resultsRef.current) {
+      resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [loading, generatedTexts]);
+
+  // TextContainer component
+  const TextContainer = ({ model, text }) => (
+    <Paper
+      elevation={3}
+      className={`ai-text-results-text-container${selectedText?.model === model ? ' ai-text-results-selected' : ''}`}
+    >
+      <Box className={`ai-text-results-header ${language === 'Hebrew' ? 'ai-text-results-header-rtl' : ''}`}>
+        <Typography
+          variant="h6"
+          component="div"
+          className={`ai-text-results-model-name ${language === 'Hebrew' ? 'ai-text-results-model-name-rtl' : ''}`}
+        >
+          {model}
+        </Typography>
+        <FormControlLabel
+          control={
+            <Radio
+              checked={selectedText?.model === model}
+              onChange={() => handleSelectText(model, text)}
+              color="primary"
+            />
+          }
+          label={language === 'Hebrew' ? 'בחר' : 'Select'}
+          labelPlacement={language === 'Hebrew' ? 'start' : 'end'}
+          className="ai-text-results-radio-label"
+        />
+      </Box>
+      <div className="ai-text-results-text-block" dir="rtl">
+        {text.split('\n').map((line, index) => (
+          <div
+            key={index}
+            className="ai-text-results-text-line"
+            dir="rtl"
+          >
+            {line}
+          </div>
+        ))}
+      </div>
+    </Paper>
+  );
+
+  // If there are no generated texts and not loading, don't render anything
+  if (Object.keys(generatedTexts).length === 0 && !loading && !triggerGeneration) {
+    return null;
+  }
+
+  return (
+    <>
+      <Box className="ai-text-results-container" ref={resultsRef}>
+        <Typography variant="h5" gutterBottom align="center">
+          {language === 'Hebrew' ? 'בחר את הטקסט המועדף עליך' : 'Choose Your Preferred Text'}
+        </Typography>
+        {loading ? (
+          <Box className="ai-text-results-loading">
+            <CircularProgress />
+            <Typography variant="body1" align="center" sx={{ mt: 2 }}>
+              {language === 'Hebrew' ? 'מייצר טקסטים...' : 'Generating texts...'}
+            </Typography>
+          </Box>
+        ) : (
+          Object.entries(generatedTexts).map(([model, text]) => (
+            <TextContainer key={model} model={model} text={text} />
+          ))
+        )}
+      </Box>
+      
+      {!loading && selectedText && (
+        <Box className="ai-text-results-continue-btn">
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            endIcon={<ArrowForwardIcon />}
+            onClick={handleContinue}
+            className="ai-text-results-continue-btn-inner"
+          >
+            {language === 'Hebrew' ? 'המשך עם הטקסט הנבחר' : 'Continue with Selected Item'}
+          </Button>
+        </Box>
+      )}
+    </>
+  );
+};
+
+export default AITextResults; 
