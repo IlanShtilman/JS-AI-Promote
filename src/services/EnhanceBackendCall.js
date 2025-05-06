@@ -1,5 +1,5 @@
 
-const BACKEND_ENHANCE_URL = 'http://localhost:8081/enhanceImage';
+const BACKEND_ENHANCE_URL = 'http://localhost:8081/api/image/enhance';
 const EnhanceBackendCall = async (imageUrl) => {
     try{
         const response = await fetch(BACKEND_ENHANCE_URL, {
@@ -13,11 +13,11 @@ const EnhanceBackendCall = async (imageUrl) => {
         // Check if the response is okl
         if (response.ok) {
             const data = await response.json();
-            return { data };
+            return { data: { enhancedUrl: data.enhancedImageUrl } };
         } else {
             const errorData = await response.json();
             console.error('Error enhancing image:', errorData);
-            return { error: `Error enhancing image: ${errorData.error.message || response.statusText}` };
+            return { error: `Error enhancing image: ${errorData.error || response.statusText}` }; // Adjust error message access
         }
     } catch (error) {
         console.error('Error enhancing image:', error);
