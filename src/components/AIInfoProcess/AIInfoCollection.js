@@ -37,7 +37,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import { analyzeImageWithAzure, testBackendConnection } from '../../services/azureVisionService';
 import { assembleSummaryInfo } from './summaryUtils';
 import './AIInfoCollection.css';
-
+import ImageEnhance from '../ImageEnhance/ImageEnhance';
 const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) => (
   <Paper
     elevation={2}
@@ -262,27 +262,13 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         onClose={handleEnhancedUploadClose}
         maxWidth="md"
       >
-        <DialogTitle className="aiinfo-dialog-title">
-          העלאה משופרת
-        </DialogTitle>
+    
         <DialogContent>
-          <DialogContentText className="aiinfo-dialog-content-text">
-            יאאלה גל סומך עליך
-          </DialogContentText>
           <Box className="aiinfo-dialog-box">
-            <Typography variant="body1" color="text.secondary" className="aiinfo-dialog-italic">
-              העלאה משופרת תופיע כאן
-            </Typography>
+              <ImageEnhance onClose={handleEnhancedUploadClose} />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEnhancedUploadClose} color="primary">
-            סגור
-          </Button>
-          <Button onClick={handleEnhancedUploadClose} color="primary" variant="contained">
-            אישור
-          </Button>
-        </DialogActions>
+
       </Dialog>
 
       <motion.div

@@ -18,7 +18,7 @@ import java.util.Map;
 public class FlierGeminiService {
     private static final Logger logger = LoggerFactory.getLogger(FlierGeminiService.class);
 
-    @Value("${GEMINI_API_KEY}")
+    @Value("${gemini.api.key}")
     private String geminiApiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();

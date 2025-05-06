@@ -15,7 +15,7 @@ import AIFlierSummary from './components/AIFlierSummary/AIFlierSummary';
 import AIFlier from './components/AIFlier/AIFlier';
 import StageUserInfo from './components/StageUserInfo/StageUserInfo';
 import AITextResults from './components/AITextResults/AITextResults';
-
+;
 // Wrap MUI components with motion
 const MotionContainer = motion(Container);
 
