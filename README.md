@@ -89,6 +89,13 @@ AI-Promote/
 │   ├── assets/              # App images (e.g., Phone-APP.png)
 │   └── images/              # User-uploaded or sample images
 ├── src/                     # React frontend source
+│   ├── services/            # API and utility services
+│   │   ├── aiService.js
+│   │   ├── azureVisionService.js
+│   │   ├── speechService.js
+│   │   ├── elevenLabsService.js
+│   │   └── imagenService.js
+│   ├── App.js               # Main application file
 │   ├── components/          # React components
 │   │   ├── FlyerRenderer.js
 │   │   ├── ManualFlierDesigner.js
@@ -97,14 +104,8 @@ AI-Promote/
 │   │   ├── DesignModeSelection.js
 │   │   ├── DesignSuggestions.js
 │   │   └── ...
-│   ├── services/            # API and utility services
-│   │   ├── aiService.js
-│   │   ├── azureVisionService.js
-│   │   ├── speechService.js
-│   │   ├── elevenLabsService.js
-│   │   └── imagenService.js
-│   ├── App.js               # Main application file
-│   ├── index.js, index.css
+│   ├── index.js
+│   └── index.css
 ├── .env                     # Environment variables
 ├── package.json, package-lock.json
 ├── README.md                # This file
