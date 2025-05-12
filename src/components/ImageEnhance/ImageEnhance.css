@@ -1,175 +1,293 @@
+/* ImageEnhance.css */
+.image-enhance-overlay {
+    position: fixed;
+    /* Ensures it covers the full screen */
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
 .image-enhance-container {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 1000px;
-    z-index: 1000;
-}
-
-.image-enhance-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: 999;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
 }
 
 .upload-section {
-    text-align: center;
-    margin-bottom: 2rem;
-    padding: 2rem;
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    background: #f8f9fa;
+    margin-bottom: 20px;
 }
 
-.upload-section h2 {
-    color: #333;
-    margin-bottom: 1rem;
+.file-upload-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.file-upload-label:hover {
+    background-color: #0056b3;
 }
 
 .file-input {
     display: none;
 }
 
-.file-upload-label {
-    display: inline-block;
-    padding: 1rem 2rem;
-    background: #4CAF50;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.file-upload-label:hover {
-    background: #45a049;
-    transform: translateY(-1px);
-}
-
 .image-preview-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin: 2rem 0;
+    position: relative;
+    margin-bottom: 20px;
 }
 
-.image-preview {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.image-preview h3 {
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-.selected-image, .enhanced-image {
+.before-after-wrapper {
+    position: relative;
     width: 100%;
-    height: 400px;
+    height: 300px;
+    /* Adjust as needed */
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.image-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.preview-image {
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* Or cover, depending on desired behavior */
+}
+
+.slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    /* Thicker slider */
+    background-color: #333;
+    cursor: grab;
+    z-index: 10;
+    margin-left: -2px;
+    /* Adjust to center the thicker slider */
+    -webkit-user-select: none;
+    /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE/Edge */
+    user-select: none;
+    /* Standard */
+    outline: none;
+    /* Remove default focus outline */
+}
+
+.slider-handle {
+    position: absolute;
+    top: 50%;
+    left: -10px;
+    /* Adjust to center the thicker handle */
+    transform: translateY(-50%);
+    width: 20px;
+    /* Thicker handle */
+    height: 50px;
+    /* Slightly taller handle */
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: grab;
+    -webkit-user-select: none;
+    /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE/Edge */
+    user-select: none;
+    /* Standard */
+    outline: none;
+    /* Remove default focus outline */
+}
+
+.image-label {
+    position: absolute;
+    top: 10px;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    z-index: 11;
+}
+
+.original-label {
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.enhanced-label {
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.enhancing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.2em;
+    border-radius: 5px;
+}
+
+.enhanced-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #666;
+    font-style: italic;
+    border-radius: 5px;
 }
 
 .enhance-button {
-    display: block;
-    width: 100%;
-    max-width: 200px;
-    margin: 1.5rem auto;
-    padding: 0.8rem 1.5rem;
-    background: #2196F3;
+    padding: 10px 20px;
+    background-color: #28a745;
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px;
 }
 
-.enhance-button:hover:not(:disabled) {
-    background: #1976D2;
-    transform: translateY(-1px);
+.enhance-button:hover {
+    background-color: #1e7e34;
 }
 
 .enhance-button:disabled {
-    background: #ccc;
+    background-color: #ccc;
     cursor: not-allowed;
 }
 
-.loading-message {
-    text-align: center;
-    color: #666;
-    margin: 1rem 0;
-    font-size: 0.9rem;
-}
-
 .error-message {
-    background: #ffebee;
-    color: #d32f2f;
-    padding: 1rem;
-    border-radius: 6px;
-    margin: 1rem 0;
-    text-align: center;
-    font-size: 0.9rem;
+    color: red;
+    margin-bottom: 10px;
 }
 
 .action-buttons {
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
 }
 
-.exit-button, .accept-button {
-    padding: 0.8rem 2rem;
+.exit-button,
+.accept-button {
+    padding: 8px 15px;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-size: 1em;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
 }
 
 .exit-button {
-    background: #f5f5f5;
-    color: #666;
-}
-
-.exit-button:hover {
-    background: #e0e0e0;
-    transform: translateY(-1px);
-}
-
-.accept-button {
-    background: #4CAF50;
+    background-color: #dc3545;
     color: white;
 }
 
-.accept-button:hover:not(:disabled) {
-    background: #45a049;
-    transform: translateY(-1px);
+.exit-button:hover {
+    background-color: #c82333;
 }
 
-.accept-button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+.accept-button {
+    background-color: #007bff;
+    color: white;
+}
+
+.accept-button:hover {
+    background-color: #0056b3;
+}
+
+.only-original {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    /* Center the image horizontally */
+    align-items: center;
+    /* Center the image vertically */
+}
+
+.original-full-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    /* Ensures the full image is visible */
+    display: block;
+    margin: 0 auto;
+    /* Center the image within its container */
+}
+
+.original-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.remove-image-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    font-size: 9px;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.remove-image-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
 }

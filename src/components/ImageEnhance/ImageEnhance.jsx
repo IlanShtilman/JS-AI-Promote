@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import './ImageEnhance.css';
 import useImageToCloudinary from '../../utils/useImageToCloudinary';
 import EnhanceBackendCall from '../../services/EnhanceBackendCall';
+import ReactCompareImage from 'react-compare-image'; // New
+
 const UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
 const ImageEnhance = ({ onClose }) => {
@@ -25,23 +27,34 @@ const ImageEnhance = ({ onClose }) => {
     if (uploadedImageUrl) {
       setEnhancing(true);
       setEnhanceError('');
-      console.log("uploading Image to a temporary cloudinary url :" + uploadedImageUrl);
+      console.log("Uploading to temporary Cloudinary URL: " + uploadedImageUrl);
 
-      const result = await EnhanceBackendCall(uploadedImageUrl);
-      console.log("result from the backend :" + result);
-      if (result.data && result.data.enhancedUrl) {
-        setEnhancedImageUrl(result.data.enhancedUrl);
-        console.log('Enhanced image URL:', result.data.enhancedUrl);
-      } else if (result.error) {
-        setEnhanceError(result.error);
-      } else {
-        setEnhanceError('Backend response did not contain enhanced image URL.');
+      try {
+        const result = await EnhanceBackendCall(uploadedImageUrl);
+        console.log("Backend result:", result);
+        if (result?.data?.enhancedUrl) {
+          setEnhancedImageUrl(result.data.enhancedUrl);
+        } else if (result?.error) {
+          setEnhanceError(result.error);
+        } else {
+          setEnhanceError('Backend response did not contain enhanced image URL.');
+        }
+      } catch (error) {
+        setEnhanceError('An unexpected error occurred during enhancement.');
+        console.error("Enhance API call failed:", error);
+      } finally {
+        setEnhancing(false);
       }
-
-      setEnhancing(false);
     } else {
       setEnhanceError('No image has been uploaded yet.');
     }
+  };
+
+  // Function to remove the image
+  const handleRemoveImage = () => {
+    setImage(null);
+    setEnhancedImageUrl('');
+    setEnhanceError('');
   };
 
   return (
@@ -64,26 +77,28 @@ const ImageEnhance = ({ onClose }) => {
         ) : (
           <>
             <div className="image-preview-container">
-              <div className="image-preview">
-                <h3>Original Image</h3>
-                <img
-                  src={image}
-                  alt="Selected Image"
-                  className="selected-image"
-                />
-              </div>
-
-              <div className="image-preview">
-                <h3>Enhanced Image</h3>
+              <h3>Before & After</h3>
+              <div className="before-after-wrapper">
                 {enhancedImageUrl ? (
-                  <img
-                    src={enhancedImageUrl}
-                    alt="Enhanced Image"
-                    className="enhanced-image"
+                  <ReactCompareImage
+                    leftImage={image}
+                    rightImage={enhancedImageUrl}
+                    leftImageLabel="Original"
+                    rightImageLabel="Enhanced"
+                    sliderLineColor="#333"
+                    sliderLineWidth={2}
+                    handleSize={30}
                   />
+                ) : enhancing ? (
+                  <div className="enhancing-overlay">Enhancing...</div>
                 ) : (
-                  <div className="enhanced-image" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
-                    {enhancing ? 'Enhancing...' : 'Enhanced image will appear here'}
+                  <div className="only-original">
+                    <img src={image} alt="Original" className="original-full-image" />
+                    <div className="image-label original-label">Original</div>
+                    {/* Add the "X" button to remove the image */}
+                    <button className="remove-image-button" onClick={handleRemoveImage}>
+                      X
+                    </button>
                   </div>
                 )}
               </div>
@@ -102,16 +117,9 @@ const ImageEnhance = ({ onClose }) => {
         {enhanceError && <p className="error-message">{enhanceError}</p>}
 
         <div className="action-buttons">
-          <button className="exit-button" onClick={onClose}>
-            Exit
-          </button>
+          <button className="exit-button" onClick={onClose}>Exit</button>
           {enhancedImageUrl && (
-            <button 
-              className="accept-button"
-              onClick={onClose}
-            >
-              Accept
-            </button>
+            <button className="accept-button" onClick={onClose}>Accept</button>
           )}
         </div>
       </div>

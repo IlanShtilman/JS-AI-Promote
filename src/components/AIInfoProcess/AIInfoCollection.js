@@ -133,7 +133,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
       ...formData,
       [field]: event.target.value
     });
-    
+
     if (showErrors) {
       setErrors({
         ...errors,
@@ -178,7 +178,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         console.log('Analyzing uploaded image...');
         const analysisResult = await analyzeImageWithAzure(formData.uploadedImage);
         console.log('Azure Vision analysis result:', analysisResult);
-        
+
         // Update form data with analysis results
         const updatedFormData = {
           ...formData,
@@ -190,7 +190,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
           // Add the colors object from the analysis
           colors: analysisResult.colors
         };
-        
+
         const summaryInfo = assembleSummaryInfo(updatedFormData, initialData);
         onSubmit(summaryInfo);
       } else {
@@ -200,20 +200,20 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
           ...formData,
           colors: defaultColors
         };
-        
+
         const summaryInfo = assembleSummaryInfo(formDataWithColors, initialData);
         onSubmit(summaryInfo);
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
-      
+
       // Generate default colors based on the selected colorScheme
       const defaultColors = generateDefaultColors(formData.colorScheme);
       const formDataWithColors = {
         ...formData,
         colors: defaultColors
       };
-      
+
       const summaryInfo = assembleSummaryInfo(formDataWithColors, initialData);
       onSubmit(summaryInfo);
     } finally {
@@ -250,7 +250,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         background: '#FFFFFF'
       }
     };
-    
+
     // Return mapped colors or fallback to warm colors
     return colorMappings[colorScheme] || colorMappings['warm'];
   };
@@ -262,13 +262,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         onClose={handleEnhancedUploadClose}
         maxWidth="md"
       >
-    
-        <DialogContent>
-          <Box className="aiinfo-dialog-box">
-              <ImageEnhance onClose={handleEnhancedUploadClose} />
-          </Box>
-        </DialogContent>
-
+        <ImageEnhance onClose={handleEnhancedUploadClose} />
       </Dialog>
 
       <motion.div
@@ -276,9 +270,9 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
       >
-        <Typography 
-          variant="h3" 
-          align="center" 
+        <Typography
+          variant="h3"
+          align="center"
           className="aiinfo-collection-title"
         >
           מידע נוסף לעיצוב
@@ -290,8 +284,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
           </Alert>
         )}
 
-        <Paper 
-          elevation={3} 
+        <Paper
+          elevation={3}
           className="aiinfo-collection-paper"
         >
           <Stack spacing={4}>
@@ -402,7 +396,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                   labelPlacement="start"
                 />
               </RadioGroup>
-              
+
               {formData.imagePreference === 'upload' && (
                 <Box sx={{ mt: 3 }}>
                   <Grid container spacing={3}>
@@ -411,7 +405,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                         title="העלאה רגילה"
                         description="העלה תמונה מהמחשב שלך"
                         icon={
-                          <CloudUploadIcon 
+                          <CloudUploadIcon
                             sx={{ fontSize: 40, color: 'primary.main' }}
                           />
                         }
@@ -431,7 +425,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                         title="העלאה משופרת"
                         description="העלה ושפר את איכות התמונה באופן אוטומטי"
                         icon={
-                          <AutoFixHighIcon 
+                          <AutoFixHighIcon
                             sx={{ fontSize: 40, color: 'primary.main' }}
                           />
                         }
@@ -492,7 +486,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
               disabled={isAnalyzing}
               className="aiinfo-continue-btn"
             >
-              {isAnalyzing 
+              {isAnalyzing
                 ? 'מנתח תמונה...'
                 : 'המשך לעיצוב'
               }

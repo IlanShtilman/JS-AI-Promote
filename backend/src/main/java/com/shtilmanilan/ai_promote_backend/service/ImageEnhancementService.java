@@ -36,15 +36,18 @@ public class ImageEnhancementService {
 
     public String enhanceImage(String imageUrl) {
         try {
-            // Step 1: Generate enhancement instructions using Gemini with user-provided prompt
+            // Step 1: Generate enhancement instructions using Gemini with user-provided
+            // prompt
             String prompt = String.format(
                     "For the following image: %s\n" +
-                            "IMPORTANT: The goal is to enhance the image while keeping it looking natural and realistic. Avoid over-processing or artificial-looking results. " +
+                            "IMPORTANT: The goal is to enhance the image while keeping it looking natural and realistic. Avoid over-processing or artificial-looking results. "
+                            +
                             "Return the response in this exact JSON format:\n" +
                             "{\n" +
                             "  \"operations\": {\n" +
                             "    \"restorations\": {\n" +
-                            "      \"upscale\": \"photo\" or \"faces\" or \"digital_art\" or \"smart_enhance\" or \"smart_resize\",\n" +
+                            "      \"upscale\": \"photo\" or \"faces\" or \"digital_art\" or \"smart_enhance\" or \"smart_resize\",\n"
+                            +
                             "      \"decompress\": \"moderate\" or \"strong\" or \"auto\",\n" +
                             "      \"polish\": true or false\n" +
                             "    },\n" +
@@ -66,8 +69,8 @@ public class ImageEnhancementService {
                             "      }\n" +
                             "    }\n" +
                             "  }\n" +
-                            "}", imageUrl
-            );
+                            "}",
+                    imageUrl);
 
             // Request to generate enhancement instructions
             TextGenerationRequest requestPromptClaid = new TextGenerationRequest();
@@ -114,10 +117,19 @@ public class ImageEnhancementService {
             if (enhancementConfig.has("adjustments")) {
                 operationsNode.set("adjustments", enhancementConfig.get("adjustments"));
             }
+            // if (enhancementConfig.has("background") &&
+            // enhancementConfig.get("background").has("blur")) {
+            // operationsNode.set("background",
+            // enhancementConfig.get("background").get("blur"));
+            // }
             if (enhancementConfig.has("background") && enhancementConfig.get("background").has("blur")) {
-                operationsNode.set("background", enhancementConfig.get("background").get("blur"));
+                ObjectNode backgroundNode = objectMapper.createObjectNode();
+                ObjectNode blurNode = objectMapper.createObjectNode();
+                // We are now directly setting the blur node without explicitly accessing "category"
+                backgroundNode.set("blur", blurNode);
+                operationsNode.set("background", backgroundNode);
             }
-
+            
             requestBody.set("operations", operationsNode);
 
             logger.info("ClaID API Request Body: {}", requestBody);
@@ -128,8 +140,7 @@ public class ImageEnhancementService {
             String enhancementResponse = restTemplate.postForObject(
                     claidApiUrl,
                     request,
-                    String.class
-            );
+                    String.class);
 
             // Step 4: Parse and validate the response
             JsonNode responseJson = objectMapper.readTree(enhancementResponse);
@@ -143,7 +154,7 @@ public class ImageEnhancementService {
                 }
             }
 
-             throw new RuntimeException("Invalid response from enhancement API: missing 'tmp_url'");
+            throw new RuntimeException("Invalid response from enhancement API: missing 'tmp_url'");
 
         } catch (Exception e) {
             logger.error("Error enhancing image: {}", e.getMessage(), e);
