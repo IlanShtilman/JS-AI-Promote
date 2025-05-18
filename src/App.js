@@ -159,13 +159,16 @@ function App() {
         ) : currentStage === 'ai-flier-design' ? (
           <>
             <AIFlier
-              config={aiDesignInfo}
+              aiStyleOptions={aiDesignInfo?.aiStyleOptions}
               flyerContent={{
                 title: summaryInfo?.title,
                 promotionalText: summaryInfo?.promotionalText,
                 logo: summaryInfo?.logo,
                 image: summaryInfo?.uploadedImage,
                 callToAction: summaryInfo?.callToAction || 'Your CTA here',
+                qrUrl: summaryInfo?.qrUrl || 'https://example.com',
+                qrText: 'Scan the QR code!',
+                cta: 'Fill in the form and get the discount'
               }}
             />
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
