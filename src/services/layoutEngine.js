@@ -294,4 +294,51 @@ export function generateLayout(flierData) {
   console.log("✅ Layout Engine Complete - Generated configuration:", layoutConfig);
   layoutConfig.engineLogs = [...engineLogs]; // Attach logs for debugging
   return layoutConfig;
+}
+
+// Generate multiple style options based on a single layout
+export function generateStyleOptions(flierData) {
+  // Get the base configuration first
+  const baseConfig = generateLayout(flierData);
+  
+  // Create an array of style options with different patterns
+  const styleOptions = [
+    {
+      backgroundColor: baseConfig.colorApplications?.background || '#ffffff',
+      textColor: baseConfig.colorApplications?.title || '#000000',
+      accentColor: baseConfig.colorApplications?.accent || '#FFA726',
+      pattern: 'grid',
+      backgroundImage: 'none',
+      designRationale: 'Modern grid pattern for a clean, professional look.'
+    },
+    {
+      backgroundColor: baseConfig.colorApplications?.background || '#ffffff',
+      textColor: baseConfig.colorApplications?.title || '#000000',
+      accentColor: baseConfig.colorApplications?.accent || '#FFA726',
+      pattern: 'dots',
+      backgroundImage: 'none',
+      designRationale: 'Playful dots pattern for a fun, engaging vibe.'
+    },
+    {
+      backgroundColor: baseConfig.colorApplications?.background || '#ffffff',
+      textColor: baseConfig.colorApplications?.title || '#000000',
+      accentColor: baseConfig.colorApplications?.accent || '#FFA726',
+      pattern: 'none',
+      backgroundImage: 'none',
+      designRationale: 'Clean solid background for maximum readability and minimalist appeal.'
+    }
+  ];
+  
+  // If we have a specific pattern from AI, make sure it's the first option
+  if (baseConfig.patternType && baseConfig.patternType !== 'none') {
+    const aiPattern = baseConfig.patternType;
+    // Move the matching pattern to the front if it exists
+    const patternIndex = styleOptions.findIndex(option => option.pattern === aiPattern);
+    if (patternIndex > 0) {
+      const preferredOption = styleOptions.splice(patternIndex, 1)[0];
+      styleOptions.unshift(preferredOption);
+    }
+  }
+  
+  return styleOptions;
 } 

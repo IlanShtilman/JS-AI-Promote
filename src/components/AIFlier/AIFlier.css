@@ -3,7 +3,8 @@
   flex-direction: column;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 10px 0;
+  padding: 0;
+  width: 100%;
   border-radius: 12px;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -325,18 +326,20 @@
 
 /* Flier preview */
 .ai-flier-preview {
+  aspect-ratio: 3/4;
   width: 100%;
-  max-width: 600px;
-  aspect-ratio: 1 / 1.414; /* A4 aspect ratio */
+  max-width: 500px;
   margin: 0 auto;
   padding: 20px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
   background-color: white;
 }
 
 .ai-flier-preview.export-mode {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  max-width: 800px;
 }
 
 .ai-flier-grid {
@@ -480,12 +483,81 @@
 }
 
 .dots-pattern-preview {
-  background-image: radial-gradient(#00000020 1px, transparent 1px);
-  background-size: 10px 10px;
+  background-image: radial-gradient(#0002 1px, transparent 1px);
+  background-size: 12px 12px;
 }
 
 .lines-pattern-preview {
-  background-image: linear-gradient(to right, #00000010 1px, transparent 1px),
-                    linear-gradient(to bottom, #00000010 1px, transparent 1px);
+  background-image: linear-gradient(90deg, transparent 90%, #0001 90%);
+  background-size: 20px 20px;
+}
+
+.flier-content-rtl {
+  direction: rtl;
+}
+
+.flier-main-grid {
+  min-height: 600px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ai-flier-title, .ai-flier-promo-text {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .flier-main-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto !important;
+  }
+  .ai-flier-title, .ai-flier-promo-text {
+    text-align: right;
+  }
+}
+
+/* Pattern preview styles for selector */
+.grid-pattern-preview {
+  background-image: linear-gradient(#0001 1px, transparent 1px), 
+                    linear-gradient(90deg, #0001 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.diagonal-pattern-preview {
+  background-image: repeating-linear-gradient(45deg, #0001 0, #0001 1px, transparent 0, transparent 50%);
   background-size: 10px 10px;
-} 
+}
+
+.waves-pattern-preview {
+  background-image: repeating-radial-gradient(ellipse at 50% 50%, #00000000, #00000010 8px, #00000000 12px);
+  background-size: 20px 20px;
+}
+
+.confetti-pattern-preview {
+  background-color: rgba(255, 255, 255, 0.5);
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%2399999930' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* Style selector enhancements */
+.ai-style-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.ai-style-option {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-style-option.selected {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .ai-flier-preview {
+    max-width: 90%;
+  }
+}

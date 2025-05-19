@@ -244,7 +244,15 @@ export async function generateFlierConfig(infoObject) {
     };
     
     // Generate the deterministic layout with AI input
-    const finalConfig = generateLayout(combinedData);
+    const layoutConfig = generateLayout(combinedData);
+    
+    // Return both the layout config and AI style options directly
+    const finalConfig = {
+      ...layoutConfig,
+      // Add the aiStyleOptions property directly to the config
+      aiStyleOptions: aiStyleAdvice
+    };
+    
     console.log("Final flier configuration generated:", finalConfig);
     
     return finalConfig;
@@ -254,6 +262,17 @@ export async function generateFlierConfig(infoObject) {
     // Fall back to pure layout engine if combined approach fails
     console.log("Using frontend layout engine as complete fallback");
     const { generateLayout } = await import('./layoutEngine.js');
-    return generateLayout(infoObject);
+    const { generateStyleOptions } = await import('./layoutEngine.js');
+    
+    // Generate a basic layout
+    const layoutConfig = generateLayout(infoObject);
+    
+    // Generate some style options as fallback
+    const styleOptions = generateStyleOptions(infoObject);
+    
+    return {
+      ...layoutConfig,
+      aiStyleOptions: styleOptions // Add fallback style options
+    };
   }
 } 
