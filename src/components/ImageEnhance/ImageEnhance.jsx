@@ -1,132 +1,30 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import './ImageEnhance.css';
 import useImageToCloudinary from '../../utils/useImageToCloudinary';
 import EnhanceBackendCall from '../../services/EnhanceBackendCall';
 
 const UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
-const ImageComparison = ({ leftImage, rightImage, leftLabel = "Original", rightLabel = "Enhanced" }) => {
-  const [sliderPosition, setSliderPosition] = useState(50);
-  const [isDragging, setIsDragging] = useState(false);
-  const containerRef = useRef(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
-  // Update container size on mount and window resize
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
-        setContainerSize({ width, height });
-      }
-    };
-
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    updateSliderPosition(e);
-  };
-
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      updateSliderPosition(e);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const updateSliderPosition = (e) => {
-    if (!containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const position = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSliderPosition(position);
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
-
-  return (
-    <div 
-      className="custom-image-comparison"
-      ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onTouchStart={(e) => {
-        setIsDragging(true);
-        updateSliderPosition(e.touches[0]);
-      }}
-      onTouchMove={(e) => {
-        if (isDragging) {
-          updateSliderPosition(e.touches[0]);
-        }
-      }}
-      onTouchEnd={() => setIsDragging(false)}
-    >
-      <div className="comparison-container" style={{ height: containerSize.width * 0.75 }}>
-        <div className="image-wrapper">
-          <img 
-            src={leftImage} 
-            alt={leftLabel} 
-            className="comparison-image left-image"
-            onLoad={(e) => {
-              const img = e.target;
-              if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                const aspectRatio = img.naturalHeight / img.naturalWidth;
-                const height = containerSize.width * aspectRatio;
-                setContainerSize(prev => ({ ...prev, height }));
-              }
-            }}
-          />
-        </div>
-        <div 
-          className="comparison-overlay"
-          style={{ width: `${sliderPosition}%` }}
-        >
-          <div className="image-wrapper">
-            <img 
-              src={rightImage} 
-              alt={rightLabel} 
-              className="comparison-image right-image"
-            />
-          </div>
-        </div>
-        <div 
-          className="comparison-slider"
-          style={{ left: `${sliderPosition}%` }}
-        >
-          <div className="slider-handle" />
-        </div>
-        <div className="comparison-labels">
-          <span className="label left-label">{leftLabel}</span>
-          <span className="label right-label">{rightLabel}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const ImageEnhance = ({ onClose }) => {
   const [image, setImage] = useState(null);
-  const { uploadedImageUrl, uploading, uploadError, uploadImage } = useImageToCloudinary(UPLOAD_PRESET);
+  const { uploadedImageUrl, uploading, uploadError, uploadImage, resetUpload } = useImageToCloudinary(UPLOAD_PRESET);
   const [enhancing, setEnhancing] = useState(false);
   const [enhancedImageUrl, setEnhancedImageUrl] = useState('');
   const [enhanceError, setEnhanceError] = useState('');
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [enhancementKey, setEnhancementKey] = useState(0); // Key to force re-enhancement
+
+  // Reset all states when image changes
+  const resetStates = useCallback(() => {
+    setEnhancedImageUrl('');
+    setEnhanceError('');
+    setImagesLoaded(false);
+    setImageLoadError(false);
+    setEnhancing(false);
+    resetUpload();
+  }, [resetUpload]);
 
   // Function to preload an image
   const preloadImage = useCallback((url) => {
@@ -149,7 +47,7 @@ const ImageEnhance = ({ onClose }) => {
     });
   }, []);
 
-  // Validate and preload both images
+  // Validate and preload images
   useEffect(() => {
     let isMounted = true;
     let timeoutId;
@@ -211,18 +109,19 @@ const ImageEnhance = ({ onClose }) => {
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [image, enhancedImageUrl, preloadImage]);
+  }, [image, enhancedImageUrl, preloadImage, enhancementKey]); // Added enhancementKey dependency
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      if (image) {
+        URL.revokeObjectURL(image);
+      }
       const imageUrl = URL.createObjectURL(file);
+      resetStates();
       setImage(imageUrl);
       uploadImage(file);
-      setEnhancedImageUrl('');
-      setEnhanceError('');
-      setImagesLoaded(false);
-      setImageLoadError(false);
+      setEnhancementKey(prev => prev + 1); // Force re-enhancement
     }
   };
 
@@ -259,11 +158,9 @@ const ImageEnhance = ({ onClose }) => {
     if (image) {
       URL.revokeObjectURL(image);
     }
+    resetStates();
     setImage(null);
-    setEnhancedImageUrl('');
-    setEnhanceError('');
-    setImagesLoaded(false);
-    setImageLoadError(false);
+    setEnhancementKey(prev => prev + 1); // Force re-enhancement on next upload
   };
 
   useEffect(() => {
@@ -281,11 +178,44 @@ const ImageEnhance = ({ onClose }) => {
 
     return (
       <div className="image-comparison-container">
-        <ImageComparison
-          leftImage={image}
-          rightImage={enhancedImageUrl}
-          leftLabel="Original"
-          rightLabel="Enhanced"
+        <div className="comparison-labels">
+          <span className="label original-label">Original</span>
+          <span className="label enhanced-label">Enhanced</span>
+        </div>
+        <ReactCompareSlider
+          key={enhancementKey}
+          className="image-comparison-slider"
+          itemOne={
+            <ReactCompareSliderImage 
+              src={image}
+              alt="Original image"
+              style={{ 
+                objectFit: 'contain',
+                backgroundColor: '#f5f5f5',
+                transform: 'none',
+                maxHeight: '600px'
+              }}
+            />
+          }
+          itemTwo={
+            <ReactCompareSliderImage 
+              src={enhancedImageUrl}
+              alt="Enhanced image"
+              style={{ 
+                objectFit: 'contain',
+                backgroundColor: '#f5f5f5',
+                transform: 'none',
+                maxHeight: '600px'
+              }}
+            />
+          }
+          portrait={false}
+          position={50}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
         />
       </div>
     );
@@ -298,7 +228,7 @@ const ImageEnhance = ({ onClose }) => {
     if (imageLoadError) {
       return <div className="error-message">Error loading images. Please try again.</div>;
     }
-    if (!imagesLoaded) {
+    if (!imagesLoaded && enhancedImageUrl) {
       return <div className="enhancing-overlay">Loading comparison...</div>;
     }
     return null;
@@ -343,7 +273,6 @@ const ImageEnhance = ({ onClose }) => {
                         setImageLoadError(true);
                       }}
                     />
-                    <div className="image-label original-label">Original</div>
                     <button className="remove-image-button" onClick={handleRemoveImage}>
                       X
                     </button>

@@ -7,7 +7,8 @@ export const analyzeImageWithAzure = async (imageInput) => {
 
     // Check if the input is already a base64 image (starts with data:image)
     if (imageInput.startsWith('data:image')) {
-      base64Image = imageInput;
+      // Extract the base64 data after the comma
+      base64Image = imageInput.split(',')[1];
     } else {
       // Convert image URL to base64
       const response = await fetch(imageInput);
@@ -15,7 +16,11 @@ export const analyzeImageWithAzure = async (imageInput) => {
       const reader = new FileReader();
       
       base64Image = await new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result);
+        reader.onload = () => {
+          // Extract the base64 data after the comma
+          const result = reader.result.split(',')[1];
+          resolve(result);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });

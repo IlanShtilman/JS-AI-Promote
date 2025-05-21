@@ -46,8 +46,14 @@ const useImageToCloudinary = (uploadPreset) => {
         setUploading(false);
       }
     };
+
+    const resetUpload = () => {
+      setUploadedImageUrl('');
+      setUploading(false);
+      setUploadError('');
+    };
   
-    return { uploadedImageUrl, uploading, uploadError, uploadImage };
+    return { uploadedImageUrl, uploading, uploadError, uploadImage, resetUpload };
   };
 
 export default useImageToCloudinary;
