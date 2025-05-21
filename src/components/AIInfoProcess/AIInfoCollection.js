@@ -43,29 +43,48 @@ const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) 
     elevation={2}
     className={`${disabled ? 'aiinfo-disabled-paper' : 'aiinfo-paper'}`}
     onClick={!disabled ? onClick : undefined}
+    sx={{ 
+      height: preview ? '400px' : 'auto',
+      display: 'flex',
+      flexDirection: 'column'
+    }}
   >
-    <Stack spacing={2} alignItems="center" height="100%">
-      {icon}
-      <Typography variant="h6" align="center">
-        {title}
-      </Typography>
-      <Typography variant="body2" align="center" color="text.secondary">
-        {description}
-      </Typography>
+    <Stack spacing={2} alignItems="center" height="100%" width="100%">
+      {!preview && (
+        <>
+          {icon}
+          <Typography variant="h6" align="center">
+            {title}
+          </Typography>
+          <Typography variant="body2" align="center" color="text.secondary">
+            {description}
+          </Typography>
+        </>
+      )}
       {disabled && (
         <Tooltip title="Coming soon!" placement="top">
           <LockIcon sx={{ position: 'absolute', top: 10, right: 10, color: 'text.disabled' }} />
         </Tooltip>
       )}
       {preview && (
-        <Box sx={{ mt: 'auto', width: '100%', maxHeight: '150px', overflow: 'hidden' }}>
+        <Box sx={{ 
+          flex: 1,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden'
+        }}>
           <img
             src={preview}
             alt="Upload preview"
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
               borderRadius: '4px'
             }}
           />
@@ -166,6 +185,26 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     setEnhancedUploadOpen(false);
   };
 
+  const handleEnhancedImage = (enhancedUrl) => {
+    const reader = new FileReader();
+    fetch(enhancedUrl)
+      .then(response => response.blob())
+      .then(blob => {
+        reader.onload = () => {
+          setFormData({
+            ...formData,
+            uploadedImage: reader.result,
+            imagePreference: 'upload',
+            uploadType: 'enhanced'
+          });
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(error => {
+        console.error('Error fetching enhanced image:', error);
+      });
+  };
+
   const handleSubmit = async () => {
     setShowErrors(true);
     if (!validateForm()) {
@@ -262,7 +301,10 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         onClose={handleEnhancedUploadClose}
         maxWidth="md"
       >
-        <ImageEnhance onClose={handleEnhancedUploadClose} />
+        <ImageEnhance 
+          onClose={handleEnhancedUploadClose} 
+          onImageEnhanced={handleEnhancedImage}
+        />
       </Dialog>
 
       <motion.div

@@ -6,7 +6,7 @@ import EnhanceBackendCall from '../../services/EnhanceBackendCall';
 
 const UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
-const ImageEnhance = ({ onClose }) => {
+const ImageEnhance = ({ onClose, onImageEnhanced }) => {
   const [image, setImage] = useState(null);
   const { uploadedImageUrl, uploading, uploadError, uploadImage, resetUpload } = useImageToCloudinary(UPLOAD_PRESET);
   const [enhancing, setEnhancing] = useState(false);
@@ -296,7 +296,15 @@ const ImageEnhance = ({ onClose }) => {
         <div className="action-buttons">
           <button className="exit-button" onClick={onClose}>Exit</button>
           {enhancedImageUrl && imagesLoaded && !imageLoadError && (
-            <button className="accept-button" onClick={onClose}>Accept</button>
+            <button 
+              className="accept-button" 
+              onClick={() => {
+                onImageEnhanced && onImageEnhanced(enhancedImageUrl);
+                onClose();
+              }}
+            >
+              Accept
+            </button>
           )}
         </div>
       </div>

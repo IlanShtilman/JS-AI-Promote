@@ -84,18 +84,12 @@ public class ImageEnhancementService {
                 "   - 'digital_art' -Used on drawings, illustrations, paintings, cartoons, anime, etc.%n" +
                 "   - 'smart_enhance' - Used on small low quality product, real estate and food images.%n" +
                 "   - 'smart_resize' - Used on high-quality images and photos with barely readable text. %n%n" +
-                "4. For upscale, you MUST ONLY use one of these exact values:%n" +
-                "   - 'null' - for no upscale - to see the full image%n" +
-                "   - 'photo' - Used on photos of people, nature, architecture, etc. taken with phones or digital cameras.%n" +
-                "   - 'faces' - Used on images containing people %n" +
-                "   - 'digital_art' -Used on drawings, illustrations, paintings, cartoons, anime, etc.%n" +
-                "   - 'smart_enhance' - Used on small low quality product, real estate and food images.%n" +
-                "   - 'smart_resize' - Used on high-quality images and photos with barely readable text. %n%n" +
-                "5.  For Decompress use: %n" +
+                "4.  For Decompress use: %n" +
                 "   - 'moderate' - Removes JPEG artifacts from the image.%n" +
                 "   - 'strong' - Removes JPEG artifacts more aggressively than moderate.%n" +
                 "   - 'auto' - Automatically detects and removes JPEG artifacts if needed.%n" +
-                " For Resizing Fit: %n" +
+                "5. For Resizing Fit: %n" +
+                "   - if upscale is faces ,Dont use Crop %n"+
                 "   - 'crop' -DEFAULT. Scales an image until it fully covers the specified width and height, the rest gets cropped. Content-aware cropping. %n" +
                 "   - 'bounds' - Scales an image until the larger side reaches the edge of canvas established by width and height. %n"+
                 "   - 'cover' - Scales an image until the smaller side reaches the edge of canvas established by width and height. %n" +
@@ -104,12 +98,20 @@ public class ImageEnhancementService {
                 " If you choose crop, you must use the following values: %n" +
                 "   - 'center' - is a basic cropping mode that crops images from their center without considering their content. %n" +
                 "   - 'smart' -  is a content-aware cropping mode that detects a main object in a photo and uses it as the center point for cropping. %n" +
-                "Manual Color Adjustments: %n" +
+                "6. For 'generative' - put in prompt:(also add: Dont use VIVID or VIBRANT Colors) %n" +
+                "    - if the image upscale is faces, use the prompt: Restore and enhance a natural human portrait by reducing blur and noise, correcting lighting, and preserving realistic skin tone and facial features.%n" +
+                "    - 'style_strength': 0.1, 'denoising_strength': 0.1%n depth_strength: 0.1%n"+
+                "    - if the image is food, use the prompt: Restore and enhance food image with crisp details, balanced lighting, true-to-life colors, and natural texture restoration %n" +
+                "    - 'depth_strength':Determines the degree of overall composition and shape preservation, default value is 1.0. Higher values means higher input image composition influence. , %n"+ 
+                "    - 'denoising_strength':Determines the degree of color and texture modification, default value is 0.75. Higher values means higher colors and textures creativity.%n" +
+                "    - 'depth_strength': Determines the degree of overall style intensity as taken from the style reference, default value is 0.75. Higher values means higher reference style influence.%n"+
+                "    - when the image as lots of colors use smaller values for depth_strength(0.05) and denoising_strength(0.05) and depth_strength (0.05)%n "+
+                "7. Manual Color Adjustments: %n" +
                 "    - 'hdr' - Balance out colors and lighting. Supports changing the intensity of operation. 100 is most recommended%n" +
-                "    - 'exposure' - Decrease (negative integer) or increase (positive) exposure. Range: -100 - 100, DO NOT use rounded values unless needed%n" +
-                "    - 'saturation' - Decrease (negative integer) or increase (positive) exposure. Range: -100 - 100, DO NOT use rounded values unless needed%n" +
-                "    - 'contrast' - Decrease (negative integer) or increase (positive) exposure.Range: -100 - 100, DO NOT use rounded values unless needed%n" +
-                "    - 'sharpness' - Increase sharpness by using positive integer .Range: 0 - 100, DO NOT use rounded values unless needed%n" +
+                "    - 'exposure' - Range: -100 to 100. You may use negative values to darken an image and positive values to brighten it. Avoid rounded values unless necessary. %n" +
+                "    - 'saturation' - Range: -100 to 100. Use negative values to reduce color intensity (desaturate) and positive values to increase color vibrancy. Avoid rounded values unless necessary. %n" +
+                "    - 'contrast' - Range: -100 to 100. Negative values will reduce contrast, making the image flatter, while positive values will increase contrast for more pronounced differences between light and dark areas. Avoid rounded values unless necessary. %n" +
+                "    - 'sharpness' - Range: -100 to 100. Use negative values to soften the image by reducing detail, and positive values to enhance edge definition and detail sharpness. Avoid rounded values unless necessary. %n" +
                 "   - IMPORTANT: Use DIFFERENT values for each image.%n" +
                 "   - Avoid using the same numeric values more than once.%n" +
                 "   - Use subtle, unique variations for each image.%n" +
@@ -119,7 +121,7 @@ public class ImageEnhancementService {
                 "   - dont use rounded values unless needed%n" +
                 "   - if the image is blurry, DO NOT use the blur option and icrease HDR intensity to make the image pop more%n" +
                 "   - if the image is blurry, use \"decompress\": \"strong\" %n" +
-                "5. Return ONLY a JSON object in this exact format:%n" +
+                "8. Return ONLY a JSON object in this exact format:%n" +
                 "{%n" +
                 "  \"operations\": {%n" +
                 "    \"restorations\": {%n" +
@@ -140,21 +142,21 @@ public class ImageEnhancementService {
                 "        \"stitching\": true%n (use: true or false)%n" +
                 "      },%n" +
                 "      (you can use values from -100 to 100 for each setting  )%n" +       
-                "      \"exposure\": 0%n (Decrease (negative integer) or increase (positive) exposure. Range: -100 - 100, DO NOT use rounded values unless needed)%n"  +
-                "      \"saturation\": 0%n (Decrease (negative integer) or increase (positive) exposure. Range: -100 - 100, DO NOT use rounded values unless needed)%n" +
-                "      \"contrast\": 0%n (Decrease (negative integer) or increase (positive) exposure.Range: -100 - 100, DO NOT use rounded values unless needed)%n" +
-                "      \"sharpness\": 0%n (Increase sharpness by using positive integer .Range: 0 - 100, DO NOT use rounded values unless needed)%n" +
+                "      \"exposure\": 0%n "  +
+                "      \"saturation\": 0%n " +
+                "      \"contrast\": 0%n " +
+                "      \"sharpness\": 0%n " +
                 "    },%n" +
-                "      \"generative\": {%n" +
-                "        \"style_transfer\": {%n" +
-                "          \"style_reference_image\": \"%s\",%n" +
-                "          \"prompt\": \"enhance image quality with natural texture, vivid but realistic colors, and improved clarity\",%n" +
-                "          \"style_strength\": 0.75,%n" +
-                "          \"denoising_strength\": 0.75,%n" +
-                "          \"depth_strength\": 1.0%n" +
-                "        }%n" +
-                "      },%n" +
-                "    \"background\": null | {%n (if the image is blurry, DO NOT use the blur option)" +
+                "    \"generative\": {%n" +
+                "      \"style_transfer\": {%n" +
+                "        \"style_reference_image\": \"%s\",%n" +
+                "        \"prompt\": \"improve image quality by restoring clarity, reducing blur and noise, correcting lighting, and preserving natural color and texture fidelity. \",%n" +
+                "        \"style_strength\": 0.7,%n" +
+                "        \"denoising_strength\": 0.7,%n" +
+                "        \"depth_strength\": 1.0%n" +
+                "      }%n" +
+                "    },%n" +
+                "    \"background\": null | { %n (if the image is blurry, DO NOT use the blur option)" +
                 "      \"remove\": false | true | {%n" +
                 "        \"category\": \"general\" | \"cars\" | \"products\",%n" +
                 "        \"selective\": {%n" +
@@ -355,116 +357,6 @@ public class ImageEnhancementService {
                 }
             }
 
-            // Validate generative configuration
-            if (operationsConfig.has("generative") && !operationsConfig.get("generative").isNull()) {
-                JsonNode generativeNode = operationsConfig.get("generative");
-                
-                // Validate style_transfer configuration
-                if (generativeNode.has("style_transfer") && !generativeNode.get("style_transfer").isNull()) {
-                    JsonNode styleTransferNode = generativeNode.get("style_transfer");
-                    
-                    // Validate style_reference_image
-                    if (styleTransferNode.has("style_reference_image")) {
-                        if (!styleTransferNode.get("style_reference_image").isTextual()) {
-                            throw new RuntimeException("style_reference_image must be a string URL");
-                        }
-                    }
-                    
-                    // Validate prompt
-                    if (styleTransferNode.has("prompt") && !styleTransferNode.get("prompt").isNull()) {
-                        if (!styleTransferNode.get("prompt").isTextual()) {
-                            throw new RuntimeException("prompt must be a string");
-                        }
-                    }
-                    
-                    // Validate style_strength
-                    if (styleTransferNode.has("style_strength") && !styleTransferNode.get("style_strength").isNull()) {
-                        double styleStrength = styleTransferNode.get("style_strength").asDouble();
-                        if (styleStrength < 0.0 || styleStrength > 1.0) {
-                            throw new RuntimeException("style_strength must be between 0.0 and 1.0");
-                        }
-                    }
-                    
-                    // Validate denoising_strength
-                    if (styleTransferNode.has("denoising_strength") && !styleTransferNode.get("denoising_strength").isNull()) {
-                        double denoisingStrength = styleTransferNode.get("denoising_strength").asDouble();
-                        if (denoisingStrength < 0.0 || denoisingStrength > 1.0) {
-                            throw new RuntimeException("denoising_strength must be between 0.0 and 1.0");
-                        }
-                    }
-                    
-                    // Validate depth_strength
-                    if (styleTransferNode.has("depth_strength") && !styleTransferNode.get("depth_strength").isNull()) {
-                        double depthStrength = styleTransferNode.get("depth_strength").asDouble();
-                        if (depthStrength < 0.0 || depthStrength > 1.0) {
-                            throw new RuntimeException("depth_strength must be between 0.0 and 1.0");
-                        }
-                    }
-                }
-            }
-
-            // Validate resizing configuration
-            if (operationsConfig.has("resizing") && !operationsConfig.get("resizing").isNull()) {
-                JsonNode resizingNode = operationsConfig.get("resizing");
-                
-                // Validate width
-                if (resizingNode.has("width")) {
-                    JsonNode widthNode = resizingNode.get("width");
-                    if (!widthNode.isNull() && !widthNode.isNumber() && 
-                        !widthNode.asText().equals("auto") && !widthNode.asText().matches("\\d+%")) {
-                        throw new RuntimeException("Invalid width value. Must be null, 'auto', a number, or a percentage (e.g., '150%')");
-                    }
-                }
-                
-                // Validate height
-                if (resizingNode.has("height")) {
-                    JsonNode heightNode = resizingNode.get("height");
-                    if (!heightNode.isNull() && !heightNode.isNumber() && 
-                        !heightNode.asText().equals("auto") && !heightNode.asText().matches("\\d+%")) {
-                        throw new RuntimeException("Invalid height value. Must be null, 'auto', a number, or a percentage (e.g., '150%')");
-                    }
-                }
-                
-                // Validate fit
-                if (resizingNode.has("fit")) {
-                    JsonNode fitNode = resizingNode.get("fit");
-                    if (fitNode.isTextual()) {
-                        String fitValue = fitNode.asText();
-                        if (!Arrays.asList("bounds", "cover", "canvas", "outpaint", "crop")
-                                .contains(fitValue)) {
-                            throw new RuntimeException("Invalid fit value. Must be one of: bounds, cover, canvas, outpaint, crop");
-                        }
-                    } else if (fitNode.isObject()) {
-                        if (!fitNode.has("type")) {
-                            throw new RuntimeException("Fit object must have a 'type' field");
-                        }
-                        String type = fitNode.get("type").asText();
-                        if (type.equals("crop")) {
-                            if (!fitNode.has("crop") || 
-                                !Arrays.asList("center", "smart").contains(fitNode.get("crop").asText())) {
-                                throw new RuntimeException("Invalid crop value. Must be 'center' or 'smart'");
-                            }
-                        } else if (type.equals("outpaint")) {
-                            if (!fitNode.has("feathering") || 
-                                !fitNode.get("feathering").asText().matches("\\d+%")) {
-                                throw new RuntimeException("Invalid feathering value. Must be a percentage (e.g., '15%')");
-                            }
-                        } else {
-                            throw new RuntimeException("Invalid fit type. Must be 'crop' or 'outpaint'");
-                        }
-                    } else {
-                        throw new RuntimeException("Invalid fit value format");
-                    }
-                }
-            }
-
-            // Prepare the request to the enhancement API
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + claidApiKey);
-            headers.set("X-Request-ID", requestId);
-            headers.set("X-Config-Hash", configHash);
-
             // Create a new request body for each image
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("input", imageUrl);
@@ -488,10 +380,30 @@ public class ImageEnhancementService {
                     operationsNode.set("background", backgroundConfig.deepCopy());
                 }
             }
-
-            // Add generative configuration if present
-            if (operationsConfig.has("generative") && !operationsConfig.get("generative").isNull()) {
-                operationsNode.set("generative", operationsConfig.get("generative").deepCopy());
+            if (operationsConfig.has("generative") && !operationsConfig.get("generative").isEmpty()) {
+                JsonNode generativeConfig = operationsConfig.get("generative").deepCopy();
+                if (generativeConfig.has("style_transfer")) {
+                    ObjectNode styleTransferNode = (ObjectNode) generativeConfig.get("style_transfer");
+                    // Set the style_reference_image to the input image URL
+                    styleTransferNode.put("style_reference_image", imageUrl);
+                    
+                    // Ensure we have a valid prompt
+                    if (!styleTransferNode.has("prompt") || styleTransferNode.get("prompt").asText().isEmpty()) {
+                        styleTransferNode.put("prompt", "Enhance image quality with natural texture, vivid but realistic colors, and improved clarity");
+                    }
+                    
+                    // Set reasonable default values if not present
+                    if (!styleTransferNode.has("style_strength")) {
+                        styleTransferNode.put("style_strength", 0.03);
+                    }
+                    if (!styleTransferNode.has("denoising_strength")) {
+                        styleTransferNode.put("denoising_strength", 0.02);
+                    }
+                    if (!styleTransferNode.has("depth_strength")) {
+                        styleTransferNode.put("depth_strength", 0.04);
+                    }
+                }
+                operationsNode.set("generative", generativeConfig);
             }
 
             // Add output format configuration
@@ -514,6 +426,13 @@ public class ImageEnhancementService {
             // Log the final request body
             logger.info("[Request {}] Final request to enhancement API:\n{}", requestId, 
                 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestBody));
+
+            // Prepare the request headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + claidApiKey);
+            headers.set("X-Request-ID", requestId);
+            headers.set("X-Config-Hash", configHash);
 
             HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
 
