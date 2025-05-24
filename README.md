@@ -120,9 +120,9 @@ AI-Promote/
   - `AzureVisionController.java` (image analysis)
   - `ErrorHandlerController.java` (error handling)
 - **Services:**
-  - `FlierGeminiService.java`, `OpenAIServiceImpl.java`, `GeminiServiceImpl.java`, `ClaudeServiceImpl.java`, `GroqServiceImpl.java`, `AzureVisionService.java`
+  - `BackgroundGenerationService.java`, `OpenAIServiceImpl.java`, `GeminiServiceImpl.java`, `ClaudeServiceImpl.java`, `GroqServiceImpl.java`, `AzureVisionService.java`
 - **Models:**
-  - `FlierInfo.java`, `FlierConfig.java`, `AzureVisionResponse.java`, `TextGenerationRequest.java`, `TextGenerationResponse.java`
+  - `FlierInfo.java`, `FlierConfig.java`, `AzureVisionResponse.java`, `BackgroundGenerationRequest.java`, `BackgroundOption.java`, `TextGenerationRequest.java`, `TextGenerationResponse.java`
 - **Config:**
   - `ApiKeyConfig.java`, `GeminiApiKeyConfig.java`, `ClaudeApiKeyConfig.java`, `GroqApiKeyConfig.java`, `WebConfig.java`
 
@@ -133,7 +133,7 @@ AI-Promote/
   - `ManualFlierDesigner.js` (manual flyer editor)
   - `AIFlierSummary.js`, `AIInfoCollection.js`, `DesignModeSelection.js`, `DesignSuggestions.js`
 - **Services:**
-  - `aiService.js`, `azureVisionService.js`, `speechService.js`, `elevenLabsService.js`, `imagenService.js`
+  - `aiService.js`, `azureVisionService.js`, `simpleRulesEngine.js`, `backgroundGeneratorService.js`, `speechService.js`, `elevenLabsService.js`, `imagenService.js`
 
 ## AI Assist / Approval Workflow
 
@@ -145,7 +145,9 @@ AI-Promote/
 ## API Endpoints
 
 ### Backend
-- `POST /api/flier/generate` - Generate flyer config using Gemini
+- `POST /api/flier/generate` - Generate flyer using simplified pipeline
+- `POST /api/backgrounds/generate` - Generate AI background options
+- `GET /api/backgrounds/cost` - Get background generation cost estimation
 - `POST /api/openai/generate` - Generate content using OpenAI
 - `POST /api/gemini/generate` - Generate content using Gemini
 - `POST /api/claude/generate` - Generate content using Claude

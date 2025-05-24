@@ -1,10 +1,12 @@
-import React from 'react';
-import { Box, Typography, Paper, Button, Grid, Divider, Avatar, Chip } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, Paper, Button, Grid, Divider, Avatar, Chip, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import BusinessIcon from '@mui/icons-material/Business';
 import PaletteIcon from '@mui/icons-material/Palette';
+import { generateBackgroundParameters } from '../../services/simpleRulesEngine';
+import { generateBackgrounds } from '../../services/backgroundGeneratorService';
 import './AIFlierSummary.css';
 
 const InfoRow = ({ label, value }) => (
@@ -94,6 +96,7 @@ const ColorAnalysisSection = ({ title, colors, icon, isRTL, source }) => {
 
 const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
   const isRTL = language === 'Hebrew';
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Debug the info object to check for logo and colors
   console.log("Summary info received:", info);
@@ -157,6 +160,51 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
   const hasLogoAnalysis = info.hasLogoAnalysis || (info.logoAnalysis && Object.keys(info.logoAnalysis).length > 0);
   const hasPhotoAnalysis = info.hasPhotoAnalysis || (info.photoAnalysis && Object.keys(info.photoAnalysis).length > 0);
   const hasAnyAnalysis = hasLogoAnalysis || hasPhotoAnalysis;
+
+  /**
+   * NEW SIMPLIFIED PIPELINE: Handle confirm action with our new background generation
+   */
+  const handleConfirm = async () => {
+    console.log("🎨 Starting new simplified flier generation pipeline...");
+    setIsGenerating(true);
+    
+    try {
+      // Step 1: Generate background parameters using our simple rules engine
+      console.log("Step 1: Generating background parameters...");
+      const backgroundParams = generateBackgroundParameters(info);
+      console.log("Generated parameters:", backgroundParams);
+      
+      // Step 2: Generate 3 background options using AI
+      console.log("Step 2: Generating AI backgrounds...");
+      const backgroundOptions = await generateBackgrounds(backgroundParams);
+      console.log("Generated background options:", backgroundOptions);
+      
+      // Step 3: Pass to onConfirm with the generated backgrounds
+      const enhancedInfo = {
+        ...info,
+        backgroundOptions,
+        backgroundParams,
+        generationMethod: 'simplified-ai-pipeline'
+      };
+      
+      console.log("✅ Successfully generated backgrounds, proceeding to flier creation...");
+      onConfirm(enhancedInfo);
+      
+    } catch (error) {
+      console.error("❌ Error in simplified pipeline:", error);
+      
+      // Fallback: continue with original info
+      console.log("🛡️ Using fallback - proceeding without AI backgrounds");
+      onConfirm({
+        ...info,
+        backgroundOptions: [],
+        generationMethod: 'fallback',
+        error: error.message
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <Paper elevation={4} className={`flier-summary-paper ${isRTL ? 'rtl-layout' : ''}`}>
@@ -345,6 +393,7 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
           color="primary" 
           onClick={onBack}
           className="flier-summary-back-button"
+          disabled={isGenerating}
           startIcon={!isRTL ? <ArrowBackIcon /> : null}
           endIcon={isRTL ? <ArrowBackIcon /> : null}
         >
@@ -353,12 +402,20 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
         <Button 
           variant="contained" 
           color="primary" 
-          onClick={onConfirm}
+          onClick={handleConfirm}
           className="flier-summary-confirm-button"
-          startIcon={!isRTL ? <CheckCircleIcon /> : null}
-          endIcon={isRTL ? <CheckCircleIcon /> : null}
+          disabled={isGenerating}
+          startIcon={!isRTL && !isGenerating ? <CheckCircleIcon /> : null}
+          endIcon={isRTL && !isGenerating ? <CheckCircleIcon /> : null}
         >
-          {isRTL ? 'אשר וצור' : 'Confirm & Generate'}
+          {isGenerating ? (
+            <>
+              <CircularProgress size={20} sx={{ mr: isRTL ? 0 : 1, ml: isRTL ? 1 : 0 }} />
+              {isRTL ? 'יוצר רקעים...' : 'Generating Backgrounds...'}
+            </>
+          ) : (
+            isRTL ? 'אשר וצור' : 'Confirm & Generate'
+          )}
         </Button>
       </Box>
     </Paper>

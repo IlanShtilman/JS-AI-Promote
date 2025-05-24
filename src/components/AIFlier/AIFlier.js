@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box, Paper, Typography, Button, RadioGroup, FormControlLabel, Radio, Divider, Tooltip, Grid, Card, CardContent, TextField, IconButton, Slider, Switch, FormGroup, Select, MenuItem, InputLabel, FormControl, Checkbox } from '@mui/material';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
-import { patternTemplates, gradientTemplates } from '../../services/layoutEngine';
 import './AIFlier.css';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AppleIcon from '@mui/icons-material/Apple';
@@ -11,9 +10,31 @@ import PaletteIcon from '@mui/icons-material/Palette';
 
 // Helper function to detect RTL (Hebrew/Arabic) or LTR (default)
 function getDirection(text) {
-  // Hebrew unicode: \u0590-\u05FF, Arabic: \u0600-\u06FF
-  return /[\u0590-\u05FF\u0600-\u06FF]/.test(text) ? 'rtl' : 'ltr';
+  if (/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/.test(text)) {
+    return 'rtl';
+  }
+  return 'ltr';
 }
+
+// Pattern templates for background patterns
+const patternTemplates = {
+  dots: {
+    pattern: 'radial-gradient(#0002 1px, transparent 1px)',
+    size: '12px 12px'
+  },
+  grid: {
+    pattern: 'linear-gradient(#0001 1px, transparent 1px), linear-gradient(90deg, #0001 1px, transparent 1px)',
+    size: '20px 20px'
+  },
+  lines: {
+    pattern: 'linear-gradient(45deg, #0001 1px, transparent 1px)',
+    size: '10px 10px'
+  },
+  circles: {
+    pattern: 'radial-gradient(circle, #0002 2px, transparent 2px)',
+    size: '20px 20px'
+  }
+};
 
 const AIFlier = ({ aiStyleOptions = [], flyerContent }) => {
   console.log("AIFlier received style options:", aiStyleOptions);

@@ -1,6 +1,3 @@
-// Import the layout engine for fallback
-import { generateLayout } from './layoutEngine';
-
 const generateWithBackend = async (title, promotionalText, language) => {
   try {
     const response = await fetch('http://localhost:8081/api/v1/openai/generate', {
@@ -225,54 +222,41 @@ export async function getAIStyleAdvice(infoObject) {
   }
 }
 
-// Updated to use both AI style advice and the layout engine
+// Updated to use our new simplified pipeline
 export async function generateFlierConfig(infoObject) {
   try {
-    console.log("Generating flier configuration with combined AI and layout engine approach");
+    console.log("Generating flier configuration with new simplified pipeline");
     
-    // Step 1: Get AI style advice
-    const aiStyleAdvice = await getAIStyleAdvice(infoObject);
-    console.log("AI style advice received:", aiStyleAdvice);
+    // Use our new simplified backend endpoint
+    const response = await getAIStyleAdvice(infoObject);
     
-    // Step 2: Feed that advice to the layout engine
-    const { generateLayout } = await import('./layoutEngine.js');
-    
-    // Combine the input data with the AI advice
-    const combinedData = {
-      ...infoObject,
-      aiSuggestions: aiStyleAdvice
-    };
-    
-    // Generate the deterministic layout with AI input
-    const layoutConfig = generateLayout(combinedData);
-    
-    // Return both the layout config and AI style options directly
-    const finalConfig = {
-      ...layoutConfig,
-      // Add the aiStyleOptions property directly to the config
-      aiStyleOptions: aiStyleAdvice
-    };
-    
-    console.log("Final flier configuration generated:", finalConfig);
-    
-    return finalConfig;
+    if (response && response.success) {
+      console.log("Successfully received flier configuration from simplified pipeline");
+      return response;
+    } else {
+      throw new Error("Failed to get response from simplified pipeline");
+    }
   } catch (error) {
-    console.error("Error in flier generation process:", error);
+    console.error("Error in simplified flier generation:", error);
     
-    // Fall back to pure layout engine if combined approach fails
-    console.log("Using frontend layout engine as complete fallback");
-    const { generateLayout } = await import('./layoutEngine.js');
-    const { generateStyleOptions } = await import('./layoutEngine.js');
-    
-    // Generate a basic layout
-    const layoutConfig = generateLayout(infoObject);
-    
-    // Generate some style options as fallback
-    const styleOptions = generateStyleOptions(infoObject);
-    
+    // Provide a basic fallback configuration
+    console.log("Using basic fallback configuration");
     return {
-      ...layoutConfig,
-      aiStyleOptions: styleOptions // Add fallback style options
+      layout: "standard",
+      success: false,
+      backgroundOptions: [],
+      layoutInfo: {
+        orientation: infoObject.orientation || "portrait",
+        imagePosition: "center",
+        textAlignment: "center"
+      },
+      contentInfo: {
+        title: infoObject.title || "",
+        promotionalText: infoObject.promotionalText || "",
+        businessType: infoObject.businessType || "",
+        targetAudience: infoObject.targetAudience || ""
+      },
+      fallback: true
     };
   }
 } 
