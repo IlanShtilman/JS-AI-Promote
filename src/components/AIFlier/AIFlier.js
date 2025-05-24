@@ -46,12 +46,13 @@ const AIFlier = ({ aiStyleOptions = [], flyerContent }) => {
   
   const flierRef = useRef(null);
 
-  // Make sure we have default style options if none are provided
+  // Make sure we have default style options if none are provided (update default structure)
   const [styleOptions, setStyleOptions] = useState(
     aiStyleOptions && aiStyleOptions.length > 0 ? aiStyleOptions : [{
-      backgroundColor: '#f0f8ff',
+      background: { type: 'solid', color: '#f0f8ff', gradient: null },
       textColor: '#333333',
       accentColor: '#1976d2',
+      highlightColor: '#F1C40F', // Added default highlight color
       pattern: 'none',
       backgroundImage: 'none',
       designRationale: 'Default professional style with clean look and high readability'
@@ -157,37 +158,59 @@ const AIFlier = ({ aiStyleOptions = [], flyerContent }) => {
     }
   };
 
-  // Enhanced background style function using pattern templates
+  // Enhanced background style function using pattern templates and new background structure
   const getBackgroundStyle = () => {
-    let style = { backgroundColor: selectedStyle.backgroundColor || '#ffffff' };
-    // Use preset backgroundImage if present
+    let style = {};
+    
+    // Prioritize a main background image if provided at the top level or within the background object
     if (selectedStyle.backgroundImage && selectedStyle.backgroundImage !== 'none') {
-      style.backgroundImage = selectedStyle.backgroundImage;
-    }
-    // Apply pattern if specified and not 'none'
-    if (selectedStyle.pattern && selectedStyle.pattern !== 'none') {
-      if (patternTemplates[selectedStyle.pattern]) {
-        style.backgroundImage = style.backgroundImage
-          ? `${style.backgroundImage}, ${patternTemplates[selectedStyle.pattern].pattern}`
-          : patternTemplates[selectedStyle.pattern].pattern;
-        style.backgroundSize = patternTemplates[selectedStyle.pattern].size;
-      } else if (selectedStyle.pattern === 'dots') {
-        style.backgroundImage = style.backgroundImage
-          ? `${style.backgroundImage}, radial-gradient(#0002 1px, transparent 1px)`
-          : 'radial-gradient(#0002 1px, transparent 1px)';
-        style.backgroundSize = '12px 12px';
-      } else if (selectedStyle.pattern === 'grid') {
-        style.backgroundImage = style.backgroundImage
-          ? `${style.backgroundImage}, linear-gradient(#0001 1px, transparent 1px), linear-gradient(90deg, #0001 1px, transparent 1px)`
-          : 'linear-gradient(#0001 1px, transparent 1px), linear-gradient(90deg, #0001 1px, transparent 1px)';
-        style.backgroundSize = '20px 20px';
-      } else if (selectedStyle.pattern === 'diagonal') {
-        style.backgroundImage = style.backgroundImage
-          ? `${style.backgroundImage}, repeating-linear-gradient(45deg, #0001, #0001 2px, transparent 2px, transparent 8px)`
-          : 'repeating-linear-gradient(45deg, #0001, #0001 2px, transparent 2px, transparent 8px)';
-        style.backgroundSize = '16px 16px';
+        style.backgroundImage = selectedStyle.backgroundImage;
+        style.backgroundSize = 'cover';
+        style.backgroundPosition = 'center';
+        style.backgroundRepeat = 'no-repeat';
+        // If a main image is present, other background types (solid, gradient, pattern) might be secondary
+        // We can potentially layer patterns or SVGs on top if needed, but for now, let's prioritize the main image.
+
+    } else if (selectedStyle.background) {
+      switch (selectedStyle.background.type) {
+        case 'solid':
+          style.backgroundColor = selectedStyle.background.color || '#ffffff';
+          // Layer pattern or background image from the background object if available for solid types
+          if (selectedStyle.background.backgroundImage && selectedStyle.background.backgroundImage !== 'none') {
+               // If the backend provided a specific background image for the solid type
+                style.backgroundImage = selectedStyle.background.backgroundImage;
+                style.backgroundSize = 'cover'; // Adjust as needed for SVGs vs images
+                style.backgroundPosition = 'center'; // Adjust as needed
+                style.backgroundRepeat = 'no-repeat'; // Adjust as needed
+          } else if (selectedStyle.pattern && selectedStyle.pattern !== 'none') {
+            // Otherwise, apply a pattern if specified and not 'none'
+            if (patternTemplates[selectedStyle.pattern]) {
+              style.backgroundImage = patternTemplates[selectedStyle.pattern].pattern;
+              style.backgroundSize = patternTemplates[selectedStyle.pattern].size;
+              style.backgroundRepeat = 'repeat';
+            }
+          }
+          break;
+          
+        case 'gradient':
+          // Apply gradient as the background image
+          style.backgroundImage = selectedStyle.background.gradient || 'none';
+          style.backgroundColor = selectedStyle.background.color || 'initial'; // Fallback color
+          style.backgroundSize = 'cover'; // Ensure gradient covers the area
+          style.backgroundPosition = 'center';
+          style.backgroundRepeat = 'no-repeat';
+          break;
+          
+        default:
+          // Fallback for unknown types
+          style.backgroundColor = selectedStyle.background.color || '#ffffff';
       }
+    } else {
+      // Fallback for older style options without the new structure
+      style.backgroundColor = selectedStyle.backgroundColor || '#ffffff';
+      style.backgroundImage = selectedStyle.backgroundImage || 'none';
     }
+
     return style;
   };
 
@@ -1081,7 +1104,12 @@ const AIFlier = ({ aiStyleOptions = [], flyerContent }) => {
             style={{
               ...(showImageAsBackground && flierContent.image ? {
                 background: 'none',
-              } : getBackgroundStyle()),
+              } : {
+                ...getBackgroundStyle(),
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }),
               borderRadius: `${borderRadius}px`,
             }}
             ref={flierRef}

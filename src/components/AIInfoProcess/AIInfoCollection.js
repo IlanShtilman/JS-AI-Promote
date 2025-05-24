@@ -34,7 +34,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ImageSearchIcon from '@mui/icons-material/ImageSearch';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockIcon from '@mui/icons-material/Lock';
-import { analyzeImageWithAzure, testBackendConnection } from '../../services/azureVisionService';
+import { analyzeImageWithAzure, analyzeMultipleImagesWithAzure, testBackendConnection } from '../../services/azureVisionService';
 import { assembleSummaryInfo } from './summaryUtils';
 import './AIInfoCollection.css';
 
@@ -78,13 +78,26 @@ const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) 
 const businessTypes = [
   { value: 'cafe', label: 'Caffe - בית קפה' },
   { value: 'restaurant', label: 'Restaurant - מסעדה' },
-  // ...add more as needed
+  { value: 'retail', label: 'Retail - קמעונאות' },
+  { value: 'office', label: 'Office - משרדים' },
+  { value: 'healthcare', label: 'Healthcare - בריאות' },
+  { value: 'education', label: 'Education - חינוך' },
+  { value: 'entertainment', label: 'Entertainment - בידור' },
+  { value: 'beauty', label: 'Beauty - יופי' },
+  { value: 'fitness', label: 'Fitness - כושר' },
+  { value: 'general', label: 'General - כללי' }
 ];
 
 const targetAudiences = [
   { value: 'families', label: 'Families - משפחות' },
   { value: 'young_adults', label: 'Young Adults - צעירים' },
-  // ...add more as needed
+  { value: 'professionals', label: 'Professionals - אנשי מקצוע' },
+  { value: 'seniors', label: 'Seniors - בוגרים' },
+  { value: 'students', label: 'Students - סטודנטים' },
+  { value: 'children', label: 'Children - ילדים' },
+  { value: 'tourists', label: 'Tourists - תיירים' },
+  { value: 'locals', label: 'Locals - מקומיים' },
+  { value: 'general', label: 'General - כללי' }
 ];
 
 const AIInfoCollection = ({ language, onSubmit, initialData }) => {
@@ -173,45 +186,70 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     }
 
     try {
-      if (formData.imagePreference === 'upload' && formData.uploadedImage) {
+      // Check if we have any images to analyze (logo from initialData or uploaded photo)
+      const hasLogo = initialData?.logo;
+      const hasPhoto = formData.imagePreference === 'upload' && formData.uploadedImage;
+      
+      if (hasLogo || hasPhoto) {
         setIsAnalyzing(true);
-        console.log('Analyzing uploaded image...');
-        const analysisResult = await analyzeImageWithAzure(formData.uploadedImage);
-        console.log('Azure Vision analysis result:', analysisResult);
+        console.log('Analyzing images...', { hasLogo: !!hasLogo, hasPhoto: !!hasPhoto });
+        
+        // Prepare images for analysis
+        const imagesToAnalyze = {};
+        if (hasLogo) {
+          imagesToAnalyze.logo = initialData.logo;
+        }
+        if (hasPhoto) {
+          imagesToAnalyze.photo = formData.uploadedImage;
+        }
+        
+        // Use multiple image analysis
+        const analysisResult = await analyzeMultipleImagesWithAzure(imagesToAnalyze);
+        console.log('Azure Vision multiple analysis result:', analysisResult);
         
         // Update form data with analysis results
         const updatedFormData = {
           ...formData,
-          // Only use Azure business type if the user hasn't explicitly chosen one
-          businessType: formData.businessType || analysisResult.businessType,
-          sceneType: analysisResult.sceneType,
-          detectedObjects: analysisResult.objects,
-          description: analysisResult.description,
-          // Add the colors object from the analysis
-          colors: analysisResult.colors
+          // Use Azure business type if available and user hasn't explicitly chosen one
+          businessType: formData.businessType || analysisResult?.businessType || '',
+          sceneType: analysisResult?.sceneType || '',
+          detectedObjects: analysisResult?.combinedObjects || [],
+          description: analysisResult?.combinedDescription || '',
+          // Use the unified color palette from both logo and photo
+          colors: analysisResult?.colors || generateDefaultColors(formData.colorScheme),
+          // Store separate analysis results for reference
+          logoAnalysis: analysisResult?.logoAnalysis || null,
+          photoAnalysis: analysisResult?.photoAnalysis || null,
+          hasLogoAnalysis: analysisResult?.hasLogoAnalysis || false,
+          hasPhotoAnalysis: analysisResult?.hasPhotoAnalysis || false
         };
         
         const summaryInfo = assembleSummaryInfo(updatedFormData, initialData);
         onSubmit(summaryInfo);
       } else {
-        // Generate default colors based on the selected colorScheme
+        // No images to analyze - use default colors
+        console.log('No images to analyze, using default colors');
         const defaultColors = generateDefaultColors(formData.colorScheme);
         const formDataWithColors = {
           ...formData,
-          colors: defaultColors
+          colors: defaultColors,
+          hasLogoAnalysis: false,
+          hasPhotoAnalysis: false
         };
         
         const summaryInfo = assembleSummaryInfo(formDataWithColors, initialData);
         onSubmit(summaryInfo);
       }
     } catch (error) {
-      console.error('Error analyzing image:', error);
+      console.error('Error analyzing images:', error);
       
       // Generate default colors based on the selected colorScheme
       const defaultColors = generateDefaultColors(formData.colorScheme);
       const formDataWithColors = {
         ...formData,
-        colors: defaultColors
+        colors: defaultColors,
+        hasLogoAnalysis: false,
+        hasPhotoAnalysis: false
       };
       
       const summaryInfo = assembleSummaryInfo(formDataWithColors, initialData);
@@ -384,133 +422,88 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
             </FormControl>
 
             <Box className="aiinfo-flier-image-box">
-              <Typography variant="h6" gutterBottom>
-                תמונות בפלייר *
+              <Typography variant="h5" className="aiinfo-flier-image-title">
+                העלאת תמונה לפלייר
               </Typography>
-              <RadioGroup
-                row
-                className="rtl-row-group"
-                value={formData.imagePreference}
-                onChange={handleInputChange('imagePreference')}
-              >
-                <FormControlLabel
-                  value="system"
-                  control={<Radio />}
-                  label={
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <ImageSearchIcon color="primary" />
-                      <Typography>תן למערכת לבחור תמונות מתאימות</Typography>
-                    </Stack>
-                  }
-                  labelPlacement="start"
-                />
-                <FormControlLabel
-                  value="upload"
-                  control={<Radio />}
-                  label={
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <CloudUploadIcon color="primary" />
-                      <Typography>העלה תמונה משלך</Typography>
-                    </Stack>
-                  }
-                  labelPlacement="start"
-                />
-              </RadioGroup>
-              
-              {formData.imagePreference === 'upload' && (
-                <Box sx={{ mt: 3 }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                      <UploadWindow
-                        title="העלאה רגילה"
-                        description="העלה תמונה מהמחשב שלך"
-                        icon={
-                          <CloudUploadIcon 
-                            sx={{ fontSize: 40, color: 'primary.main' }}
-                          />
-                        }
-                        onClick={() => document.getElementById('regular-upload').click()}
-                        preview={formData.uploadType === 'regular' ? formData.uploadedImage : null}
-                      />
-                      <input
-                        id="regular-upload"
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={handleRegularUpload}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <UploadWindow
-                        title="העלאה משופרת"
-                        description="העלה ושפר את איכות התמונה באופן אוטומטי"
-                        icon={
-                          <AutoFixHighIcon 
-                            sx={{ fontSize: 40, color: 'primary.main' }}
-                          />
-                        }
-                        onClick={handleEnhancedUpload}
-                        disabled={false}
-                        preview={formData.uploadType === 'enhanced' ? formData.uploadedImage : null}
-                      />
-                    </Grid>
-                  </Grid>
-                  {showErrors && errors.imageUpload && (
-                    <Typography color="error" sx={{ mt: 2 }}>
-                      אנא העלה תמונה
-                    </Typography>
-                  )}
-                </Box>
-              )}
+              <Typography variant="body2" color="text.secondary" className="aiinfo-flier-image-description">
+                בחר אחת מהאפשרויות הבאות להוספת תמונה לפלייר שלך
+              </Typography>
+
+              <Grid container spacing={3} className="aiinfo-flier-image-grid">
+                <Grid item xs={12} sm={6}>
+                  <input
+                    accept="image/*"
+                    type="file"
+                    id="regular-upload"
+                    style={{ display: 'none' }}
+                    onChange={handleRegularUpload}
+                  />
+                  <label htmlFor="regular-upload">
+                    <UploadWindow
+                      title="העלאה רגילה"
+                      description="בחר תמונה ממכשיר זה"
+                      icon={<CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main' }} />}
+                      preview={formData.uploadedImage}
+                    />
+                  </label>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <UploadWindow
+                    title="העלאה משופרת"
+                    description="צור תמונה עם בינה מלאכותית"
+                    icon={<AutoFixHighIcon sx={{ fontSize: 48, color: 'secondary.main' }} />}
+                    onClick={handleEnhancedUpload}
+                    disabled={true}
+                  />
+                </Grid>
+              </Grid>
             </Box>
 
-            {/* Flier Size Selection */}
-            <FormControl fullWidth className="aiinfo-flier-size" error={showErrors && errors.flierSize}>
-              <Typography variant="h6" gutterBottom>
-                גודל פלייר
-              </Typography>
-              <RadioGroup
-                row
-                className="rtl-row-group"
-                value={formData.flierSize}
-                onChange={e => setFormData({ ...formData, flierSize: e.target.value })}
-                name="flier-size-group"
-              >
-                <FormControlLabel value="A4" control={<Radio />} label="A4" labelPlacement="start" />
-                <FormControlLabel value="A5" control={<Radio />} label="A5" labelPlacement="start" />
-              </RadioGroup>
-            </FormControl>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Flier Size</InputLabel>
+                  <Select
+                    value={formData.flierSize}
+                    onChange={handleInputChange('flierSize')}
+                    label="Flier Size"
+                  >
+                    <MenuItem value="A4">A4 (210×297mm)</MenuItem>
+                    <MenuItem value="A5">A5 (148×210mm)</MenuItem>
+                    <MenuItem value="Letter">Letter (8.5×11in)</MenuItem>
+                    <MenuItem value="Custom">Custom Size</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
 
-            {/* Orientation Selection */}
-            <FormControl fullWidth className="aiinfo-orientation" error={showErrors && errors.orientation}>
-              <Typography variant="h6" gutterBottom>
-                כיוון הדף
-              </Typography>
-              <RadioGroup
-                row
-                className="rtl-row-group"
-                value={formData.orientation}
-                onChange={e => setFormData({ ...formData, orientation: e.target.value })}
-                name="orientation-group"
-              >
-                <FormControlLabel value="portrait" control={<Radio />} label="לאורך" labelPlacement="start" />
-                <FormControlLabel value="landscape" control={<Radio />} label="לרוחב" labelPlacement="start" />
-              </RadioGroup>
-            </FormControl>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Orientation</InputLabel>
+                  <Select
+                    value={formData.orientation}
+                    onChange={handleInputChange('orientation')}
+                    label="Orientation"
+                  >
+                    <MenuItem value="portrait">Portrait - לאורך</MenuItem>
+                    <MenuItem value="landscape">Landscape - לרוחב</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
 
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleSubmit}
-              endIcon={isAnalyzing ? <CircularProgress size={24} color="inherit" /> : <ArrowForwardIcon />}
-              disabled={isAnalyzing}
-              className="aiinfo-continue-btn"
-            >
-              {isAnalyzing 
-                ? 'מנתח תמונה...'
-                : 'המשך לעיצוב'
-              }
-            </Button>
+            <Box className="aiinfo-submit-box">
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleSubmit}
+                disabled={isAnalyzing}
+                startIcon={isAnalyzing ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
+                className="aiinfo-submit-button"
+              >
+                {isAnalyzing ? 'מנתח תמונות...' : 'המשך לסיכום'}
+              </Button>
+            </Box>
           </Stack>
         </Paper>
       </motion.div>

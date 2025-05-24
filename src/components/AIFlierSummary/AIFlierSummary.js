@@ -1,7 +1,10 @@
 import React from 'react';
-import { Box, Typography, Paper, Button, Grid, Divider, Avatar } from '@mui/material';
+import { Box, Typography, Paper, Button, Grid, Divider, Avatar, Chip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ImageIcon from '@mui/icons-material/Image';
+import BusinessIcon from '@mui/icons-material/Business';
+import PaletteIcon from '@mui/icons-material/Palette';
 import './AIFlierSummary.css';
 
 const InfoRow = ({ label, value }) => (
@@ -10,6 +13,84 @@ const InfoRow = ({ label, value }) => (
     <Typography variant="body1" className="flier-summary-value">{value}</Typography>
   </Box>
 );
+
+// Component to display individual color analysis
+const ColorAnalysisSection = ({ title, colors, icon, isRTL, source }) => {
+  if (!colors) return null;
+
+  return (
+    <Box className="flier-summary-color-analysis-section">
+      <Box className="flier-summary-color-analysis-header">
+        {icon}
+        <Typography variant="subtitle1" className="flier-summary-color-analysis-title">
+          {title}
+        </Typography>
+        <Chip 
+          label={source} 
+          size="small" 
+          variant="outlined" 
+          className="flier-summary-analysis-source-chip"
+        />
+      </Box>
+      <Box className="flier-summary-color-swatches">
+        {colors.primary && (
+          <Box className="flier-summary-color-item">
+            <Box 
+              className="flier-summary-color-swatch" 
+              sx={{ backgroundColor: colors.primary, border: '1px solid #ddd' }}
+            />
+            <Typography variant="caption">{isRTL ? 'ראשי:' : 'Primary:'} {colors.primary}</Typography>
+          </Box>
+        )}
+        {colors.secondary && (
+          <Box className="flier-summary-color-item">
+            <Box 
+              className="flier-summary-color-swatch" 
+              sx={{ backgroundColor: colors.secondary, border: '1px solid #ddd' }}
+            />
+            <Typography variant="caption">{isRTL ? 'משני:' : 'Secondary:'} {colors.secondary}</Typography>
+          </Box>
+        )}
+        {colors.accent && (
+          <Box className="flier-summary-color-item">
+            <Box 
+              className="flier-summary-color-swatch" 
+              sx={{ backgroundColor: colors.accent, border: '1px solid #ddd' }}
+            />
+            <Typography variant="caption">{isRTL ? 'הדגשה:' : 'Accent:'} {colors.accent}</Typography>
+          </Box>
+        )}
+        {colors.background && (
+          <Box className="flier-summary-color-item">
+            <Box 
+              className="flier-summary-color-swatch" 
+              sx={{ backgroundColor: colors.background, border: '1px solid #ddd' }}
+            />
+            <Typography variant="caption">{isRTL ? 'רקע:' : 'Background:'} {colors.background}</Typography>
+          </Box>
+        )}
+        
+        {/* Display dominant colors if available */}
+        {colors.dominantColors && colors.dominantColors.length > 0 && (
+          <>
+            <Typography variant="caption" className="flier-summary-dominant-colors-title">
+              {isRTL ? 'צבעים דומיננטיים:' : 'Dominant Colors:'}
+            </Typography>
+            {colors.dominantColors.slice(0, 3).map((color, index) => (
+              <Box key={index} className="flier-summary-color-item">
+                <Box 
+                  className="flier-summary-color-swatch flier-summary-color-swatch-small" 
+                  sx={{ backgroundColor: color, border: '1px solid #ddd' }}
+                />
+                <Typography variant="caption">{color}</Typography>
+              </Box>
+            ))}
+          </>
+        )}
+      </Box>
+    </Box>
+  );
+};
 
 const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
   const isRTL = language === 'Hebrew';
@@ -72,6 +153,11 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
     return hebrewColorNames[colorName.toLowerCase()] || colorName;
   };
 
+  // Determine what analysis was performed
+  const hasLogoAnalysis = info.hasLogoAnalysis || (info.logoAnalysis && Object.keys(info.logoAnalysis).length > 0);
+  const hasPhotoAnalysis = info.hasPhotoAnalysis || (info.photoAnalysis && Object.keys(info.photoAnalysis).length > 0);
+  const hasAnyAnalysis = hasLogoAnalysis || hasPhotoAnalysis;
+
   return (
     <Paper elevation={4} className={`flier-summary-paper ${isRTL ? 'rtl-layout' : ''}`}>
       <Typography variant="h4" className="flier-summary-title">
@@ -131,66 +217,6 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
             {info.stylePreference && <InfoRow label={isRTL ? 'סגנון עיצוב' : 'Style Preference'} value={getDisplayValue('stylePreference', info.stylePreference)} />}
             {info.colorScheme && <InfoRow label={isRTL ? 'סכמת צבעים' : 'Color Scheme'} value={getDisplayValue('colorScheme', info.colorScheme)} />}
             
-            {/* Color details section */}
-            {info.colors && (
-              <Box className="flier-summary-colors-section">
-                <Typography variant="subtitle2" className="flier-summary-label">{isRTL ? 'צבעים מדויקים' : 'Color Details'}</Typography>
-                <Box className="flier-summary-color-swatches">
-                  {info.colors.primary && (
-                    <Box className="flier-summary-color-item">
-                      <Box 
-                        className="flier-summary-color-swatch" 
-                        sx={{ backgroundColor: info.colors.primary, border: '1px solid #ddd' }}
-                      />
-                      <Typography variant="caption">{isRTL ? 'ראשי:' : 'Primary:'} {info.colors.primary}</Typography>
-                    </Box>
-                  )}
-                  {info.colors.secondary && (
-                    <Box className="flier-summary-color-item">
-                      <Box 
-                        className="flier-summary-color-swatch" 
-                        sx={{ backgroundColor: info.colors.secondary, border: '1px solid #ddd' }}
-                      />
-                      <Typography variant="caption">{isRTL ? 'משני:' : 'Secondary:'} {info.colors.secondary}</Typography>
-                    </Box>
-                  )}
-                  {info.colors.accent && (
-                    <Box className="flier-summary-color-item">
-                      <Box 
-                        className="flier-summary-color-swatch" 
-                        sx={{ backgroundColor: info.colors.accent, border: '1px solid #ddd' }}
-                      />
-                      <Typography variant="caption">{isRTL ? 'הדגשה:' : 'Accent:'} {info.colors.accent}</Typography>
-                    </Box>
-                  )}
-                  {info.colors.background && (
-                    <Box className="flier-summary-color-item">
-                      <Box 
-                        className="flier-summary-color-swatch" 
-                        sx={{ backgroundColor: info.colors.background, border: '1px solid #ddd' }}
-                      />
-                      <Typography variant="caption">{isRTL ? 'רקע:' : 'Background:'} {info.colors.background}</Typography>
-                    </Box>
-                  )}
-                  
-                  {/* Display semantic colors if available */}
-                  {info.colors.semanticColors && Object.entries(info.colors.semanticColors).length > 0 && 
-                    Object.entries(info.colors.semanticColors).map(([key, value]) => (
-                      <Box key={key} className="flier-summary-color-item">
-                        <Box 
-                          className="flier-summary-color-swatch" 
-                          sx={{ backgroundColor: value, border: '1px solid #ddd' }}
-                        />
-                        <Typography variant="caption">
-                          {isRTL ? translateColorNameToHebrew(key) : key}: {value}
-                        </Typography>
-                      </Box>
-                    ))
-                  }
-                </Box>
-              </Box>
-            )}
-            
             {info.flierSize && <InfoRow label={isRTL ? 'גודל פלייר' : 'Flier Size'} value={info.flierSize} />}
             {info.orientation && <InfoRow label={isRTL ? 'כיוון הדף' : 'Orientation'} value={isRTL ? (info.orientation === 'portrait' ? 'לאורך' : 'לרוחב') : info.orientation} />}
           </Box>
@@ -231,6 +257,85 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
           ) : null}
         </Grid>
       </Grid>
+
+      {/* Enhanced Color Analysis Section */}
+      <Divider className="flier-summary-divider" />
+      
+      <Box className="flier-summary-section">
+        <Typography variant="h5" className="flier-summary-section-title" sx={{ mb: 3 }}>
+          <PaletteIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+          {isRTL ? 'ניתוח צבעים' : 'Color Analysis'}
+        </Typography>
+        
+        {hasAnyAnalysis ? (
+          <Grid container spacing={3}>
+            {hasLogoAnalysis && (
+              <Grid item xs={12} md={6}>
+                <ColorAnalysisSection
+                  title={isRTL ? 'צבעי הלוגו' : 'Logo Colors'}
+                  colors={info.logoAnalysis?.colors}
+                  icon={<BusinessIcon color="primary" />}
+                  isRTL={isRTL}
+                  source={isRTL ? 'ניתוח AI' : 'AI Analysis'}
+                />
+              </Grid>
+            )}
+            
+            {hasPhotoAnalysis && (
+              <Grid item xs={12} md={6}>
+                <ColorAnalysisSection
+                  title={isRTL ? 'צבעי התמונה' : 'Image Colors'}
+                  colors={info.photoAnalysis?.colors}
+                  icon={<ImageIcon color="secondary" />}
+                  isRTL={isRTL}
+                  source={isRTL ? 'ניתוח AI' : 'AI Analysis'}
+                />
+              </Grid>
+            )}
+            
+            {/* Unified Color Palette */}
+            {info.colors && (
+              <Grid item xs={12}>
+                <ColorAnalysisSection
+                  title={isRTL ? 'לוח צבעים מאוחד' : 'Unified Color Palette'}
+                  colors={info.colors}
+                  icon={<PaletteIcon color="success" />}
+                  isRTL={isRTL}
+                  source={isRTL ? 'שילוב חכם' : 'Smart Blend'}
+                />
+              </Grid>
+            )}
+          </Grid>
+        ) : (
+          // Fallback when no Azure analysis was performed
+          <Box className="flier-summary-no-analysis">
+            <Box className="flier-summary-no-analysis-content">
+              <PaletteIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" align="center">
+                {isRTL ? 'לא בוצע ניתוח צבעים' : 'No Color Analysis Performed'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                {isRTL 
+                  ? 'השתמשנו בסכמת הצבעים שבחרת'
+                  : 'Using your selected color scheme'}
+              </Typography>
+              
+              {/* Show the default color scheme */}
+              {info.colors && (
+                <Box sx={{ mt: 3 }}>
+                  <ColorAnalysisSection
+                    title={isRTL ? 'סכמת הצבעים שנבחרה' : 'Selected Color Scheme'}
+                    colors={info.colors}
+                    icon={<PaletteIcon color="primary" />}
+                    isRTL={isRTL}
+                    source={isRTL ? 'ברירת מחדל' : 'Default'}
+                  />
+                </Box>
+              )}
+            </Box>
+          </Box>
+        )}
+      </Box>
       
       <Divider className="flier-summary-bottom-divider" />
       

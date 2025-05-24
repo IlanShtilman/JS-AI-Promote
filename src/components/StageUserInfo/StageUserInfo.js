@@ -122,11 +122,7 @@ const StageUserInfo = ({
       setError('Please enter a title');
       return;
     }
-    // Optionally, validate promotionalText as well
-    // if (!promotionalText.trim()) {
-    //   setError('Please enter promotional text');
-    //   return;
-    // }
+
     setError('');
     if (onGenerateTexts) {
       onGenerateTexts(title, promotionalText, language);

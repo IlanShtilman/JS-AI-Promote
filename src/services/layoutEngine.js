@@ -83,65 +83,8 @@ export function generateLayout(flierData) {
     template: 'modern', // Default template
   };
   
-  // Process AI suggestions if available
-  if (flierData.aiSuggestions) {
-    logDecision("AI", "suggestions", "Processing AI styling suggestions");
-    
-    // Process layout suggestions
-    if (flierData.aiSuggestions.layout) {
-      layoutConfig.layout = logDecision(
-        "AI", flierData.aiSuggestions.layout, "Applied AI-suggested layout"
-      );
-    }
-    
-    // Process element positions
-    if (flierData.aiSuggestions.elementPositions) {
-      // Selectively apply positions while ensuring they're valid
-      Object.entries(flierData.aiSuggestions.elementPositions).forEach(([element, position]) => {
-        if (typeof position === 'object' && position !== null) {
-          const x = typeof position.x === 'number' ? position.x : layoutConfig.elementPositions[element]?.x || 50;
-          const y = typeof position.y === 'number' ? position.y : layoutConfig.elementPositions[element]?.y || 50;
-          layoutConfig.elementPositions[element] = { x, y };
-          logDecision("AI", `${element} at (${x}, ${y})`, "Applied AI-suggested position");
-        }
-      });
-    }
-    
-    // Process color suggestions
-    if (flierData.aiSuggestions.colorApplications) {
-      // Apply color suggestions if they're valid hex codes
-      const hexRegex = /^#([0-9A-F]{3}){1,2}$/i;
-      Object.entries(flierData.aiSuggestions.colorApplications).forEach(([element, color]) => {
-        if (typeof color === 'string' && (hexRegex.test(color) || color.startsWith('rgb'))) {
-          layoutConfig.colorApplications[element] = logDecision(
-            "AI", color, `Applied AI-suggested ${element} color`
-          );
-        }
-      });
-    }
-    
-    // Process font suggestions
-    if (flierData.aiSuggestions.fontSelections) {
-      Object.entries(flierData.aiSuggestions.fontSelections).forEach(([element, font]) => {
-        if (typeof font === 'string' && font.trim()) {
-          layoutConfig.fontSelections[element] = logDecision(
-            "AI", font, `Applied AI-suggested ${element} font`
-          );
-        }
-      });
-    }
-    
-    // Process design rationale
-    if (flierData.aiSuggestions.designRationale) {
-      // Store the rationale for reference
-      layoutConfig.designRationale = flierData.aiSuggestions.designRationale;
-      logDecision("AI", "designRationale", "Saved AI design rationale");
-    }
-  } else {
-    logDecision("AI", "none", "No AI suggestions available, using deterministic rules only");
-  }
-  
-  // Continue with deterministic rules
+  // Continue with deterministic rules (Apply these first)
+
   // Apply color scheme based on input
   if (flierData.colorScheme) {
     switch (flierData.colorScheme) {
@@ -255,19 +198,10 @@ export function generateLayout(flierData) {
         break;
       case "playful":
         layoutConfig.patternType = logDecision(
-          "Style", "confetti", "Applied confetti pattern for playful style"
+          "Style", "dots", "Applied dots pattern for playful style"
         );
         break;
-      case "elegant":
-        layoutConfig.patternType = logDecision(
-          "Style", "waves", "Applied waves pattern for elegant style"
-        );
-        break;
-      case "minimalist":
-        layoutConfig.patternType = logDecision(
-          "Style", "none", "Applied no pattern for minimalist style"
-        );
-        break;
+      // Add more styles as needed
       default:
         logDecision("Style", "default", `Style preference '${flierData.stylePreference}' not specifically handled, using defaults`);
         break;
@@ -276,69 +210,117 @@ export function generateLayout(flierData) {
     logDecision("Style", "default", "No style preference specified, using defaults");
   }
   
-  // Apply image position based on detected objects or content
-  if (flierData.detectedObjects && flierData.detectedObjects.includes("person")) {
-    // If a person is detected, position image accordingly
-    layoutConfig.elementPositions.image = logDecision(
-      "Layout", "{ x: 70, y: 50 }", "Positioned image to highlight detected person"
-    );
-  } else if (flierData.uploadedImage) {
-    // If there's an image but no specific object detection
-    layoutConfig.elementPositions.image = logDecision(
-      "Layout", "{ x: 50, y: 50 }", "Centered image when no specific objects detected"
-    );
+  // Process AI suggestions if available (Apply these last to override deterministic rules)
+  if (flierData.aiSuggestions) {
+    logDecision("AI", "suggestions", "Processing AI styling suggestions");
+    
+    // Process layout suggestions
+    if (flierData.aiSuggestions.layout) {
+      layoutConfig.layout = logDecision(
+        "AI", flierData.aiSuggestions.layout, "Applied AI-suggested layout"
+      );
+    }
+    
+    // Process element positions
+    if (flierData.aiSuggestions.elementPositions) {
+      // Selectively apply positions while ensuring they're valid
+      Object.entries(flierData.aiSuggestions.elementPositions).forEach(([element, position]) => {
+        if (typeof position === 'object' && position !== null) {
+          const x = typeof position.x === 'number' ? position.x : layoutConfig.elementPositions[element]?.x || 50;
+          const y = typeof position.y === 'number' ? position.y : layoutConfig.elementPositions[element]?.y || 50;
+          layoutConfig.elementPositions[element] = { x, y };
+          logDecision("AI", `${element} at (${x}, ${y})`, "Applied AI-suggested position");
+        }
+      });
+    }
+    
+    // **Replace the entire colorApplications object with AI suggestions**
+    if (flierData.aiSuggestions.colorApplications) {
+       layoutConfig.colorApplications = logDecision(
+          "AI", flierData.aiSuggestions.colorApplications, "Applied AI-suggested color applications (overriding deterministic rules)"
+      );
+    }
+    
+    // Process font suggestions
+    if (flierData.aiSuggestions.fontSelections) {
+      // Apply font suggestions if they're valid strings
+      Object.entries(flierData.aiSuggestions.fontSelections).forEach(([element, font]) => {
+        if (typeof font === 'string' && font.trim()) {
+          // Check if the key exists before attempting to update
+          if (layoutConfig.fontSelections.hasOwnProperty(element)) {
+             layoutConfig.fontSelections[element] = logDecision(
+              "AI", font, `Applied AI-suggested ${element} font (overriding deterministic rule)`
+            );
+          } else {
+             logDecision(
+              "AI", font, `Skipped applying AI-suggested ${element} font (key not in default config)`
+            );
+          }
+        }
+      });
+    }
+    
+    // Process design rationale
+    if (flierData.aiSuggestions.designRationale) {
+      // Store the rationale for reference
+      layoutConfig.designRationale = flierData.aiSuggestions.designRationale;
+      logDecision("AI", "designRationale", "Saved AI design rationale");
+    }
   } else {
-    logDecision("Layout", "default", "No image provided, using default layout");
+    logDecision("AI", "none", "No AI suggestions available, using deterministic rules only");
   }
   
+  // Final configuration adjustments or logging
   console.log("✅ Layout Engine Complete - Generated configuration:", layoutConfig);
   layoutConfig.engineLogs = [...engineLogs]; // Attach logs for debugging
   return layoutConfig;
 }
 
-// Generate multiple style options based on a single layout
+// Generate multiple style options based on AI suggestions or fallback
 export function generateStyleOptions(flierData) {
-  // Get the base configuration first
+  // Get the base configuration first (includes deterministic rules and processed AI suggestions)
   const baseConfig = generateLayout(flierData);
   
-  // Create an array of style options with different patterns
-  const styleOptions = [
-    {
-      backgroundColor: baseConfig.colorApplications?.background || '#ffffff',
-      textColor: baseConfig.colorApplications?.title || '#000000',
-      accentColor: baseConfig.colorApplications?.accent || '#FFA726',
+  // Use AI suggestions if available and in the expected format
+  if (baseConfig && baseConfig.aiSuggestions && Array.isArray(baseConfig.aiSuggestions) && baseConfig.aiSuggestions.length > 0) {
+    console.log("Layout Engine: Using AI-generated style options.");
+    return baseConfig.aiSuggestions;
+  } else if (baseConfig && baseConfig.aiSuggestions && Array.isArray(baseConfig.aiSuggestions.styles) && baseConfig.aiSuggestions.styles.length > 0) {
+     // Handle case where AI suggestions might be nested under a 'styles' key (based on previous data structures)
+     console.log("Layout Engine: Using AI-generated style options from 'styles' key.");
+     return baseConfig.aiSuggestions.styles;
+  } else {
+    console.log("Layout Engine: No valid AI suggestions found, generating default fallback styles.");
+    // Fallback: Generate a few simple default styles if AI suggestions are not available or invalid
+    const defaultColors = { background: '#ffffff', textColor: '#000000', accent: '#FFA726', highlight: '#F1C40F' };
+    return [
+        { // Default Style 1 (Solid + Grid)
+          background: { type: 'solid', color: defaultColors.background, gradient: null },
+          textColor: defaultColors.textColor,
+          accentColor: defaultColors.accent,
+          highlightColor: defaultColors.highlight,
       pattern: 'grid',
       backgroundImage: 'none',
-      designRationale: 'Modern grid pattern for a clean, professional look.'
-    },
-    {
-      backgroundColor: baseConfig.colorApplications?.background || '#ffffff',
-      textColor: baseConfig.colorApplications?.title || '#000000',
-      accentColor: baseConfig.colorApplications?.accent || '#FFA726',
-      pattern: 'dots',
+          designRationale: 'Default fallback style 1 (Solid + Grid)'
+        },
+        { // Default Style 2 (Gradient)
+          background: { type: 'gradient', gradient: 'linear-gradient(135deg, #ffffff 0%, #cccccc 100%)', color: null },
+          textColor: defaultColors.textColor,
+          accentColor: defaultColors.accent,
+          highlightColor: defaultColors.highlight,
+          pattern: 'none',
       backgroundImage: 'none',
-      designRationale: 'Playful dots pattern for a fun, engaging vibe.'
-    },
-    {
-      backgroundColor: baseConfig.colorApplications?.background || '#ffffff',
-      textColor: baseConfig.colorApplications?.title || '#000000',
-      accentColor: baseConfig.colorApplications?.accent || '#FFA726',
+          designRationale: 'Default fallback style 2 (Gradient)'
+        },
+        { // Default Style 3 (Solid)
+          background: { type: 'solid', color: defaultColors.background, gradient: null },
+          textColor: defaultColors.textColor,
+          accentColor: defaultColors.accent,
+          highlightColor: defaultColors.highlight,
       pattern: 'none',
       backgroundImage: 'none',
-      designRationale: 'Clean solid background for maximum readability and minimalist appeal.'
-    }
-  ];
-  
-  // If we have a specific pattern from AI, make sure it's the first option
-  if (baseConfig.patternType && baseConfig.patternType !== 'none') {
-    const aiPattern = baseConfig.patternType;
-    // Move the matching pattern to the front if it exists
-    const patternIndex = styleOptions.findIndex(option => option.pattern === aiPattern);
-    if (patternIndex > 0) {
-      const preferredOption = styleOptions.splice(patternIndex, 1)[0];
-      styleOptions.unshift(preferredOption);
-    }
+          designRationale: 'Default fallback style 3 (Solid)'
+        }
+    ];
   }
-  
-  return styleOptions;
 } 

@@ -82,10 +82,20 @@ function App() {
     }
   };
 
-  const handleContinueWithSelected = () => {
+  const handleContinueWithSelected = (data) => {
+    // Handle both old format (just text) and new format (object with text and logo)
+    if (data?.selectedText) {
+      setSelectedText(data.selectedText);
+      // Logo is already stored in state, but if passed in data, use that
+      if (data.logo && data.logo !== logo) {
+        setLogo(data.logo);
+      }
+    } else {
+      // Backward compatibility - if data is just the text object
+      setSelectedText(data);
+    }
     setCurrentStage('design-mode');
   };
-
 
   return (
     <Box>
@@ -118,6 +128,7 @@ function App() {
               onContinue={handleContinueWithSelected}
               onError={setError}
               onLoadingChange={handleLoadingChange}
+              logo={logo}
             />
           </>
         ) : currentStage === 'design-mode' ? (
