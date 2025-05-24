@@ -14,6 +14,11 @@ public class BackgroundGenerationRequest {
     private List<String> moodKeywords;
     private String backgroundStyle;
     private Map<String, Object> contrastRequirements;
+    
+    // ✅ NEW FIELDS FOR USER'S ACTUAL CONTENT
+    private String title;                    // "Crazy Sale", "Grand Opening"
+    private String promotionalText;          // "50% Off Everything!"
+    private String businessDescription;      // User's business description
 
     // Default constructor
     public BackgroundGenerationRequest() {
@@ -101,6 +106,30 @@ public class BackgroundGenerationRequest {
         this.contrastRequirements = contrastRequirements;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getPromotionalText() {
+        return promotionalText;
+    }
+
+    public void setPromotionalText(String promotionalText) {
+        this.promotionalText = promotionalText;
+    }
+
+    public String getBusinessDescription() {
+        return businessDescription;
+    }
+
+    public void setBusinessDescription(String businessDescription) {
+        this.businessDescription = businessDescription;
+    }
+
     @Override
     public String toString() {
         return "BackgroundGenerationRequest{" +
@@ -113,6 +142,9 @@ public class BackgroundGenerationRequest {
                 ", moodKeywords=" + moodKeywords +
                 ", backgroundStyle='" + backgroundStyle + '\'' +
                 ", contrastRequirements=" + contrastRequirements +
+                ", title='" + title + '\'' +
+                ", promotionalText='" + promotionalText + '\'' +
+                ", businessDescription='" + businessDescription + '\'' +
                 '}';
     }
 } 

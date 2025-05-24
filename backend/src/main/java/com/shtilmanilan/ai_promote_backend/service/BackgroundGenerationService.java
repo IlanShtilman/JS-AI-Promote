@@ -28,10 +28,26 @@ public class BackgroundGenerationService {
 
     /**
      * Generate 3 background options using AI
+     * TODO: Implement database-first approach for better quality and text contrast
      */
     public List<BackgroundOption> generateBackgrounds(BackgroundGenerationRequest request) {
         System.out.println("🎨 Background Service: Starting AI generation...");
         
+        // TODO: Phase 1 - Check curated database first
+        // List<BackgroundOption> databaseResults = checkCuratedDatabase(request);
+        // if (databaseResults.size() >= 3) {
+        //     System.out.println("✅ Found professional backgrounds in database");
+        //     return databaseResults.subList(0, 3);
+        // }
+        
+        // TODO: Phase 2 - AI-powered matching from database
+        // List<BackgroundOption> aiMatched = selectFromDatabaseWithAI(request);
+        // if (aiMatched.size() >= 3) {
+        //     System.out.println("✅ AI selected backgrounds from database");
+        //     return aiMatched.subList(0, 3);
+        // }
+        
+        // Phase 3 - Generate with AI (current implementation)
         try {
             // Create AI prompt based on request
             String prompt = createAIPrompt(request);
@@ -76,7 +92,7 @@ public class BackgroundGenerationService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + geminiApiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey;
             
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
             Map<String, Object> response = restTemplate.postForObject(url, entity, Map.class);
@@ -146,10 +162,12 @@ public class BackgroundGenerationService {
         }
         
         prompt.append("\nRequirements:\n");
-        prompt.append("1. Ensure high contrast for text readability\n");
-        prompt.append("2. Use provided color palette as inspiration\n");
-        prompt.append("3. Create CSS gradients/patterns (no external images)\n");
-        prompt.append("4. Include recommended text colors\n\n");
+        prompt.append("1. CRITICAL: Ensure minimum 4.5:1 contrast ratio for text readability\n");
+        prompt.append("2. Use lighter background colors (#F0F0F0 to #FFFFFF range) for dark text\n");
+        prompt.append("3. Avoid dark or complex gradients that make text unreadable\n");
+        prompt.append("4. Test textColor against backgroundCSS for visibility\n");
+        prompt.append("5. Create subtle, professional gradients (no external images)\n");
+        prompt.append("6. Include high-contrast text colors (#333333 or darker)\n\n");
         
         prompt.append("Return ONLY a valid JSON array with 3 options:\n");
         prompt.append("[\n");
@@ -297,7 +315,7 @@ public class BackgroundGenerationService {
     public double estimateCost(String provider) {
         Map<String, Double> costs = new HashMap<>();
         costs.put("openai-gpt4", 0.03);
-        costs.put("gemini-pro", 0.002);
+        costs.put("gemini-1.5-flash", 0.002);
         costs.put("claude", 0.015);
         
         double costPerGeneration = costs.getOrDefault(provider, 0.002);

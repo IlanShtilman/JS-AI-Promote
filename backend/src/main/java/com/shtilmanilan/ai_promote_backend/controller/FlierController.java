@@ -108,6 +108,11 @@ public class FlierController {
         request.setColorScheme(flierInfo.colorScheme);
         request.setStylePreference(flierInfo.stylePreference);
         
+        // ✅ ADD USER'S ACTUAL CONTENT FOR RELEVANT BACKGROUNDS
+        request.setTitle(flierInfo.title);                           // "Crazy Sale", "Grand Opening", etc.
+        request.setPromotionalText(flierInfo.promotionalText);       // "50% Off Everything!", etc.
+        // Note: FlierInfo doesn't have businessDescription, using businessType instead
+        
         // Azure colors (if available)
         Map<String, Object> azureColors = new HashMap<>();
         if (flierInfo.azureVision != null && flierInfo.azureVision.colors != null) {

@@ -145,12 +145,32 @@ public class AzureVisionService {
             }
             colors.setDominantColors(dominantColorsHex);
             
-            // Set primary and secondary based on Azure's analysis
-            colors.setPrimary(getHexForColorName(foregroundColor));
-            colors.setSecondary(getHexForColorName(backgroundColor));
+            // Set primary and secondary based on dominant colors first, fallback to Azure's analysis
+            if (dominantColorsHex.size() >= 2) {
+                // Use the actual dominant colors - much more reliable!
+                colors.setPrimary(dominantColorsHex.get(0));   // Most dominant color
+                colors.setSecondary(dominantColorsHex.get(1)); // Second most dominant color (USE THIS!)
+                logger.info("✅ Using dominant colors for primary/secondary: {} / {}", 
+                           dominantColorsHex.get(0), dominantColorsHex.get(1));
+            } else {
+                // Fallback to Azure's foreground/background (often unreliable)
+                colors.setPrimary(getHexForColorName(foregroundColor));
+                colors.setSecondary(getHexForColorName(backgroundColor));
+                logger.warn("⚠️ Using Azure foreground/background (less reliable): {} / {}", 
+                           foregroundColor, backgroundColor);
+            }
             
-            // Determine accent color - pick a complementary color from dominant colors or calculate one
-            String accentColor = determineAccentColor(foregroundColor, backgroundColor, dominantColorNames);
+            // Determine accent color - PRIORITIZE DOMINANT COLORS over calculated ones
+            String accentColor;
+            if (dominantColorsHex.size() >= 3) {
+                // Use the third dominant color as accent - this is from your actual image!
+                accentColor = dominantColorsHex.get(2);
+                logger.info("✅ Using third dominant color as accent: {}", accentColor);
+            } else {
+                // Only fallback to calculated accent if we don't have enough dominant colors
+                accentColor = determineAccentColor(foregroundColor, backgroundColor, dominantColorNames);
+                logger.info("⚠️ Using calculated accent color: {}", accentColor);
+            }
             colors.setAccent(accentColor);
             
             // Determine appropriate background color

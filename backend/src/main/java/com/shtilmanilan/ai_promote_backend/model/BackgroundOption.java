@@ -12,6 +12,12 @@ public class BackgroundOption {
     private String source; // "ai", "fallback", "database"
     private Double contrastRatio;
     private String patternCSS; // For overlay patterns
+    
+    // ✅ AI-DECIDED TYPOGRAPHY FIELDS
+    private String fontFamily;        // "Roboto, sans-serif", "Georgia, serif", etc.
+    private Float fontSize;           // Title font size in rem
+    private Float bodyFontSize;       // Body text font size in rem  
+    private String styleName;         // "Modern Minimal", "Elegant", "Bold", etc.
 
     // Default constructor
     public BackgroundOption() {
@@ -123,6 +129,38 @@ public class BackgroundOption {
         this.patternCSS = patternCSS;
     }
 
+    public String getFontFamily() {
+        return fontFamily;
+    }
+
+    public void setFontFamily(String fontFamily) {
+        this.fontFamily = fontFamily;
+    }
+
+    public Float getFontSize() {
+        return fontSize;
+    }
+
+    public void setFontSize(Float fontSize) {
+        this.fontSize = fontSize;
+    }
+
+    public Float getBodyFontSize() {
+        return bodyFontSize;
+    }
+
+    public void setBodyFontSize(Float bodyFontSize) {
+        this.bodyFontSize = bodyFontSize;
+    }
+
+    public String getStyleName() {
+        return styleName;
+    }
+
+    public void setStyleName(String styleName) {
+        this.styleName = styleName;
+    }
+
     @Override
     public String toString() {
         return "BackgroundOption{" +
@@ -136,6 +174,10 @@ public class BackgroundOption {
                 ", source='" + source + '\'' +
                 ", contrastRatio=" + contrastRatio +
                 ", patternCSS='" + patternCSS + '\'' +
+                ", fontFamily='" + fontFamily + '\'' +
+                ", fontSize=" + fontSize +
+                ", bodyFontSize=" + bodyFontSize +
+                ", styleName='" + styleName + '\'' +
                 '}';
     }
 } 

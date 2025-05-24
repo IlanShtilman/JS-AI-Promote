@@ -6,7 +6,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import BusinessIcon from '@mui/icons-material/Business';
 import PaletteIcon from '@mui/icons-material/Palette';
 import { generateBackgroundParameters } from '../../services/simpleRulesEngine';
-import { generateBackgrounds } from '../../services/backgroundGeneratorService';
+import { generateBackgrounds, generateBackgroundImages } from '../../services/backgroundGeneratorService';
 import './AIFlierSummary.css';
 
 const InfoRow = ({ label, value }) => (
@@ -162,47 +162,162 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
   const hasAnyAnalysis = hasLogoAnalysis || hasPhotoAnalysis;
 
   /**
-   * NEW SIMPLIFIED PIPELINE: Handle confirm action with our new background generation
+   * ENHANCED PIPELINE: Database-first with Imagen fallback
    */
   const handleConfirm = async () => {
-    console.log("🎨 Starting new simplified flier generation pipeline...");
+    console.log("🎨 Starting enhanced flier generation pipeline (Database-first + Imagen)...");
     setIsGenerating(true);
+    
+    // Declare backgroundParams outside try block for fallback access
+    let backgroundParams;
     
     try {
       // Step 1: Generate background parameters using our simple rules engine
       console.log("Step 1: Generating background parameters...");
-      const backgroundParams = generateBackgroundParameters(info);
+      backgroundParams = generateBackgroundParameters(info);
       console.log("Generated parameters:", backgroundParams);
       
-      // Step 2: Generate 3 background options using AI
-      console.log("Step 2: Generating AI backgrounds...");
-      const backgroundOptions = await generateBackgrounds(backgroundParams);
-      console.log("Generated background options:", backgroundOptions);
+      // Step 2: Check database for existing suitable backgrounds
+      console.log("Step 2: Checking database for existing backgrounds...");
+      let backgroundOptions = await checkDatabaseForBackgrounds(backgroundParams);
       
-      // Step 3: Pass to onConfirm with the generated backgrounds
+      if (backgroundOptions && backgroundOptions.length >= 3) {
+        console.log("✅ Found suitable backgrounds in database:", backgroundOptions.length);
+      } else {
+        console.log("🖼️ No suitable backgrounds found, generating with Imagen 3.0...");
+        
+        // Step 3: Generate with Imagen 3.0 as fallback
+        backgroundOptions = await generateBackgroundImages(backgroundParams);
+        
+        // Step 4: Save new backgrounds to database for future use
+        console.log("💾 Saving generated backgrounds to database...");
+        await saveBakcgroundsToDatabase(backgroundOptions, backgroundParams);
+        
+        console.log("✅ Generated and saved new backgrounds with Imagen 3.0");
+      }
+      
+      // Step 5: Pass to onConfirm with the background options
       const enhancedInfo = {
         ...info,
         backgroundOptions,
         backgroundParams,
-        generationMethod: 'simplified-ai-pipeline'
+        generationMethod: backgroundOptions[0]?.source === 'database' ? 'database-cached' : 'imagen-generated'
       };
       
-      console.log("✅ Successfully generated backgrounds, proceeding to flier creation...");
+      console.log("✅ Successfully prepared backgrounds, proceeding to flier creation...");
       onConfirm(enhancedInfo);
       
     } catch (error) {
-      console.error("❌ Error in simplified pipeline:", error);
+      console.error("❌ Error in enhanced pipeline:", error);
       
-      // Fallback: continue with original info
-      console.log("🛡️ Using fallback - proceeding without AI backgrounds");
-      onConfirm({
-        ...info,
-        backgroundOptions: [],
-        generationMethod: 'fallback',
-        error: error.message
-      });
+      // Ultimate fallback: Use CSS generation
+      console.log("🛡️ Using CSS generation as ultimate fallback...");
+      try {
+        // Use backgroundParams if available, otherwise regenerate
+        const fallbackParams = backgroundParams || generateBackgroundParameters(info);
+        const cssBackgrounds = await generateBackgrounds(fallbackParams);
+        onConfirm({
+          ...info,
+          backgroundOptions: cssBackgrounds,
+          backgroundParams: fallbackParams,
+          generationMethod: 'css-fallback',
+          error: error.message
+        });
+      } catch (cssError) {
+        console.error("❌ Even CSS fallback failed:", cssError);
+        // Continue without backgrounds
+        onConfirm({
+          ...info,
+          backgroundOptions: [],
+          generationMethod: 'no-backgrounds',
+          error: `Background generation failed: ${error.message}`
+        });
+      }
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  /**
+   * Check database for existing backgrounds matching the criteria
+   */
+  const checkDatabaseForBackgrounds = async (params) => {
+    try {
+      console.log("🔍 Searching database for matching backgrounds...");
+      
+      // Future: This will be a real database call
+      // For now, simulate database check
+      const searchCriteria = {
+        businessType: params.businessType,
+        targetAudience: params.targetAudience,
+        colorScheme: params.colorScheme,
+        stylePreference: params.stylePreference,
+        moodKeywords: params.moodKeywords
+      };
+      
+      console.log("Database search criteria:", searchCriteria);
+      
+      // Simulate database response (replace with real database call)
+      // const response = await axios.get('http://localhost:8081/api/backgrounds/search', {
+      //   params: { 
+      //     businessType: params.businessType,
+      //     targetAudience: params.targetAudience,
+      //     colorScheme: params.colorScheme,
+      //     limit: 3
+      //   }
+      // });
+      // return response.data;
+      
+      // For now, return null to trigger Imagen generation
+      console.log("💾 Database not implemented yet, proceeding to Imagen generation");
+      return null;
+      
+    } catch (error) {
+      console.warn("⚠️ Database check failed:", error.message);
+      return null; // Proceed to generation
+    }
+  };
+
+  /**
+   * Save generated backgrounds to database for future reuse
+   */
+  const saveBakcgroundsToDatabase = async (backgrounds, params) => {
+    try {
+      console.log("💾 Saving backgrounds to database...");
+      
+      const backgroundRecords = backgrounds.map(bg => ({
+        // Background data
+        name: bg.name,
+        background_image_url: bg.backgroundImage || null,
+        background_css: bg.backgroundCSS || null,
+        
+        // Color information
+        text_color: bg.textColor,
+        accent_color: bg.accentColor,
+        
+        // Search metadata
+        business_type: params.businessType,
+        target_audience: params.targetAudience,
+        color_scheme: params.colorScheme,
+        style_preference: params.stylePreference,
+        mood_keywords: JSON.stringify(params.moodKeywords),
+        
+        // Generation info
+        source: bg.source || 'imagen',
+        created_at: new Date().toISOString(),
+        usage_count: 0
+      }));
+      
+      console.log("Would save to database:", backgroundRecords);
+      
+      // Future: Real database save
+      // await axios.post('http://localhost:8081/api/backgrounds/cache', backgroundRecords);
+      
+      console.log("✅ Backgrounds saved to database (simulated)");
+      
+    } catch (error) {
+      console.warn("⚠️ Failed to save to database:", error.message);
+      // Don't throw - saving to database is not critical for immediate use
     }
   };
 

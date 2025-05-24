@@ -243,29 +243,59 @@ const createUnifiedColorPalette = (logoColors, photoColors) => {
     background: '#FFFFFF'
   };
 
-  // Prioritize logo colors for brand consistency
-  if (logoColors) {
-    unified.primary = logoColors.primary || logoColors.dominantColors?.[0] || unified.primary;
-    unified.secondary = logoColors.secondary || logoColors.dominantColors?.[1] || unified.secondary;
-    
-    // Use logo accent or a complementary color
-    if (logoColors.accent) {
-      unified.accent = logoColors.accent;
-    } else if (logoColors.dominantColors?.[2]) {
-      unified.accent = logoColors.dominantColors[2];
-    }
+  console.log("🎨 Starting color unification with:", { logoColors, photoColors });
+
+  // Collect all dominant colors from both sources
+  const allDominantColors = [];
+  
+  // Add logo dominant colors
+  if (logoColors && logoColors.dominantColors) {
+    allDominantColors.push(...logoColors.dominantColors);
+    console.log("📸 Logo dominant colors:", logoColors.dominantColors);
+  }
+  
+  // Add photo dominant colors  
+  if (photoColors && photoColors.dominantColors) {
+    allDominantColors.push(...photoColors.dominantColors);
+    console.log("🖼️ Photo dominant colors:", photoColors.dominantColors);
   }
 
-  // Supplement with photo colors if available
-  if (photoColors && !logoColors) {
-    unified.primary = photoColors.primary || photoColors.dominantColors?.[0] || unified.primary;
-    unified.secondary = photoColors.secondary || photoColors.dominantColors?.[1] || unified.secondary;
-    unified.accent = photoColors.accent || photoColors.dominantColors?.[2] || unified.accent;
+  // Remove duplicates and prioritize non-white colors for variety
+  const uniqueColors = [...new Set(allDominantColors)];
+  const colorsByPreference = uniqueColors.sort((a, b) => {
+    // Prioritize non-white colors for better visual variety
+    const aIsWhite = a.toLowerCase() === '#ffffff';
+    const bIsWhite = b.toLowerCase() === '#ffffff';
+    if (aIsWhite && !bIsWhite) return 1;   // b comes first
+    if (!aIsWhite && bIsWhite) return -1;  // a comes first
+    return 0; // keep original order
+  });
+
+  console.log("🎨 All unique colors by preference:", colorsByPreference);
+
+  // Use the best colors we found
+  if (colorsByPreference.length >= 3) {
+    unified.primary = colorsByPreference[0];    // Best non-white color or white if only option
+    unified.secondary = colorsByPreference[1];  // Second best color  
+    unified.accent = colorsByPreference[2];     // Third best color
+    console.log("✅ Using merged dominant colors:", unified.primary, unified.secondary, unified.accent);
+  } else if (colorsByPreference.length >= 2) {
+    unified.primary = colorsByPreference[0];
+    unified.secondary = colorsByPreference[1];
+    // Keep default accent
+    console.log("✅ Using 2 merged dominant colors + default accent");
+  } else if (colorsByPreference.length >= 1) {
+    unified.primary = colorsByPreference[0];
+    // Keep defaults for secondary and accent
+    console.log("✅ Using 1 merged dominant color + defaults");
+  } else {
+    console.log("⚠️ No dominant colors found, using defaults");
   }
 
-  // Always keep background light for readability
-  unified.background = logoColors?.background || photoColors?.background || '#FFFFFF';
+  // Set background from logo or photo
+  unified.background = logoColors?.background || photoColors?.background || unified.background;
 
+  console.log("🎨 Final unified palette:", unified);
   return unified;
 };
 

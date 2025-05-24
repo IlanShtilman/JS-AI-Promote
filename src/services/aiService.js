@@ -232,7 +232,72 @@ export async function generateFlierConfig(infoObject) {
     
     if (response && response.success) {
       console.log("Successfully received flier configuration from simplified pipeline");
-      return response;
+      
+      // Convert backgroundOptions to aiStyleOptions format - Use backend analyzed colors
+      const aiStyleOptions = response.backgroundOptions?.map((option, index) => {
+        
+        // ✅ COMPLETE STYLE PROPERTIES based on AI decisions
+        const fontFamily = option.fontFamily || 'Roboto, sans-serif';
+        const fontSize = option.fontSize || 4.0;
+        const bodyFontSize = option.bodyFontSize || 1.7;
+        
+        // ✅ DERIVE ADDITIONAL TYPOGRAPHY PROPERTIES from AI font choice
+        let letterSpacing, lineHeight, textAlign, titleWeight, bodyWeight;
+        
+        if (fontFamily.includes('Georgia') || fontFamily.includes('Playfair')) {
+          // Elegant serif fonts
+          letterSpacing = '0.01em';
+          lineHeight = 1.2;
+          textAlign = 'center';
+          titleWeight = 700;
+          bodyWeight = 400;
+        } else if (fontFamily.includes('Montserrat')) {
+          // Bold modern fonts  
+          letterSpacing = '-0.03em';
+          lineHeight = 1.0;
+          textAlign = 'right';
+          titleWeight = 900;
+          bodyWeight = 600;
+        } else {
+          // Clean professional fonts (Roboto, Arial)
+          letterSpacing = '-0.02em';
+          lineHeight = 1.1;
+          textAlign = 'right';
+          titleWeight = 800;
+          bodyWeight = 400;
+        }
+        
+        return {
+          // ✅ BACKGROUND
+          backgroundImage: option.backgroundImage || 'none',    
+          backgroundColor: option.backgroundColor || '#ffffff',
+          
+          // ✅ AI-DECIDED COLORS (harmonized with background)
+          textColor: option.textColor,                          
+          accentColor: option.accentColor,
+          
+          // ✅ AI-DECIDED TYPOGRAPHY (complete set)
+          fontFamily: fontFamily,
+          fontSize: fontSize,
+          bodyFontSize: bodyFontSize,
+          letterSpacing: letterSpacing,
+          lineHeight: lineHeight,
+          textAlign: textAlign,
+          titleWeight: titleWeight,
+          bodyWeight: bodyWeight,
+          
+          // ✅ METADATA
+          styleName: option.styleName || `Style ${index + 1}`,
+          pattern: 'none',
+          designRationale: option.description || `AI Generated Style ${index + 1}`,
+          source: 'ai'
+        };
+      }) || [];
+      
+      return {
+        ...response,
+        aiStyleOptions
+      };
     } else {
       throw new Error("Failed to get response from simplified pipeline");
     }
@@ -245,6 +310,15 @@ export async function generateFlierConfig(infoObject) {
       layout: "standard",
       success: false,
       backgroundOptions: [],
+      aiStyleOptions: [{
+        background: { type: 'solid', color: '#f0f8ff', gradient: null },
+        textColor: '#333333',
+        accentColor: '#1976d2',
+        highlightColor: '#F1C40F',
+        pattern: 'none',
+        backgroundImage: 'none',
+        designRationale: 'Default fallback style with clean look and high readability'
+      }],
       layoutInfo: {
         orientation: infoObject.orientation || "portrait",
         imagePosition: "center",

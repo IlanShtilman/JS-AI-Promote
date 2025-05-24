@@ -76,28 +76,54 @@ const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) 
 );
 
 const businessTypes = [
-  { value: 'cafe', label: 'Caffe - בית קפה' },
-  { value: 'restaurant', label: 'Restaurant - מסעדה' },
-  { value: 'retail', label: 'Retail - קמעונאות' },
-  { value: 'office', label: 'Office - משרדים' },
-  { value: 'healthcare', label: 'Healthcare - בריאות' },
+  // ✅ SPECIFIC FOOD BUSINESSES (matches backend logic)
+  { value: 'hamburger restaurant', label: 'Hamburger Restaurant - מבורגרייה' },
+  { value: 'pizzeria', label: 'Pizzeria - פיצרייה' },
+  { value: 'cafe', label: 'Cafe - בית קפה' },
+  { value: 'coffee shop', label: 'Coffee Shop - בית קפה' },
+  { value: 'bakery', label: 'Bakery - מאפייה' },
+  { value: 'sushi restaurant', label: 'Sushi Restaurant - מסעדת סושי' },
+  { value: 'chinese restaurant', label: 'Chinese Restaurant - מסעדה סינית' },
+  { value: 'mexican restaurant', label: 'Mexican Restaurant - מסעדה מקסיקנית' },
+  { value: 'indian restaurant', label: 'Indian Restaurant - מסעדה הודית' },
+  { value: 'steakhouse', label: 'Steakhouse - סטייקייה' },
+  { value: 'seafood restaurant', label: 'Seafood Restaurant - מסעדת פירות ים' },
+  { value: 'ice cream parlor', label: 'Ice Cream Parlor - גלידריה' },
+  { value: 'bar', label: 'Bar - בר' },
+  { value: 'fast food', label: 'Fast Food - מזון מהיר' },
+  { value: 'fine dining', label: 'Fine Dining - מסעדה יוקרתית' },
+  { value: 'restaurant', label: 'Restaurant (General) - מסעדה כללית' },
+  
+  // ✅ OTHER BUSINESS TYPES
+  { value: 'tech company', label: 'Tech Company - חברת הייטק' },
+  { value: 'retail store', label: 'Retail Store - חנות קמעונאית' },
+  { value: 'fitness center', label: 'Fitness Center - מכון כושר' },
+  { value: 'beauty salon', label: 'Beauty Salon - מכון יופי' },
+  { value: 'hotel', label: 'Hotel - מלון' },
+  { value: 'medical clinic', label: 'Medical Clinic - מרפאה' },
+  { value: 'auto service', label: 'Auto Service - שירותי רכב' },
   { value: 'education', label: 'Education - חינוך' },
+  { value: 'office', label: 'Office - משרדים' },
   { value: 'entertainment', label: 'Entertainment - בידור' },
-  { value: 'beauty', label: 'Beauty - יופי' },
-  { value: 'fitness', label: 'Fitness - כושר' },
-  { value: 'general', label: 'General - כללי' }
+  { value: 'general', label: 'General Business - עסק כללי' }
 ];
 
 const targetAudiences = [
-  { value: 'families', label: 'Families - משפחות' },
-  { value: 'young_adults', label: 'Young Adults - צעירים' },
-  { value: 'professionals', label: 'Professionals - אנשי מקצוע' },
-  { value: 'seniors', label: 'Seniors - בוגרים' },
+  { value: 'families', label: 'Families with Children - משפחות עם ילדים' },
+  { value: 'young adults', label: 'Young Adults (18-35) - צעירים בוגרים' },
+  { value: 'professionals', label: 'Business Professionals - אנשי מקצוע' },
+  { value: 'seniors', label: 'Seniors (55+) - בוגרים' },
   { value: 'students', label: 'Students - סטודנטים' },
+  { value: 'teenagers', label: 'Teenagers (13-17) - בני נוער' },
   { value: 'children', label: 'Children - ילדים' },
   { value: 'tourists', label: 'Tourists - תיירים' },
-  { value: 'locals', label: 'Locals - מקומיים' },
-  { value: 'general', label: 'General - כללי' }
+  { value: 'locals', label: 'Local Community - קהילה מקומית' },
+  { value: 'office workers', label: 'Office Workers - עובדי משרדים' },
+  { value: 'food lovers', label: 'Food Enthusiasts - אוהבי אוכל' },
+  { value: 'health conscious', label: 'Health Conscious - מודעים לבריאות' },
+  { value: 'luxury seekers', label: 'Luxury Seekers - מחפשי יוקרה' },
+  { value: 'budget conscious', label: 'Budget Conscious - מודעים לתקציב' },
+  { value: 'general', label: 'General Public - קהל רחב' }
 ];
 
 const AIInfoCollection = ({ language, onSubmit, initialData }) => {
