@@ -12,7 +12,8 @@ const AITextResults = ({
   promotionalText,
   triggerGeneration,
   onError,
-  onLoadingChange
+  onLoadingChange,
+  logo
 }) => {
   const [generatedTexts, setGeneratedTexts] = useState({});
   const [selectedText, setSelectedText] = useState(null);
@@ -63,7 +64,10 @@ const AITextResults = ({
   // Handle continue button click
   const handleContinue = () => {
     if (onContinue && selectedText) {
-      onContinue(selectedText);
+      onContinue({
+        selectedText,
+        logo
+      });
     }
   };
 

@@ -21,6 +21,11 @@ export function assembleSummaryInfo(formData, extraData = {}) {
     sceneType: formData.sceneType,
     description: formData.description,
     detectedObjects: formData.detectedObjects,
-    colors: formData.colors
+    colors: formData.colors,
+    // Add the missing Azure analysis fields
+    logoAnalysis: formData.logoAnalysis || null,
+    photoAnalysis: formData.photoAnalysis || null,
+    hasLogoAnalysis: formData.hasLogoAnalysis || false,
+    hasPhotoAnalysis: formData.hasPhotoAnalysis || false
   };
 } 

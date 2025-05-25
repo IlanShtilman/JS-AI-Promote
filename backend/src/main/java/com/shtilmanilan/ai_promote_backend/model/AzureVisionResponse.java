@@ -1,6 +1,7 @@
 package com.shtilmanilan.ai_promote_backend.model;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class AzureVisionResponse {
@@ -18,6 +19,7 @@ public class AzureVisionResponse {
         private String secondary;
         private String accent;
         private String background;
+        private List<String> dominantColors;
         private Object semanticColors;
     }
 } 

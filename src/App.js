@@ -7,7 +7,6 @@ import {
   Alert,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { generateFlierConfig } from './services/aiService';
 import DesignModeSelection from './components/DesignModeSelection/DesignModeSelection';
 import ManualFlierDesigner from './components/ManualFlierDesigner/ManualFlierDesigner';
 import AIInfoCollection from './components/AIInfoProcess/AIInfoCollection';
@@ -27,9 +26,7 @@ function App() {
   const [error, setError] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [selectedMode, setSelectedMode] = useState(null);
   const [currentStage, setCurrentStage] = useState('input');
-  const [aiDesignInfo, setAiDesignInfo] = useState(null);
   const [summaryInfo, setSummaryInfo] = useState(null);
   const [triggerGeneration, setTriggerGeneration] = useState(false);
 
@@ -50,7 +47,6 @@ function App() {
   }, []);
 
   const handleModeSelect = (mode) => {
-    setSelectedMode(mode);
     if (mode === 'manual') {
       setCurrentStage('manual-design');
     } else if (mode === 'ai-suggested') {
@@ -62,30 +58,39 @@ function App() {
     setCurrentStage('ai-info-collection');
   };
 
-  const handleSummaryConfirm = async () => {
+  const handleSummaryConfirm = async (enhancedSummaryInfo) => {
     try {
       setLoading(true);
-      console.log('Starting flier generation process with summary info:', summaryInfo);
+      console.log('📋 Flier generation process starting with enhanced summary info:', enhancedSummaryInfo);
       
-      // Call the updated generateFlierConfig function that uses both
-      // the AI styling advice and the layout engine
-      const config = await generateFlierConfig(summaryInfo);
+      // Store the enhanced summary info with background options
+      setSummaryInfo(enhancedSummaryInfo);
       
-      console.log('Combined AI and layout engine flier config:', config);
-      setAiDesignInfo(config);
+      // Move directly to flier design since backgrounds are already generated
       setCurrentStage('ai-flier-design');
+      
     } catch (err) {
       console.error('Error during flier generation:', err);
-      setError('Failed to generate flier config: ' + err.message);
+      setError('Failed to process flier: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleContinueWithSelected = () => {
+  const handleContinueWithSelected = (data) => {
+    // Handle both old format (just text) and new format (object with text and logo)
+    if (data?.selectedText) {
+      setSelectedText(data.selectedText);
+      // Logo is already stored in state, but if passed in data, use that
+      if (data.logo && data.logo !== logo) {
+        setLogo(data.logo);
+      }
+    } else {
+      // Backward compatibility - if data is just the text object
+      setSelectedText(data);
+    }
     setCurrentStage('design-mode');
   };
-
 
   return (
     <Box>
@@ -118,6 +123,7 @@ function App() {
               onContinue={handleContinueWithSelected}
               onError={setError}
               onLoadingChange={handleLoadingChange}
+              logo={logo}
             />
           </>
         ) : currentStage === 'design-mode' ? (
@@ -159,7 +165,7 @@ function App() {
         ) : currentStage === 'ai-flier-design' ? (
           <>
             <AIFlier
-              aiStyleOptions={aiDesignInfo?.aiStyleOptions}
+              backgroundOptions={summaryInfo?.backgroundOptions || []}
               flyerContent={{
                 title: summaryInfo?.title,
                 promotionalText: summaryInfo?.promotionalText,

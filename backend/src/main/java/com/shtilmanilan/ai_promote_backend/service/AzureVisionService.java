@@ -79,11 +79,31 @@ public class AzureVisionService {
             );
 
             logger.info("Received response from Azure Vision API");
+            logger.info("Raw Azure response: {}", response);
+            
             // Process the response
             return processResponse(response);
         } catch (Exception e) {
             logger.error("Error in analyzeImage: {}", e.getMessage(), e);
-            throw e;
+            
+            // Create a fallback response with default values
+            logger.warn("Creating fallback response due to Azure API error");
+            AzureVisionResponse fallback = new AzureVisionResponse();
+            fallback.setSceneType("general");
+            fallback.setDescription("Image analysis unavailable");
+            fallback.setBusinessType("general business");
+            fallback.setObjects(new String[]{"general"});
+            
+            // Create default colors
+            AzureVisionResponse.Colors defaultColors = new AzureVisionResponse.Colors();
+            defaultColors.setPrimary("#2196F3");
+            defaultColors.setSecondary("#FF9800");
+            defaultColors.setAccent("#4CAF50");
+            defaultColors.setBackground("#FFFFFF");
+            defaultColors.setDominantColors(java.util.Arrays.asList("#2196F3", "#FF9800", "#4CAF50"));
+            fallback.setColors(defaultColors);
+            
+            return fallback;
         }
     }
 
@@ -104,28 +124,61 @@ public class AzureVisionService {
                 .toArray(String[]::new));
         }
 
-        // Process colors
+        // Process colors - Enhanced to capture all color information
         if (response.containsKey("color")) {
             Map<String, Object> colorData = (Map<String, Object>) response.get("color");
             AzureVisionResponse.Colors colors = new AzureVisionResponse.Colors();
             
-            // Get primary and secondary colors
-            String primaryColor = (String) colorData.get("dominantColorForeground");
-            String secondaryColor = (String) colorData.get("dominantColorBackground");
+            // Get foreground and background colors
+            String foregroundColor = (String) colorData.get("dominantColorForeground");
+            String backgroundColor = (String) colorData.get("dominantColorBackground");
             
-            colors.setPrimary(primaryColor);
-            colors.setSecondary(secondaryColor);
+            // Get dominant colors array - this is what the frontend expects!
+            java.util.List<String> dominantColorNames = (java.util.List<String>) colorData.get("dominantColors");
             
-            // Get dominant colors array for more intelligent color selection
-            java.util.List<String> dominantColors = (java.util.List<String>) colorData.get("dominantColors");
+            // Convert color names to hex values for the dominantColors list
+            java.util.List<String> dominantColorsHex = new java.util.ArrayList<>();
+            if (dominantColorNames != null) {
+                for (String colorName : dominantColorNames) {
+                    dominantColorsHex.add(getHexForColorName(colorName));
+                }
+            }
+            colors.setDominantColors(dominantColorsHex);
             
-            // Determine accent color - pick a complementary or contrasting color
-            String accentColor = determineAccentColor(primaryColor, secondaryColor, dominantColors);
+            // Set primary and secondary based on dominant colors first, fallback to Azure's analysis
+            if (dominantColorsHex.size() >= 2) {
+                // Use the actual dominant colors - much more reliable!
+                colors.setPrimary(dominantColorsHex.get(0));   // Most dominant color
+                colors.setSecondary(dominantColorsHex.get(1)); // Second most dominant color (USE THIS!)
+                logger.info("✅ Using dominant colors for primary/secondary: {} / {}", 
+                           dominantColorsHex.get(0), dominantColorsHex.get(1));
+            } else {
+                // Fallback to Azure's foreground/background (often unreliable)
+                colors.setPrimary(getHexForColorName(foregroundColor));
+                colors.setSecondary(getHexForColorName(backgroundColor));
+                logger.warn("⚠️ Using Azure foreground/background (less reliable): {} / {}", 
+                           foregroundColor, backgroundColor);
+            }
+            
+            // Determine accent color - PRIORITIZE DOMINANT COLORS over calculated ones
+            String accentColor;
+            if (dominantColorsHex.size() >= 3) {
+                // Use the third dominant color as accent - this is from your actual image!
+                accentColor = dominantColorsHex.get(2);
+                logger.info("✅ Using third dominant color as accent: {}", accentColor);
+            } else {
+                // Only fallback to calculated accent if we don't have enough dominant colors
+                accentColor = determineAccentColor(foregroundColor, backgroundColor, dominantColorNames);
+                logger.info("⚠️ Using calculated accent color: {}", accentColor);
+            }
             colors.setAccent(accentColor);
             
-            // Determine appropriate background - usually white or very light versions of dominant colors
-            String backgroundColor = determineBackgroundColor(primaryColor, secondaryColor);
-            colors.setBackground(backgroundColor);
+            // Determine appropriate background color
+            String finalBackgroundColor = determineBackgroundColor(foregroundColor, backgroundColor);
+            colors.setBackground(finalBackgroundColor);
+            
+            logger.info("Processed colors - Primary: {}, Secondary: {}, Accent: {}, Background: {}, Dominant: {}", 
+                colors.getPrimary(), colors.getSecondary(), colors.getAccent(), colors.getBackground(), dominantColorsHex);
             
             result.setColors(colors);
         }
@@ -139,12 +192,46 @@ public class AzureVisionService {
             }
         }
 
+        // Try to determine business type from the scene analysis
+        result.setBusinessType(determineBusinessType(result.getSceneType(), result.getObjects()));
+        
         // Set default values
         result.setAtmosphere("neutral and balanced");
         result.setLighting("dim ambient");
-        result.setBusinessType("general business");
+
+        logger.info("Final processed response: SceneType={}, BusinessType={}, Description={}", 
+            result.getSceneType(), result.getBusinessType(), result.getDescription());
 
         return result;
+    }
+
+    // Helper method to determine business type from scene and objects
+    private String determineBusinessType(String sceneType, String[] objects) {
+        if (sceneType != null) {
+            String scene = sceneType.toLowerCase();
+            if (scene.contains("food") || scene.contains("restaurant") || scene.contains("kitchen")) {
+                return "restaurant";
+            } else if (scene.contains("store") || scene.contains("shop") || scene.contains("retail")) {
+                return "retail";
+            } else if (scene.contains("office") || scene.contains("business")) {
+                return "office";
+            } else if (scene.contains("coffee") || scene.contains("cafe")) {
+                return "cafe";
+            }
+        }
+        
+        if (objects != null) {
+            for (String obj : objects) {
+                String object = obj.toLowerCase();
+                if (object.contains("food") || object.contains("plate") || object.contains("cup")) {
+                    return "cafe";
+                } else if (object.contains("computer") || object.contains("desk")) {
+                    return "office";
+                }
+            }
+        }
+        
+        return "general business";
     }
 
     // Helper method to determine a good accent color based on primary and secondary colors
