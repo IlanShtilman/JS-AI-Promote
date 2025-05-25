@@ -41,4 +41,11 @@ public class AzureVisionController {
         logger.info("Test endpoint called");
         return "Azure Vision API is working!";
     }
+
+    @GetMapping("/test-colors")
+    public String testColorMappings() {
+        logger.info("Testing color mappings...");
+        azureVisionService.testColorMappings();
+        return "Color mapping test completed - check logs!";
+    }
 } 

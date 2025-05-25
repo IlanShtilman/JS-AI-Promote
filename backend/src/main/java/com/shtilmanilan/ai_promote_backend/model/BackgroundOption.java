@@ -13,6 +13,10 @@ public class BackgroundOption {
     private Double contrastRatio;
     private String patternCSS; // For overlay patterns
     
+    // ✅ TEXT READABILITY FIELDS
+    private String textOverlay;       // Semi-transparent overlay for text areas
+    private String blurEffect;        // Backdrop blur effect for text readability
+    
     // ✅ AI-DECIDED TYPOGRAPHY FIELDS
     private String fontFamily;        // "Roboto, sans-serif", "Georgia, serif", etc.
     private Float fontSize;           // Title font size in rem
@@ -161,6 +165,22 @@ public class BackgroundOption {
         this.styleName = styleName;
     }
 
+    public String getTextOverlay() {
+        return textOverlay;
+    }
+
+    public void setTextOverlay(String textOverlay) {
+        this.textOverlay = textOverlay;
+    }
+
+    public String getBlurEffect() {
+        return blurEffect;
+    }
+
+    public void setBlurEffect(String blurEffect) {
+        this.blurEffect = blurEffect;
+    }
+
     @Override
     public String toString() {
         return "BackgroundOption{" +
@@ -178,6 +198,8 @@ public class BackgroundOption {
                 ", fontSize=" + fontSize +
                 ", bodyFontSize=" + bodyFontSize +
                 ", styleName='" + styleName + '\'' +
+                ", textOverlay='" + textOverlay + '\'' +
+                ", blurEffect='" + blurEffect + '\'' +
                 '}';
     }
 } 

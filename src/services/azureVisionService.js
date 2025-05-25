@@ -41,13 +41,13 @@ export const analyzeImageWithAzure = async (imageInput) => {
     
     // Ensure colors object exists with proper structure
     if (!responseData.colors) {
-      console.warn('No colors in Azure response, creating default colors');
+      console.warn('No colors in Azure response, creating neutral default colors');
       responseData.colors = {
-        primary: '#2196F3',
-        secondary: '#FF9800', 
-        accent: '#4CAF50',
+        primary: '#666666',
+        secondary: '#999999', 
+        accent: '#CCCCCC',
         background: '#FFFFFF',
-        dominantColors: ['#2196F3', '#FF9800', '#4CAF50']
+        dominantColors: ['#666666', '#999999', '#CCCCCC']
       };
     }
     
@@ -55,9 +55,9 @@ export const analyzeImageWithAzure = async (imageInput) => {
     if (!responseData.colors.dominantColors || !Array.isArray(responseData.colors.dominantColors)) {
       console.warn('Missing or invalid dominantColors, creating from other colors');
       responseData.colors.dominantColors = [
-        responseData.colors.primary || '#2196F3',
-        responseData.colors.secondary || '#FF9800',
-        responseData.colors.accent || '#4CAF50'
+        responseData.colors.primary || '#666666',
+        responseData.colors.secondary || '#999999',
+        responseData.colors.accent || '#CCCCCC'
       ].filter(Boolean);
     }
     
@@ -84,11 +84,11 @@ export const analyzeImageWithAzure = async (imageInput) => {
       businessType: 'general business',
       objects: ['general'],
       colors: {
-        primary: '#2196F3',
-        secondary: '#FF9800',
-        accent: '#4CAF50',
+        primary: '#666666',
+        secondary: '#999999',
+        accent: '#CCCCCC',
         background: '#FFFFFF',
-        dominantColors: ['#2196F3', '#FF9800', '#4CAF50']
+        dominantColors: ['#666666', '#999999', '#CCCCCC']
       },
       atmosphere: 'neutral',
       lighting: 'ambient'
@@ -213,20 +213,20 @@ export const analyzeMultipleImagesWithAzure = async (images) => {
       hasLogo: !!images.logo,
       hasPhoto: !!images.photo,
       logoAnalysis: images.logo ? {
-        colors: { primary: '#2196F3', secondary: '#FF9800', accent: '#4CAF50', background: '#FFFFFF', dominantColors: ['#2196F3', '#FF9800', '#4CAF50'] },
+        colors: { primary: '#666666', secondary: '#999999', accent: '#CCCCCC', background: '#FFFFFF', dominantColors: ['#666666', '#999999', '#CCCCCC'] },
         description: 'Logo analysis unavailable',
         businessType: 'general business'
       } : null,
       photoAnalysis: images.photo ? {
-        colors: { primary: '#4CAF50', secondary: '#2196F3', accent: '#FF9800', background: '#FFFFFF', dominantColors: ['#4CAF50', '#2196F3', '#FF9800'] },
+        colors: { primary: '#666666', secondary: '#999999', accent: '#CCCCCC', background: '#FFFFFF', dominantColors: ['#666666', '#999999', '#CCCCCC'] },
         description: 'Photo analysis unavailable',
         sceneType: 'general'
       } : null,
       hasLogoAnalysis: !!images.logo,
       hasPhotoAnalysis: !!images.photo,
       colors: createUnifiedColorPalette(
-        images.logo ? { primary: '#2196F3', secondary: '#FF9800', accent: '#4CAF50', background: '#FFFFFF', dominantColors: ['#2196F3', '#FF9800', '#4CAF50'] } : null,
-        images.photo ? { primary: '#4CAF50', secondary: '#2196F3', accent: '#FF9800', background: '#FFFFFF', dominantColors: ['#4CAF50', '#2196F3', '#FF9800'] } : null
+        images.logo ? { primary: '#666666', secondary: '#999999', accent: '#CCCCCC', background: '#FFFFFF', dominantColors: ['#666666', '#999999', '#CCCCCC'] } : null,
+        images.photo ? { primary: '#666666', secondary: '#999999', accent: '#CCCCCC', background: '#FFFFFF', dominantColors: ['#666666', '#999999', '#CCCCCC'] } : null
       ),
       businessType: 'general business',
       sceneType: 'general'
@@ -235,67 +235,61 @@ export const analyzeMultipleImagesWithAzure = async (images) => {
 };
 
 // Helper function to create unified color palette from logo and photo
+// Enhanced to intelligently combine logo and photo colors
 const createUnifiedColorPalette = (logoColors, photoColors) => {
+  console.log("🎨 Creating unified palette from enhanced Azure data:", { logoColors, photoColors });
+
+  // Start with defaults
   const unified = {
-    primary: '#2196F3',
-    secondary: '#FF9800',
-    accent: '#4CAF50',
+    primary: '#666666',
+    secondary: '#999999', 
+    accent: '#CCCCCC',
     background: '#FFFFFF'
   };
 
-  console.log("🎨 Starting color unification with:", { logoColors, photoColors });
-
-  // Collect all dominant colors from both sources
-  const allDominantColors = [];
-  
-  // Add logo dominant colors
-  if (logoColors && logoColors.dominantColors) {
-    allDominantColors.push(...logoColors.dominantColors);
-    console.log("📸 Logo dominant colors:", logoColors.dominantColors);
+  // Smart combination logic
+  if (logoColors && photoColors) {
+    console.log("🎨 Both logo and photo available - creating smart combination");
+    
+    // Use logo for brand identity (primary)
+    unified.primary = logoColors.primary || unified.primary;
+    
+    // Use photo for environmental context (secondary/accent)
+    unified.secondary = photoColors.primary || logoColors.secondary || unified.secondary;
+    unified.accent = photoColors.secondary || logoColors.accent || unified.accent;
+    
+    // Choose best background
+    unified.background = logoColors.background || photoColors.background || unified.background;
+    
+    // Combine dominant colors from both sources
+    const allDominantColors = [
+      ...(logoColors.dominantColors || []),
+      ...(photoColors.dominantColors || [])
+    ];
+    unified.dominantColors = [...new Set(allDominantColors)]; // Remove duplicates
+    
+    console.log("✨ Smart combination: Logo primary + Photo environmental colors");
   }
-  
-  // Add photo dominant colors  
-  if (photoColors && photoColors.dominantColors) {
-    allDominantColors.push(...photoColors.dominantColors);
-    console.log("🖼️ Photo dominant colors:", photoColors.dominantColors);
+  // Prioritize logo colors if available (brand identity is most important)
+  else if (logoColors) {
+    console.log("📸 Using logo colors as primary source");
+    unified.primary = logoColors.primary || unified.primary;
+    unified.secondary = logoColors.secondary || unified.secondary;
+    unified.accent = logoColors.accent || unified.accent;
+    unified.background = logoColors.background || unified.background;
+    unified.dominantColors = logoColors.dominantColors || [];
   }
-
-  // Remove duplicates and prioritize non-white colors for variety
-  const uniqueColors = [...new Set(allDominantColors)];
-  const colorsByPreference = uniqueColors.sort((a, b) => {
-    // Prioritize non-white colors for better visual variety
-    const aIsWhite = a.toLowerCase() === '#ffffff';
-    const bIsWhite = b.toLowerCase() === '#ffffff';
-    if (aIsWhite && !bIsWhite) return 1;   // b comes first
-    if (!aIsWhite && bIsWhite) return -1;  // a comes first
-    return 0; // keep original order
-  });
-
-  console.log("🎨 All unique colors by preference:", colorsByPreference);
-
-  // Use the best colors we found
-  if (colorsByPreference.length >= 3) {
-    unified.primary = colorsByPreference[0];    // Best non-white color or white if only option
-    unified.secondary = colorsByPreference[1];  // Second best color  
-    unified.accent = colorsByPreference[2];     // Third best color
-    console.log("✅ Using merged dominant colors:", unified.primary, unified.secondary, unified.accent);
-  } else if (colorsByPreference.length >= 2) {
-    unified.primary = colorsByPreference[0];
-    unified.secondary = colorsByPreference[1];
-    // Keep default accent
-    console.log("✅ Using 2 merged dominant colors + default accent");
-  } else if (colorsByPreference.length >= 1) {
-    unified.primary = colorsByPreference[0];
-    // Keep defaults for secondary and accent
-    console.log("✅ Using 1 merged dominant color + defaults");
-  } else {
-    console.log("⚠️ No dominant colors found, using defaults");
+  // If no logo, use photo colors
+  else if (photoColors) {
+    console.log("🖼️ Using photo colors as primary source");
+    unified.primary = photoColors.primary || unified.primary;
+    unified.secondary = photoColors.secondary || unified.secondary;
+    unified.accent = photoColors.accent || unified.accent;
+    unified.background = photoColors.background || unified.background;
+    unified.dominantColors = photoColors.dominantColors || [];
   }
 
-  // Set background from logo or photo
-  unified.background = logoColors?.background || photoColors?.background || unified.background;
-
-  console.log("🎨 Final unified palette:", unified);
+  console.log("🎨 Final unified palette (enhanced combination):", unified);
   return unified;
 };
 
