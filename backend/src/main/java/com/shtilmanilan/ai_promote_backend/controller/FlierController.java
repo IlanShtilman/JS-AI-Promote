@@ -47,6 +47,19 @@ public class FlierController {
             // Generate 3 background options using our AI service
             List<BackgroundOption> backgrounds = backgroundGenerationService.generateBackgrounds(bgRequest);
             
+            // ✅ ADD AZURE VISION COLORS TO EACH BACKGROUND OPTION
+            if (flierInfo.azureVision != null && flierInfo.azureVision.colors != null) {
+                for (BackgroundOption bg : backgrounds) {
+                    bg.setPrimaryColor(flierInfo.azureVision.colors.primary);
+                    bg.setSecondaryColor(flierInfo.azureVision.colors.secondary);
+                    bg.setBackgroundColor(flierInfo.azureVision.colors.background);
+                    // Keep the AI-generated accent color, but could override if needed
+                    // bg.setAccentColor(flierInfo.azureVision.colors.accent);
+                }
+                logger.info("✅ Added Azure Vision colors to background options: primary={}, secondary={}", 
+                           flierInfo.azureVision.colors.primary, flierInfo.azureVision.colors.secondary);
+            }
+            
             // Create the response in the expected format
             ObjectNode response = objectMapper.createObjectNode();
             response.put("layout", "standard");
@@ -62,6 +75,18 @@ public class FlierController {
                 bgNode.put("accentColor", bg.getAccentColor());
                 bgNode.put("description", bg.getDescription());
                 bgNode.put("source", bg.getSource());
+                
+                // ✅ ADD AZURE VISION COLORS TO RESPONSE
+                if (bg.getPrimaryColor() != null) bgNode.put("primaryColor", bg.getPrimaryColor());
+                if (bg.getSecondaryColor() != null) bgNode.put("secondaryColor", bg.getSecondaryColor());
+                if (bg.getBackgroundColor() != null) bgNode.put("backgroundColor", bg.getBackgroundColor());
+                
+                // Add typography fields if available
+                if (bg.getFontFamily() != null) bgNode.put("fontFamily", bg.getFontFamily());
+                if (bg.getFontSize() != null) bgNode.put("fontSize", bg.getFontSize());
+                if (bg.getBodyFontSize() != null) bgNode.put("bodyFontSize", bg.getBodyFontSize());
+                if (bg.getStyleName() != null) bgNode.put("styleName", bg.getStyleName());
+                
                 backgroundsArray.add(bgNode);
             }
             response.set("backgroundOptions", backgroundsArray);

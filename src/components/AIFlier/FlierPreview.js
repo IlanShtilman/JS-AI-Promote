@@ -24,8 +24,72 @@ const FlierPreview = ({
   borderRadius,
   fontSize,
   bodyFontSize,
-  fontFamily
+  fontFamily,
+  // Text overlays are always enabled
 }) => {
+  
+  // Helper function to get smart background colors from the color palette
+  const getSmartBackgroundColor = (elementType) => {
+    // Get colors from the Azure Vision analysis
+    const primaryColor = selectedStyle?.primaryColor || '#1a4a52';
+    const secondaryColor = selectedStyle?.secondaryColor || '#F5F5DC';
+    const accentColor = selectedStyle?.accentColor || '#8B4513';
+    const textColor = selectedStyle?.textColor || '#333333';
+    
+    // Convert hex to rgba for transparency
+    const hexToRgba = (hex, alpha = 0.9) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+    
+    // Determine if a color is light or dark
+    const isLightColor = (hex) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 128;
+    };
+    
+    switch (elementType) {
+             case 'title':
+         // Glass effect for title - semi-transparent with blur
+         return {
+           backgroundColor: hexToRgba(secondaryColor, 0.25),
+           borderColor: hexToRgba(primaryColor, 0.4),
+           textColor: textColor || '#333333'
+         };
+      case 'promotional':
+        // Use primary color with high transparency for promotional text
+        return {
+          backgroundColor: hexToRgba(primaryColor, 0.15),
+          borderColor: hexToRgba(primaryColor, 0.4),
+          textColor: textColor
+        };
+      case 'mybenefitz':
+        // Use accent color for MyBenefitz section
+        return {
+          backgroundColor: hexToRgba(accentColor, 0.2),
+          borderColor: hexToRgba(accentColor, 0.5),
+          textColor: textColor
+        };
+      case 'qr':
+        // Use white/light background for QR code for maximum contrast
+        return {
+          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+          borderColor: hexToRgba(primaryColor, 0.3),
+          textColor: textColor
+        };
+      default:
+        return {
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
+          textColor: textColor
+        };
+    }
+  };
   return (
     <Paper 
       elevation={3} 
@@ -122,7 +186,8 @@ const FlierPreview = ({
         height: '100%',
         gap: 2,
         padding: 2,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        opacity: 1 // Keep original content visible
       }}>
         {/* Logo at top left */}
         <Box sx={{
@@ -187,23 +252,30 @@ const FlierPreview = ({
             overflow: 'hidden'
           }}>
             <Typography variant="h4" className="ai-flier-title" sx={{ 
-              color: selectedStyle.textColor, 
+              color: getSmartBackgroundColor('title').textColor,
               fontWeight: selectedStyle.titleWeight || 800,
               mb: 1.5,
-              fontSize: selectedStyle.fontSize ? `${selectedStyle.fontSize}rem` : `${fontSize}rem`,
+              fontSize: `${fontSize}rem`, // Use state value from slider
               letterSpacing: selectedStyle.letterSpacing || '-0.5px',
               lineHeight: selectedStyle.lineHeight || 1.1,
               textAlign: selectedStyle.textAlign || 'right',
               fontFamily: fontFamily,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              width: '100%'
+              width: '100%',
+              // Smart background box using Azure Vision colors
+              backgroundColor: getSmartBackgroundColor('title').backgroundColor,
+              padding: '12px 20px',
+              borderRadius: '15px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(8px)',
+              border: `1px solid ${getSmartBackgroundColor('title').borderColor}`
             }}>
               {flierContent.title}
             </Typography>
             <Typography variant="body1" className="ai-flier-promo-text" sx={{ 
-              color: selectedStyle.textColor, 
-              fontSize: selectedStyle.bodyFontSize ? `${selectedStyle.bodyFontSize}rem` : `${bodyFontSize}rem`,
+              color: getSmartBackgroundColor('promotional').textColor,
+              fontSize: `${bodyFontSize}rem`, // Use state value from slider
               fontWeight: selectedStyle.bodyWeight || 500,
               mb: 2,
               lineHeight: selectedStyle.lineHeight || 1.5,
@@ -212,7 +284,14 @@ const FlierPreview = ({
               fontFamily: fontFamily,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              width: '100%'
+              width: '100%',
+              // Smart background box using Azure Vision colors
+              backgroundColor: getSmartBackgroundColor('promotional').backgroundColor,
+              padding: '16px 24px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(8px)',
+              border: `1px solid ${getSmartBackgroundColor('promotional').borderColor}`
             }}>
               {flierContent.promotionalText}
             </Typography>
@@ -223,10 +302,17 @@ const FlierPreview = ({
             textAlign: 'right', 
             width: '100%',
             mt: 1,
-            mb: 2
+            mb: 2,
+            // Smart background box using Azure Vision colors
+            backgroundColor: getSmartBackgroundColor('mybenefitz').backgroundColor,
+            padding: '16px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            backdropFilter: 'blur(8px)',
+            border: `1px solid ${getSmartBackgroundColor('mybenefitz').borderColor}`
           }}>
             <Typography variant="body2" sx={{ 
-              color: selectedStyle.textColor, 
+              color: getSmartBackgroundColor('mybenefitz').textColor,
               fontWeight: 400, 
               fontFamily: fontFamily, 
               fontSize: '1.2rem',
@@ -236,7 +322,7 @@ const FlierPreview = ({
               באפליקציה השכונתית
             </Typography>
             <Typography variant="h5" sx={{ 
-              color: '#00b2c8', 
+              color: selectedStyle?.accentColor || '#00b2c8', 
               fontWeight: 600, 
               letterSpacing: 0.5, 
               fontFamily: fontFamily,
@@ -247,7 +333,7 @@ const FlierPreview = ({
               myBenefitz
             </Typography>
             <Typography variant="caption" sx={{ 
-              color: selectedStyle.textColor, 
+              color: getSmartBackgroundColor('mybenefitz').textColor,
               fontFamily: fontFamily, 
               fontSize: '1.2rem',
               lineHeight: 1.1,
@@ -275,20 +361,27 @@ const FlierPreview = ({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            // Smart background box using Azure Vision colors
+            backgroundColor: getSmartBackgroundColor('qr').backgroundColor,
+            padding: '16px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            backdropFilter: 'blur(8px)',
+            border: `1px solid ${getSmartBackgroundColor('qr').borderColor}`
           }}>
             <QRCodeSVG 
               value={flierContent.qrUrl} 
               size={110} 
-              bgColor={'#ffffff'}
-              fgColor={'#000000'}
+              bgColor={getSmartBackgroundColor('qr').backgroundColor.includes('255, 255, 255') ? '#ffffff' : '#f8f9fa'}
+              fgColor={selectedStyle?.primaryColor || '#000000'}
               level={"L"}
               includeMargin={false}
             />
             {/* QR instructions from content */}
             {flierContent.qrInstructions.split('\n').map((line, idx) => (
               <Typography key={idx} variant="subtitle2" sx={{ 
-                color: selectedStyle.accentColor || selectedStyle.textColor, 
+                color: selectedStyle?.accentColor || getSmartBackgroundColor('qr').textColor,
                 fontWeight: 600, 
                 mt: idx === 0 ? 1 : 0,
                 textAlign: 'center',
@@ -306,6 +399,8 @@ const FlierPreview = ({
           </Box>
         </Box>
       </Box>
+
+
     </Paper>
   );
 };

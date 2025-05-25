@@ -173,23 +173,30 @@ public class BackgroundGenerationService {
         prompt.append("6. Ensure text areas have consistent, readable backgrounds\n");
         prompt.append("7. Use backdrop-blur or overlay techniques for text sections\n\n");
         
+        prompt.append("CREATIVE DESIGN FREEDOM:\n");
+        prompt.append("1. Create STUNNING, COMPLEX, and VISUALLY STRIKING backgrounds\n");
+        prompt.append("2. Use RICH colors, gradients, and artistic elements\n");
+        prompt.append("3. Don't worry about text readability - text overlays will handle that\n");
+        prompt.append("4. Focus on VISUAL IMPACT and brand alignment\n");
+        prompt.append("5. Create backgrounds that tell a story and capture attention\n\n");
+        
         prompt.append("BACKGROUND STYLE EXAMPLES:\n");
-        prompt.append("• Blurred gradients: 'linear-gradient(135deg, #FF6B6B20, #4ECDC430, #45B7D120)'\n");
-        prompt.append("• Fluid abstracts: 'radial-gradient(circle at 30% 70%, #FF6B6B25, transparent 50%), radial-gradient(circle at 70% 30%, #4ECDC420, transparent 50%)'\n");
-        prompt.append("• Soft overlays: Use rgba() with 20-30% opacity for background colors\n");
-        prompt.append("• Text overlays: 'rgba(255,255,255,0.9)' for dark text, 'rgba(0,0,0,0.7)' for light text\n");
-        prompt.append("• Blur effects: 'backdrop-blur(8px)' to 'backdrop-blur(15px)'\n\n");
+        prompt.append("• Rich gradients: 'linear-gradient(135deg, #8B4513, #D2691E, #CD853F)'\n");
+        prompt.append("• Complex patterns: Geometric shapes, organic forms, artistic elements\n");
+        prompt.append("• Full coverage: Use the entire canvas for visual impact\n");
+        prompt.append("• Brand colors: Incorporate the provided color palette prominently\n");
+        prompt.append("• Artistic flair: Abstract shapes, flowing lines, creative compositions\n\n");
         
         prompt.append("Return ONLY a valid JSON array with 3 options:\n");
         prompt.append("[\n");
         prompt.append("  {\n");
         prompt.append("    \"name\": \"Style Name\",\n");
-        prompt.append("    \"backgroundCSS\": \"linear-gradient(...)\",\n");
-        prompt.append("    \"textOverlay\": \"rgba(255,255,255,0.9) or rgba(0,0,0,0.7)\",\n");
-        prompt.append("    \"textColor\": \"#hexcode\",\n");
+        prompt.append("    \"backgroundCSS\": \"Simple gradient with max 20% opacity\",\n");
+        prompt.append("    \"textOverlay\": \"rgba(255,255,255,0.95) for maximum contrast\",\n");
+        prompt.append("    \"textColor\": \"#333333 or #000000 for maximum readability\",\n");
         prompt.append("    \"accentColor\": \"#hexcode\",\n");
-        prompt.append("    \"blurEffect\": \"backdrop-blur(10px) or none\",\n");
-        prompt.append("    \"description\": \"Brief description\"\n");
+        prompt.append("    \"blurEffect\": \"backdrop-blur(5px) - minimal blur only\",\n");
+        prompt.append("    \"description\": \"Text-optimized design with clear reading areas\"\n");
         prompt.append("  }\n");
         prompt.append("]");
         
@@ -298,43 +305,42 @@ public class BackgroundGenerationService {
         
         List<BackgroundOption> fallbacks = new ArrayList<>();
         
-        // Fallback 1: Blurred gradient with text overlay
+        // Fallback 1: Ultra-minimal gradient - TEXT FIRST!
         BackgroundOption bg1 = new BackgroundOption(
-            "Soft Blur Gradient",
-            String.format("linear-gradient(135deg, %s20, %s30, %s15)", primary, secondary, accent),
-            textColor,
+            "Text-Optimized Minimal",
+            String.format("linear-gradient(135deg, %s08, %s12)", primary, secondary),
+            "#333333", // Dark text for maximum readability
             accent,
-            "Soft blurred gradient with text overlay for readability"
+            "Ultra-minimal gradient optimized for text readability"
         );
-        bg1.setTextOverlay("rgba(255,255,255,0.9)");
-        bg1.setBlurEffect("backdrop-blur(8px)");
+        bg1.setTextOverlay("rgba(255,255,255,0.98)"); // Almost solid white for text
+        bg1.setBlurEffect("none");
         bg1.setSource("fallback");
         fallbacks.add(bg1);
         
-        // Fallback 2: Clean with semi-transparent overlay
+        // Fallback 2: Clean professional with corner accent
         BackgroundOption bg2 = new BackgroundOption(
-            "Clean Professional",
-            "#FFFFFF",
-            textColor,
+            "Clean with Corner Accent",
+            String.format("#FFFFFF, radial-gradient(circle at 85%% 15%%, %s15, transparent 40%%)", primary),
+            "#333333", // Dark text
             primary,
-            "Clean background with subtle text overlay"
+            "Clean white background with subtle corner accent"
         );
-        bg2.setTextOverlay("rgba(0,0,0,0.05)");
+        bg2.setTextOverlay("rgba(255,255,255,0.95)");
         bg2.setBlurEffect("none");
         bg2.setSource("fallback");
         fallbacks.add(bg2);
         
-        // Fallback 3: Fluid abstract with strong overlay
+        // Fallback 3: Simple side pattern - keeps text area clear
         BackgroundOption bg3 = new BackgroundOption(
-            "Abstract Fluid",
-            String.format("radial-gradient(circle at 30%% 70%%, %s25, transparent 50%%), radial-gradient(circle at 70%% 30%%, %s20, transparent 50%%), linear-gradient(45deg, %s10, %s15)", 
-                         primary, secondary, accent, primary),
-            textColor,
+            "Side Pattern Clean",
+            String.format("linear-gradient(90deg, %s10 0%%, transparent 30%%, transparent 100%%)", accent),
+            "#333333", // Dark text
             secondary,
-            "Abstract fluid background with strong text overlay"
+            "Simple side pattern with clear text area"
         );
-        bg3.setTextOverlay("rgba(255,255,255,0.85)");
-        bg3.setBlurEffect("backdrop-blur(12px)");
+        bg3.setTextOverlay("rgba(255,255,255,0.96)");
+        bg3.setBlurEffect("none");
         bg3.setSource("fallback");
         fallbacks.add(bg3);
         

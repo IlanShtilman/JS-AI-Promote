@@ -8,6 +8,11 @@ public class BackgroundOption {
     private String textColor;
     private String textColorDark;
     private String accentColor;
+    
+    // ✅ AZURE VISION COLORS
+    private String primaryColor;      // From Azure Vision analysis
+    private String secondaryColor;    // From Azure Vision analysis
+    private String backgroundColor;   // From Azure Vision analysis
     private String description;
     private String source; // "ai", "fallback", "database"
     private Double contrastRatio;
@@ -181,6 +186,30 @@ public class BackgroundOption {
         this.blurEffect = blurEffect;
     }
 
+    public String getPrimaryColor() {
+        return primaryColor;
+    }
+
+    public void setPrimaryColor(String primaryColor) {
+        this.primaryColor = primaryColor;
+    }
+
+    public String getSecondaryColor() {
+        return secondaryColor;
+    }
+
+    public void setSecondaryColor(String secondaryColor) {
+        this.secondaryColor = secondaryColor;
+    }
+
+    public String getBackgroundColor() {
+        return backgroundColor;
+    }
+
+    public void setBackgroundColor(String backgroundColor) {
+        this.backgroundColor = backgroundColor;
+    }
+
     @Override
     public String toString() {
         return "BackgroundOption{" +
@@ -200,6 +229,9 @@ public class BackgroundOption {
                 ", styleName='" + styleName + '\'' +
                 ", textOverlay='" + textOverlay + '\'' +
                 ", blurEffect='" + blurEffect + '\'' +
+                ", primaryColor='" + primaryColor + '\'' +
+                ", secondaryColor='" + secondaryColor + '\'' +
+                ", backgroundColor='" + backgroundColor + '\'' +
                 '}';
     }
 } 
