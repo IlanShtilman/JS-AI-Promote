@@ -15,7 +15,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
   const [enhancementKey, setEnhancementKey] = useState(0); // Key to force re-enhancement
-
   // Reset all states when image changes
   const resetStates = useCallback(() => {
     setEnhancedImageUrl('');
@@ -25,7 +24,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
     setEnhancing(false);
     resetUpload();
   }, [resetUpload]);
-
   // Function to preload an image
   const preloadImage = useCallback((url) => {
     return new Promise((resolve, reject) => {
@@ -46,18 +44,14 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
       img.src = url;
     });
   }, []);
-
-  // Validate and preload images
   useEffect(() => {
     let isMounted = true;
     let timeoutId;
-
     const validateAndPreloadImages = async () => {
       if (!image || !enhancedImageUrl) {
         setImagesLoaded(false);
         return;
       }
-
       try {
         setImageLoadError(false);
 
@@ -67,7 +61,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
             setEnhanceError('Image loading timed out');
           }
         }, 30000);
-
         const [originalBlob, enhancedBlob] = await Promise.all([
           fetch(image).then(res => {
             if (!res.ok) throw new Error(`Failed to fetch original image: ${res.status}`);
@@ -78,16 +71,13 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
             return res.blob();
           })
         ]);
-
         if (originalBlob.size === 0 || enhancedBlob.size === 0) {
           throw new Error('Invalid image data received');
         }
-
         await Promise.all([
           preloadImage(image),
           preloadImage(enhancedImageUrl)
         ]);
-
         if (isMounted) {
           clearTimeout(timeoutId);
           setImagesLoaded(true);
@@ -102,15 +92,12 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
         }
       }
     };
-
     validateAndPreloadImages();
-
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
     };
   }, [image, enhancedImageUrl, preloadImage, enhancementKey]); // Added enhancementKey dependency
-
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -124,7 +111,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
       setEnhancementKey(prev => prev + 1); // Force re-enhancement
     }
   };
-
   const handleEnhanceImage = async () => {
     if (uploadedImageUrl) {
       setEnhancing(true);
@@ -153,7 +139,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
       setEnhanceError('No image has been uploaded yet.');
     }
   };
-
   const handleRemoveImage = () => {
     if (image) {
       URL.revokeObjectURL(image);
@@ -162,7 +147,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
     setImage(null);
     setEnhancementKey(prev => prev + 1); // Force re-enhancement on next upload
   };
-
   useEffect(() => {
     return () => {
       if (image) {
@@ -170,12 +154,10 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
       }
     };
   }, [image]);
-
   const renderImageComparison = () => {
     if (!image || !enhancedImageUrl || !imagesLoaded || imageLoadError) {
       return null;
     }
-
     return (
       <div className="image-comparison-container">
         <div className="comparison-labels">
@@ -220,7 +202,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
       </div>
     );
   };
-
   const renderLoadingOrError = () => {
     if (enhancing) {
       return <div className="enhancing-overlay">Enhancing...</div>;
@@ -233,7 +214,6 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
     }
     return null;
   };
-
   return (
     <>
       <div className="image-enhance-overlay" onClick={onClose} />
@@ -271,8 +251,7 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
                         console.error('Error loading original image:', e);
                         setEnhanceError('Error loading original image');
                         setImageLoadError(true);
-                      }}
-                    />
+                      }} />
                     <button className="remove-image-button" onClick={handleRemoveImage}>
                       X
                     </button>
@@ -280,19 +259,15 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
                 )}
               </div>
             </div>
-
             <button
               onClick={handleEnhanceImage}
               className="enhance-button"
-              disabled={uploading || !uploadedImageUrl || enhancing || imageLoadError}
-            >
+              disabled={uploading || !uploadedImageUrl || enhancing || imageLoadError}>
               {enhancing ? 'Enhancing...' : 'Enhance Image'}
             </button>
           </>
         )}
-
         {enhanceError && <p className="error-message">{enhanceError}</p>}
-
         <div className="action-buttons">
           <button className="exit-button" onClick={onClose}>Exit</button>
           {enhancedImageUrl && imagesLoaded && !imageLoadError && (
@@ -301,8 +276,7 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
               onClick={() => {
                 onImageEnhanced && onImageEnhanced(enhancedImageUrl);
                 onClose();
-              }}
-            >
+              }}>
               Accept
             </button>
           )}

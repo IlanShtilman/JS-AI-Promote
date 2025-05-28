@@ -1,5 +1,4 @@
 package com.shtilmanilan.ai_promote_backend.service;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -43,21 +42,17 @@ public class ImageEnhancementService {
             return "hash-error";
         }
     }
-
     @Autowired
     public ImageEnhancementService(RestTemplate restTemplate, GPT4Service gpt4Service) {
         this.restTemplate = restTemplate;
         this.gpt4Service = gpt4Service;
     }
-
     public String enhanceImage(String imageUrl) {
         String requestId = java.util.UUID.randomUUID().toString().substring(0, 8);
         logger.info("\n\n=== ENHANCEMENT REQUEST START ===");
         logger.info("[Request {}] Starting enhancement for image: {}", requestId, imageUrl);
-        
         try {
             logger.info("\n\nDEBUG: Starting image enhancement process for image: {}\n\n", imageUrl);
-
             // Create a more specific prompt for GPT-4 Vision that encourages varied responses
             String imageEnhancementPrompt = String.format(
                 "You are a highly skilled image enhancement AI. Your task is to analyze the provided image URL and generate precise, image-specific enhancement settings.%n%n" +
@@ -186,28 +181,22 @@ public class ImageEnhancementService {
                 "Ensure proper JSON formatting with quotes and commas.%n",
                 imageUrl,imageUrl
             );
-
             logger.info("[Request {}] Sending prompt to GPT-4 Vision:\n{}", requestId, imageEnhancementPrompt);
-
             // Generate enhancement instructions using GPT-4 Vision with higher temperature for more variation
             TextGenerationRequest requestPromptClaid = new TextGenerationRequest();
             requestPromptClaid.setPrompt(imageEnhancementPrompt);
             requestPromptClaid.setTemperature(0.7); // Increased temperature for more variation
             TextGenerationResponse aiResponse = gpt4Service.generateText(requestPromptClaid);
             String responseText = aiResponse.getGeneratedText();
-            
             logger.info("[Request {}] Received GPT-4 Vision response:\n{}", requestId, responseText);
-            
             // Validate and clean the response text
             if (responseText == null || responseText.trim().isEmpty()) {
                 logger.error("[Request {}] GPT-4 Vision response was empty", requestId);
                 throw new RuntimeException("GPT-4 Vision response was null or empty for image: " + imageUrl);
             }
-
             // Remove markdown formatting if present
             responseText = responseText.replaceAll("```json\\s*", "").replaceAll("```\\s*$", "").trim();
             logger.info("[Request {}] Cleaned GPT-4 Vision response:\n{}", requestId, responseText);
-
             // Parse enhancement configuration from GPT-4 Vision response
             JsonNode enhancementConfig;
             try {
@@ -218,7 +207,6 @@ public class ImageEnhancementService {
                 logger.error("[Request {}] Failed to parse enhancement configuration JSON", requestId, e);
                 throw new RuntimeException("Invalid enhancement configuration format: " + e.getMessage());
             }
-
             // Generate and log config hash - now including imageUrl
             String configHash = generateConfigHash(imageUrl, enhancementConfig);
             logger.info("[Request {}] Generated enhancement config hash: {} for image: {}", 
@@ -229,12 +217,10 @@ public class ImageEnhancementService {
                 logger.error("[Request {}] Missing operations in config hash: {}", requestId, configHash);
                 throw new RuntimeException("Enhancement configuration missing 'operations' field");
             }
-
             // Get the operations node
             JsonNode operationsConfig = enhancementConfig.get("operations");
             logger.info("[Request {}] Operations config:\n{}", requestId, 
                 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(operationsConfig));
-
             // Validate upscale value
             if (operationsConfig.has("restorations") && 
                 operationsConfig.get("restorations").has("upscale")) {
@@ -245,7 +231,6 @@ public class ImageEnhancementService {
                     throw new RuntimeException("Invalid upscale value. Must be one of: photo, faces, digital_art, smart_enhance, smart_resize");
                 }
             }
-
             // Validate background configuration
             if (operationsConfig.has("background")) {
                 JsonNode backgroundNode = operationsConfig.get("background");
@@ -278,7 +263,6 @@ public class ImageEnhancementService {
                             throw new RuntimeException("Remove must be boolean or object");
                         }
                     }
-
                     // Validate blur configuration
                     if (backgroundNode.has("blur")) {
                         JsonNode blurNode = backgroundNode.get("blur");
@@ -314,7 +298,6 @@ public class ImageEnhancementService {
                             throw new RuntimeException("Blur must be boolean or object");
                         }
                     }
-
                     // Validate color configuration
                     if (backgroundNode.has("color")) {
                         String color = backgroundNode.get("color").asText();
@@ -322,14 +305,12 @@ public class ImageEnhancementService {
                             throw new RuntimeException("Invalid color value. Must be 'transparent' or a valid hex color code");
                         }
                     }
-
                     // Validate that at least one property exists
                     if (!backgroundNode.has("remove") && !backgroundNode.has("blur") && !backgroundNode.has("color")) {
                         throw new RuntimeException("Background object must contain at least one of: remove, blur, or color");
                     }
                 }
             }
-
             // Validate padding configuration
             if (operationsConfig.has("padding") && !operationsConfig.get("padding").isNull()) {
                 String padding = operationsConfig.get("padding").asText();
@@ -338,7 +319,6 @@ public class ImageEnhancementService {
                     throw new RuntimeException("Invalid padding format. Must be either 'X%' or 'X% Y%'");
                 }
             }
-
             // Validate privacy configuration
             if (operationsConfig.has("privacy")) {
                 JsonNode privacyNode = operationsConfig.get("privacy");
@@ -349,21 +329,17 @@ public class ImageEnhancementService {
                             throw new RuntimeException("blur_car_plate must be a boolean value");
                         }
                     }
-                    
                     // Ensure privacy object is not empty
                     if (!privacyNode.has("blur_car_plate")) {
                         throw new RuntimeException("Privacy object must contain blur_car_plate property");
                     }
                 }
             }
-
             // Create a new request body for each image
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("input", imageUrl);
-        
             // Create a fresh operations node for each request
             ObjectNode operationsNode = objectMapper.createObjectNode();
-            
             // Copy each section individually to ensure no object reuse
             if (operationsConfig.has("restorations")) {
                 operationsNode.set("restorations", operationsConfig.get("restorations").deepCopy());
@@ -386,12 +362,10 @@ public class ImageEnhancementService {
                     ObjectNode styleTransferNode = (ObjectNode) generativeConfig.get("style_transfer");
                     // Set the style_reference_image to the input image URL
                     styleTransferNode.put("style_reference_image", imageUrl);
-                    
                     // Ensure we have a valid prompt
                     if (!styleTransferNode.has("prompt") || styleTransferNode.get("prompt").asText().isEmpty()) {
                         styleTransferNode.put("prompt", "Enhance image quality with natural texture, vivid but realistic colors, and improved clarity");
                     }
-                    
                     // Set reasonable default values if not present
                     if (!styleTransferNode.has("style_strength")) {
                         styleTransferNode.put("style_strength", 0.03);
@@ -405,7 +379,6 @@ public class ImageEnhancementService {
                 }
                 operationsNode.set("generative", generativeConfig);
             }
-
             // Add output format configuration
             ObjectNode outputNode = objectMapper.createObjectNode();
             ObjectNode formatNode = objectMapper.createObjectNode();
@@ -414,40 +387,32 @@ public class ImageEnhancementService {
             formatNode.put("progressive", true);
             outputNode.set("format", formatNode);
             requestBody.set("output", outputNode);
-
             // Validate that we have at least one operation
             if (operationsNode.isEmpty()) {
                 logger.error("[Request {}] No valid operations found in config hash: {}", requestId, configHash);
                 throw new RuntimeException("No valid operations found in enhancement configuration");
             }
-
             requestBody.set("operations", operationsNode);
-            
             // Log the final request body
             logger.info("[Request {}] Final request to enhancement API:\n{}", requestId, 
                 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestBody));
-
             // Prepare the request headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", "Bearer " + claidApiKey);
             headers.set("X-Request-ID", requestId);
             headers.set("X-Config-Hash", configHash);
-
             HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
-
             // Call the enhancement API
             logger.info("[Request {}] Sending request to enhancement API: {}", requestId, claidApiUrl);
             String enhancementResponse = restTemplate.postForObject(
                     claidApiUrl,
                     request,
                     String.class);
-
             // Parse and validate the response
             JsonNode responseJson = objectMapper.readTree(enhancementResponse);
             logger.info("[Request {}] Received enhancement API response:\n{}", requestId, 
                 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(responseJson));
-
             JsonNode dataNode = responseJson.get("data");
             if (dataNode != null) {
                 JsonNode responseOutputNode = dataNode.get("output");
@@ -458,10 +423,8 @@ public class ImageEnhancementService {
                     return enhancedUrl;
                 }
             }
-
             logger.error("[Request {}] Invalid response from enhancement API", requestId);
             throw new RuntimeException("Invalid response from enhancement API");
-
         } catch (Exception e) {
             logger.error("[Request {}] Error enhancing image: {}", requestId, e.getMessage(), e);
             logger.info("=== ENHANCEMENT REQUEST FAILED ===\n");

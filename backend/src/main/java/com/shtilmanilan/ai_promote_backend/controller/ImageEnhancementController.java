@@ -1,5 +1,4 @@
 package com.shtilmanilan.ai_promote_backend.controller;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -29,14 +28,11 @@ public class ImageEnhancementController {
             if (!request.has("imageUrl")) {
                 throw new IllegalArgumentException("imageUrl is required");
             }
-
             String imageUrl = request.get("imageUrl").asText();
             String enhancedImageUrl = imageEnhancementService.enhanceImage(imageUrl); // Call the service method that handles prompt internally
-
             ObjectNode response = objectMapper.createObjectNode();
             response.put("enhancedImageUrl", enhancedImageUrl);
             response.put("status", "success");
-
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             logger.error("Invalid request: {}", e.getMessage());
