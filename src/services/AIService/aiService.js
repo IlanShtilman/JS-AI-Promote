@@ -127,7 +127,11 @@ export const generateAllTexts = async (title, promotionalText, language) => {
       results.openai = openaiResult;
     } catch (error) {
       console.error('OpenAI Error:', error);
-      results.openai = isHebrew ? 'שגיאה בקבלת תוצאות מ-OpenAI' : 'Error getting results from OpenAI';
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        results.openai = isHebrew ? 'חריגה ממגבלת קריאות OpenAI - נסה שוב מאוחר יותר' : 'OpenAI rate limit exceeded - try again later';
+      } else {
+        results.openai = isHebrew ? 'שגיאה בקבלת תוצאות מ-OpenAI' : 'Error getting results from OpenAI';
+      }
     }
 
     // Claude
@@ -136,7 +140,11 @@ export const generateAllTexts = async (title, promotionalText, language) => {
       results.claude = claudeResult;
     } catch (error) {
       console.error('Claude Error:', error);
-      results.claude = isHebrew ? 'שגיאה בקבלת תוצאות מ-Claude' : 'Error getting results from Claude';
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        results.claude = isHebrew ? 'חריגה ממגבלת קריאות Claude - נסה שוב מאוחר יותר' : 'Claude rate limit exceeded - try again later';
+      } else {
+        results.claude = isHebrew ? 'שגיאה בקבלת תוצאות מ-Claude' : 'Error getting results from Claude';
+      }
     }
 
     // Groq
@@ -145,7 +153,11 @@ export const generateAllTexts = async (title, promotionalText, language) => {
       results.groq = groqResult;
     } catch (error) {
       console.error('Groq Error:', error);
-      results.groq = isHebrew ? 'שגיאה בקבלת תוצאות מ-Groq' : 'Error getting results from Groq';
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        results.groq = isHebrew ? 'חריגה ממגבלת קריאות Groq - נסה שוב מאוחר יותר' : 'Groq rate limit exceeded - try again later';
+      } else {
+        results.groq = isHebrew ? 'שגיאה בקבלת תוצאות מ-Groq' : 'Error getting results from Groq';
+      }
     }
 
     // Gemini
@@ -154,11 +166,20 @@ export const generateAllTexts = async (title, promotionalText, language) => {
       results.gemini = geminiResult;
     } catch (error) {
       console.error('Gemini Error:', error);
-      results.gemini = isHebrew ? 'שגיאה בקבלת תוצאות מ-Gemini' : 'Error getting results from Gemini';
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        results.gemini = isHebrew ? 'חריגה ממגבלת קריאות Gemini - נסה שוב מאוחר יותר' : 'Gemini rate limit exceeded - try again later';
+      } else {
+        results.gemini = isHebrew ? 'שגיאה בקבלת תוצאות מ-Gemini' : 'Error getting results from Gemini';
+      }
     }
 
     // Validate and format results
     const cleanAndValidateText = (text, isHebrew) => {
+      // Don't process error messages
+      if (text.includes('rate limit') || text.includes('שגיאה') || text.includes('Error')) {
+        return text;
+      }
+      
       // Remove any prefixes like "Here's your text:" or similar
       text = text.replace(/^[^א-ת\w]*|^.*?:/g, '').trim();
       

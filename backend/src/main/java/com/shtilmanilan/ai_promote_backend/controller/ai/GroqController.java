@@ -1,8 +1,8 @@
-package com.shtilmanilan.ai_promote_backend.controller;
+package com.shtilmanilan.ai_promote_backend.controller.ai;
 
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
-import com.shtilmanilan.ai_promote_backend.service.ClaudeService;
+import com.shtilmanilan.ai_promote_backend.service.groq.GroqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,16 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("/api/v1/claude")
+@RequestMapping("/api/v1/groq")
 @CrossOrigin(origins = "http://localhost:3000")
-public class ClaudeController {
+public class GroqController {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClaudeController.class);
-    private final ClaudeService claudeService;
+    private static final Logger logger = LoggerFactory.getLogger(GroqController.class);
+    private final GroqService groqService;
 
     @Autowired
-    public ClaudeController(ClaudeService claudeService) {
-        this.claudeService = claudeService;
+    public GroqController(GroqService groqService) {
+        this.groqService = groqService;
     }
 
     @GetMapping("/test")
@@ -33,7 +33,7 @@ public class ClaudeController {
     public ResponseEntity<TextGenerationResponse> generateText(@RequestBody TextGenerationRequest request) {
         try {
             logger.info("Received request: {}", request);
-            TextGenerationResponse response = claudeService.generateText(request);
+            TextGenerationResponse response = groqService.generateText(request);
             logger.info("Generated response: {}", response.getGeneratedText());
             return ResponseEntity.ok(response);
         } catch (Exception e) {

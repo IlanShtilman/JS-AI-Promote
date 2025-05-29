@@ -1,10 +1,12 @@
 /* AITextResults.css */
 
+/* Container for the entire results section */
 .ai-text-results-container {
   margin-top: 32px;
   position: relative;
 }
 
+/* Each generated text card */
 .ai-text-results-text-container {
   margin-bottom: 20px;
   padding: 20px;
@@ -15,15 +17,18 @@
   transition: box-shadow 0.2s, border 0.2s;
 }
 
+/* Remove margin from the last text card */
 .ai-text-results-text-container:last-child {
   margin-bottom: 0;
 }
 
+/* Highlight the selected text card */
 .ai-text-results-selected {
   border: 2px solid #1976d2;
   box-shadow: 0 4px 16px rgba(25, 118, 210, 0.08);
 }
 
+/* Header row for each text card (model name and radio) */
 .ai-text-results-header {
   display: flex;
   justify-content: space-between;
@@ -33,10 +38,12 @@
   padding-bottom: 8px;
 }
 
+/* RTL support for header row */
 .ai-text-results-header-rtl {
   flex-direction: row-reverse;
 }
 
+/* Model name styling */
 .ai-text-results-model-name {
   font-size: 1.1rem;
   font-weight: 600;
@@ -47,29 +54,53 @@
   color: #1976d2;
 }
 
+/* RTL support for model name */
 .ai-text-results-model-name-rtl {
   flex-direction: row-reverse;
 }
 
-.ai-text-results-text-block {
+/* LTR text styling */
+.ai-text-results-text-block[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL text styling */
+.ai-text-results-text-block[dir="rtl"] {
   direction: rtl;
   text-align: right;
 }
 
+/* Each line of generated text */
 .ai-text-results-text-line {
   font-size: 1rem;
   line-height: 1.6;
   white-space: pre-wrap;
 }
 
+/* LTR line styling */
+.ai-text-results-text-line[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL line styling */
+.ai-text-results-text-line[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Spacing between lines of text */
 .ai-text-results-text-line:not(:last-child) {
   margin-bottom: 16px;
 }
 
+/* Radio button label styling */
 .ai-text-results-radio-label {
   margin: 0;
 }
 
+/* Loading spinner and message container */
 .ai-text-results-loading {
   display: flex;
   flex-direction: column;
@@ -82,6 +113,7 @@
   min-height: 200px;
 }
 
+/* Continue button container */
 .ai-text-results-continue-btn {
   width: 100%;
   display: flex;
@@ -89,6 +121,7 @@
   margin-top: 32px;
 }
 
+/* Continue button styling */
 .ai-text-results-continue-btn-inner {
   padding-left: 32px;
   padding-right: 32px;
