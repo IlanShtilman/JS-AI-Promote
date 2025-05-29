@@ -1,10 +1,13 @@
-package com.shtilmanilan.ai_promote_backend.service;
+package com.shtilmanilan.ai_promote_backend.service.claude;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
+import com.shtilmanilan.ai_promote_backend.service.groq.GroqService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,39 +23,41 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class OpenAIServiceImpl implements OpenAIService {
+public class ClaudeServiceImpl implements ClaudeService {
     
-    private static final Logger logger = LoggerFactory.getLogger(OpenAIServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClaudeServiceImpl.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
     private final String apiKey;
-    private final GeminiService geminiService;
+    private final GroqService groqService;
     
     @Autowired
-    public OpenAIServiceImpl(String openaiApiKey, GeminiService geminiService) {
-        this.apiKey = openaiApiKey;
-        this.geminiService = geminiService;
-        logger.info("OpenAI service initialized with API key: {}", apiKey != null ? "present" : "missing");
+    public ClaudeServiceImpl(@Qualifier("claudeApiKey") String claudeApiKey, GroqService groqService) {
+        this.apiKey = claudeApiKey;
+        this.groqService = groqService;
+        logger.info("Claude service initialized with API key: {}", apiKey != null ? "present" : "missing");
     }
     
     @Override
     public TextGenerationResponse generateText(TextGenerationRequest request) {
         try {
             if (apiKey == null || apiKey.isEmpty()) {
-                logger.info("OpenAI API key not configured, falling back to Gemini");
-                return geminiService.generateText(request);
+                logger.info("Claude API key not configured, falling back to Groq");
+                return groqService.generateText(request);
             }
             
-            // Try to generate the text with OpenAI using direct HTTP
             try {
                 // Set up headers
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.setBearerAuth(apiKey);
+                headers.set("x-api-key", apiKey);
+                headers.set("anthropic-version", "2023-06-01");
                 
                 // Build request body
                 Map<String, Object> requestBody = new HashMap<>();
-                requestBody.put("model", "gpt-3.5-turbo");
+                requestBody.put("model", "claude-3-opus-20240229");
+                requestBody.put("max_tokens", 150);
+                requestBody.put("temperature", request.getTemperature());
                 
                 List<Map<String, String>> messages = new ArrayList<>();
                 Map<String, String> message = new HashMap<>();
@@ -61,25 +66,28 @@ public class OpenAIServiceImpl implements OpenAIService {
                 messages.add(message);
                 requestBody.put("messages", messages);
                 
-                requestBody.put("temperature", request.getTemperature());
-                requestBody.put("max_tokens", 2000);
-                
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
                 
                 // Make request
                 ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://api.openai.com/v1/chat/completions", 
+                    "https://api.anthropic.com/v1/messages", 
                     entity,
                     String.class
                 );
                 
                 // Parse response
-                JsonNode responseNode = objectMapper.readTree(response.getBody());
+                JsonNode responseNode;
+                try {
+                    responseNode = objectMapper.readTree(response.getBody());
+                } catch (JsonProcessingException e) {
+                    logger.error("Error parsing Claude API response: {}", e.getMessage());
+                    throw new RuntimeException("Error parsing Claude API response", e);
+                }
+                
                 String generatedText = responseNode
-                    .path("choices")
-                    .path(0)
-                    .path("message")
                     .path("content")
+                    .path(0)
+                    .path("text")
                     .asText()
                     .trim();
                 
@@ -87,19 +95,18 @@ public class OpenAIServiceImpl implements OpenAIService {
                 textResponse.setGeneratedText(generatedText);
                 return textResponse;
             } catch (Exception e) {
-                logger.error("OpenAI API error: {}", e.getMessage());
+                logger.error("Claude API error: {}", e.getMessage());
                 
-                // Check for quota exceeded error
+                // Check for rate limit error
                 String errorMessage = e.getMessage();
-                if (errorMessage != null && errorMessage.contains("insufficient_quota")) {
-                    logger.info("OpenAI quota exceeded, falling back to Gemini");
-                    return geminiService.generateText(request);
+                if (errorMessage != null && (errorMessage.contains("429") || errorMessage.contains("rate_limit_error"))) {
+                    logger.info("Claude rate limit exceeded, falling back to Groq");
+                    return groqService.generateText(request);
                 }
                 
-                // Return a user-friendly fallback response
-                TextGenerationResponse fallbackResponse = new TextGenerationResponse();
-                fallbackResponse.setGeneratedText("Sorry, we couldn't generate a response at this time. Please try again later.");
-                return fallbackResponse;
+                // For other errors, still try fallback
+                logger.info("Claude error, falling back to Groq");
+                return groqService.generateText(request);
             }
         } catch (Exception e) {
             logger.error("Error in generateText: {}", e.getMessage());

@@ -1,8 +1,8 @@
-package com.shtilmanilan.ai_promote_backend.controller;
+package com.shtilmanilan.ai_promote_backend.controller.ai;
 
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
-import com.shtilmanilan.ai_promote_backend.service.GroqService;
+import com.shtilmanilan.ai_promote_backend.service.openai.OpenAIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,16 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("/api/v1/groq")
+@RequestMapping("/api/v1/openai")
 @CrossOrigin(origins = "http://localhost:3000")
-public class GroqController {
+public class OpenAIController {
 
-    private static final Logger logger = LoggerFactory.getLogger(GroqController.class);
-    private final GroqService groqService;
+    private static final Logger logger = LoggerFactory.getLogger(OpenAIController.class);
+    private final OpenAIService openAIService;
 
     @Autowired
-    public GroqController(GroqService groqService) {
-        this.groqService = groqService;
+    public OpenAIController(OpenAIService openAIService) {
+        this.openAIService = openAIService;
     }
 
     @GetMapping("/test")
@@ -33,7 +33,7 @@ public class GroqController {
     public ResponseEntity<TextGenerationResponse> generateText(@RequestBody TextGenerationRequest request) {
         try {
             logger.info("Received request: {}", request);
-            TextGenerationResponse response = groqService.generateText(request);
+            TextGenerationResponse response = openAIService.generateText(request);
             logger.info("Generated response: {}", response.getGeneratedText());
             return ResponseEntity.ok(response);
         } catch (Exception e) {

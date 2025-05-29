@@ -1,8 +1,8 @@
-package com.shtilmanilan.ai_promote_backend.controller;
+package com.shtilmanilan.ai_promote_backend.controller.ai;
 
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
-import com.shtilmanilan.ai_promote_backend.service.OpenAIService;
+import com.shtilmanilan.ai_promote_backend.service.claude.ClaudeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,16 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("/api/v1/openai")
+@RequestMapping("/api/v1/claude")
 @CrossOrigin(origins = "http://localhost:3000")
-public class OpenAIController {
+public class ClaudeController {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpenAIController.class);
-    private final OpenAIService openAIService;
+    private static final Logger logger = LoggerFactory.getLogger(ClaudeController.class);
+    private final ClaudeService claudeService;
 
     @Autowired
-    public OpenAIController(OpenAIService openAIService) {
-        this.openAIService = openAIService;
+    public ClaudeController(ClaudeService claudeService) {
+        this.claudeService = claudeService;
     }
 
     @GetMapping("/test")
@@ -33,7 +33,7 @@ public class OpenAIController {
     public ResponseEntity<TextGenerationResponse> generateText(@RequestBody TextGenerationRequest request) {
         try {
             logger.info("Received request: {}", request);
-            TextGenerationResponse response = openAIService.generateText(request);
+            TextGenerationResponse response = claudeService.generateText(request);
             logger.info("Generated response: {}", response.getGeneratedText());
             return ResponseEntity.ok(response);
         } catch (Exception e) {

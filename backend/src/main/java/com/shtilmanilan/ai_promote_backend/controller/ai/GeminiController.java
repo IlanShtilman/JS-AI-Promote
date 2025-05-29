@@ -1,8 +1,8 @@
-package com.shtilmanilan.ai_promote_backend.controller;
+package com.shtilmanilan.ai_promote_backend.controller.ai;
 
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
 import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
-import com.shtilmanilan.ai_promote_backend.service.GeminiService;
+import com.shtilmanilan.ai_promote_backend.service.gemini.GeminiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
