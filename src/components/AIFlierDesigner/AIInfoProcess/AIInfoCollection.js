@@ -1,21 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Container,
   Typography,
   Paper,
-  TextField,
   Button,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Slider,
   Stack,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
-  IconButton,
   Grid,
   Tooltip,
   FormHelperText,
@@ -25,148 +19,38 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions,
-  Snackbar
+  DialogActions
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import ImageSearchIcon from '@mui/icons-material/ImageSearch';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockIcon from '@mui/icons-material/Lock';
-import { analyzeImageWithAzure, analyzeMultipleImagesWithAzure, testBackendConnection } from '../../services/azureVisionService';
-import { assembleSummaryInfo } from './summaryUtils';
+import { analyzeMultipleImagesWithAzure } from '../../../services/AzureVision/azureVisionService';
+import { assembleSummaryInfo, validateFormData, getUIText, generateDefaultColors } from './summaryUtils';
+import AIInfoCollectionConfig from './AIInfoCollectionConfig';
 import './AIInfoCollection.css';
 
-const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) => (
-  <Paper
-    elevation={2}
-    className={`${disabled ? 'aiinfo-disabled-paper' : 'aiinfo-paper'}`}
-    onClick={!disabled ? onClick : undefined}
-  >
-    <Stack spacing={2} alignItems="center" height="100%">
-      {icon}
-      <Typography variant="h6" align="center">
-        {title}
-      </Typography>
-      <Typography variant="body2" align="center" color="text.secondary">
-        {description}
-      </Typography>
-      {disabled && (
-        <Tooltip title="Coming soon!" placement="top">
-          <LockIcon sx={{ position: 'absolute', top: 10, right: 10, color: 'text.disabled' }} />
-        </Tooltip>
-      )}
-      {preview && (
-        <Box sx={{ mt: 'auto', width: '100%', maxHeight: '150px', overflow: 'hidden' }}>
-          <img
-            src={preview}
-            alt="Upload preview"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '4px'
-            }}
-          />
-        </Box>
-      )}
-    </Stack>
-  </Paper>
-);
-
-const businessTypes = [
-  // ✅ SPECIFIC FOOD BUSINESSES (matches backend logic)
-  { value: 'hamburger restaurant', label: 'Hamburger Restaurant - מבורגרייה' },
-  { value: 'pizzeria', label: 'Pizzeria - פיצרייה' },
-  { value: 'cafe', label: 'Cafe - בית קפה' },
-  { value: 'coffee shop', label: 'Coffee Shop - בית קפה' },
-  { value: 'bakery', label: 'Bakery - מאפייה' },
-  { value: 'sushi restaurant', label: 'Sushi Restaurant - מסעדת סושי' },
-  { value: 'chinese restaurant', label: 'Chinese Restaurant - מסעדה סינית' },
-  { value: 'mexican restaurant', label: 'Mexican Restaurant - מסעדה מקסיקנית' },
-  { value: 'indian restaurant', label: 'Indian Restaurant - מסעדה הודית' },
-  { value: 'steakhouse', label: 'Steakhouse - סטייקייה' },
-  { value: 'seafood restaurant', label: 'Seafood Restaurant - מסעדת פירות ים' },
-  { value: 'ice cream parlor', label: 'Ice Cream Parlor - גלידריה' },
-  { value: 'bar', label: 'Bar - בר' },
-  { value: 'fast food', label: 'Fast Food - מזון מהיר' },
-  { value: 'fine dining', label: 'Fine Dining - מסעדה יוקרתית' },
-  { value: 'restaurant', label: 'Restaurant (General) - מסעדה כללית' },
-  
-  // ✅ OTHER BUSINESS TYPES
-  { value: 'tech company', label: 'Tech Company - חברת הייטק' },
-  { value: 'retail store', label: 'Retail Store - חנות קמעונאית' },
-  { value: 'fitness center', label: 'Fitness Center - מכון כושר' },
-  { value: 'beauty salon', label: 'Beauty Salon - מכון יופי' },
-  { value: 'hotel', label: 'Hotel - מלון' },
-  { value: 'medical clinic', label: 'Medical Clinic - מרפאה' },
-  { value: 'auto service', label: 'Auto Service - שירותי רכב' },
-  { value: 'education', label: 'Education - חינוך' },
-  { value: 'office', label: 'Office - משרדים' },
-  { value: 'entertainment', label: 'Entertainment - בידור' },
-  { value: 'general', label: 'General Business - עסק כללי' }
-];
-
-const targetAudiences = [
-  { value: 'families', label: 'Families with Children - משפחות עם ילדים' },
-  { value: 'young adults', label: 'Young Adults (18-35) - צעירים בוגרים' },
-  { value: 'professionals', label: 'Business Professionals - אנשי מקצוע' },
-  { value: 'seniors', label: 'Seniors (55+) - בוגרים' },
-  { value: 'students', label: 'Students - סטודנטים' },
-  { value: 'teenagers', label: 'Teenagers (13-17) - בני נוער' },
-  { value: 'children', label: 'Children - ילדים' },
-  { value: 'tourists', label: 'Tourists - תיירים' },
-  { value: 'locals', label: 'Local Community - קהילה מקומית' },
-  { value: 'office workers', label: 'Office Workers - עובדי משרדים' },
-  { value: 'food lovers', label: 'Food Enthusiasts - אוהבי אוכל' },
-  { value: 'health conscious', label: 'Health Conscious - מודעים לבריאות' },
-  { value: 'luxury seekers', label: 'Luxury Seekers - מחפשי יוקרה' },
-  { value: 'budget conscious', label: 'Budget Conscious - מודעים לתקציב' },
-  { value: 'general', label: 'General Public - קהל רחב' }
-];
-
 const AIInfoCollection = ({ language, onSubmit, initialData }) => {
-  const [formData, setFormData] = useState({
-    targetAudience: targetAudiences[0].value,
-    businessType: businessTypes[0].value,
-    stylePreference: 'modern',
-    colorScheme: 'warm',
-    imagePreference: 'system',
-    uploadedImage: null,
-    uploadType: 'regular',
-    flierSize: 'A4',
-    orientation: 'portrait'
-  });
-
+  
+  // ================================
+  // 1. STATE INITIALIZATION
+  // ================================
+  const [formData, setFormData] = useState(AIInfoCollectionConfig.defaultFormData);
   const [enhancedUploadOpen, setEnhancedUploadOpen] = useState(false);
-
-  const [errors, setErrors] = useState({
-    targetAudience: false,
-    businessType: false,
-    colorScheme: false,
-    imageUpload: false,
-    flierSize: false,
-    orientation: false
-  });
-
+  const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const validateForm = () => {
-    const newErrors = {
-      targetAudience: !formData.targetAudience.trim(),
-      businessType: !formData.businessType.trim(),
-      colorScheme: !formData.colorScheme,
-      imageUpload: formData.imagePreference === 'upload' && !formData.uploadedImage,
-      flierSize: !formData.flierSize,
-      orientation: !formData.orientation
-    };
+  // ================================
+  // 2. UI SETUP (Based on language prop)
+  // ================================
+  const uiText = getUIText(language);
 
-    setErrors(newErrors);
-    return !Object.values(newErrors).some(error => error);
-  };
-
+  // ================================
+  // 3. EVENT HANDLERS (Functions that respond to user actions)
+  // ================================
+  
   const handleInputChange = (field) => (event) => {
     setFormData({
       ...formData,
@@ -174,16 +58,23 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     });
     
     if (showErrors) {
-      setErrors({
-        ...errors,
-        [field]: !event.target.value.trim()
+      const validation = validateFormData({
+        ...formData,
+        [field]: event.target.value
       });
+      setErrors(validation.errors);
     }
   };
 
   const handleRegularUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Check file size
+      if (file.size > AIInfoCollectionConfig.upload.maxFileSize) {
+        alert(`File size too large. Maximum size is ${AIInfoCollectionConfig.upload.maxFileSize / (1024 * 1024)}MB`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setFormData({
@@ -207,7 +98,10 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
 
   const handleSubmit = async () => {
     setShowErrors(true);
-    if (!validateForm()) {
+    const validation = validateFormData(formData);
+    
+    if (!validation.isValid) {
+      setErrors(validation.errors);
       return;
     }
 
@@ -216,7 +110,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
       const hasLogo = initialData?.logo;
       const hasPhoto = formData.imagePreference === 'upload' && formData.uploadedImage;
       
-      if (hasLogo || hasPhoto) {
+      if ((hasLogo || hasPhoto) && AIInfoCollectionConfig.analysis.enableImageAnalysis) {
         setIsAnalyzing(true);
         console.log('Analyzing images...', { hasLogo: !!hasLogo, hasPhoto: !!hasPhoto });
         
@@ -237,7 +131,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         const updatedFormData = {
           ...formData,
           // Use Azure business type if available and user hasn't explicitly chosen one
-          businessType: formData.businessType || analysisResult?.businessType || '',
+          businessType: formData.businessType || analysisResult?.businessType || AIInfoCollectionConfig.defaultFormData.businessType,
           sceneType: analysisResult?.sceneType || '',
           detectedObjects: analysisResult?.combinedObjects || [],
           description: analysisResult?.combinedDescription || '',
@@ -253,8 +147,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         const summaryInfo = assembleSummaryInfo(updatedFormData, initialData);
         onSubmit(summaryInfo);
       } else {
-        // No images to analyze - use default colors
-        console.log('No images to analyze, using default colors');
+        // No images to analyze or analysis disabled - use default colors
+        console.log('No images to analyze or analysis disabled, using default colors');
         const defaultColors = generateDefaultColors(formData.colorScheme);
         const formDataWithColors = {
           ...formData,
@@ -285,40 +179,10 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
     }
   };
 
-  // Helper function to generate colors based on colorScheme selection
-  const generateDefaultColors = (colorScheme) => {
-    // Define color mappings for different schemes
-    const colorMappings = {
-      'warm': {
-        primary: '#FF5722',
-        secondary: '#FF9800',
-        accent: '#FFC107',
-        background: '#FFFFFF'
-      },
-      'cool': {
-        primary: '#2196F3',
-        secondary: '#03A9F4',
-        accent: '#00BCD4',
-        background: '#FFFFFF'
-      },
-      'neutral': {
-        primary: '#607D8B',
-        secondary: '#9E9E9E',
-        accent: '#795548',
-        background: '#F5F5F5'
-      },
-      'vibrant': {
-        primary: '#E91E63',
-        secondary: '#9C27B0',
-        accent: '#673AB7',
-        background: '#FFFFFF'
-      }
-    };
-    
-    // Return mapped colors or fallback to warm colors
-    return colorMappings[colorScheme] || colorMappings['warm'];
-  };
-
+  // ================================
+  // 4. JSX RENDER (What gets displayed)
+  // ================================
+  
   return (
     <Container maxWidth="md" className="aiinfo-collection-container">
       <Dialog
@@ -327,24 +191,24 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         maxWidth="md"
       >
         <DialogTitle className="aiinfo-dialog-title">
-          העלאה משופרת
+          {uiText.enhancedUploadTitle}
         </DialogTitle>
         <DialogContent>
           <DialogContentText className="aiinfo-dialog-content-text">
-            יאאלה גל סומך עליך
+            {uiText.enhancedUploadPlaceholder}
           </DialogContentText>
           <Box className="aiinfo-dialog-box">
             <Typography variant="body1" color="text.secondary" className="aiinfo-dialog-italic">
-              העלאה משופרת תופיע כאן
+              {uiText.enhancedUploadComingSoon}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleEnhancedUploadClose} color="primary">
-            סגור
+            {uiText.close}
           </Button>
           <Button onClick={handleEnhancedUploadClose} color="primary" variant="contained">
-            אישור
+            {uiText.confirm}
           </Button>
         </DialogActions>
       </Dialog>
@@ -359,12 +223,12 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
           align="center" 
           className="aiinfo-collection-title"
         >
-          מידע נוסף לעיצוב
+          {uiText.title}
         </Typography>
 
-        {showErrors && Object.values(errors).some(error => error) && (
+        {showErrors && !validateFormData(formData).isValid && (
           <Alert severity="error" className="aiinfo-error-alert">
-            אנא מלא את כל השדות הנדרשים לפני שתמשיך
+            {uiText.fillAllFields}
           </Alert>
         )}
 
@@ -374,14 +238,14 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
         >
           <Stack spacing={4}>
             <FormControl fullWidth error={showErrors && errors.targetAudience}>
-              <InputLabel>קהל יעד *</InputLabel>
+              <InputLabel>{uiText.targetAudience} *</InputLabel>
               <Select
                 value={formData.targetAudience}
                 onChange={handleInputChange('targetAudience')}
-                label="קהל יעד *"
+                label={`${uiText.targetAudience} *`}
                 error={showErrors && errors.targetAudience}
               >
-                {targetAudiences.map((audience) => (
+                {AIInfoCollectionConfig.targetAudiences.map((audience) => (
                   <MenuItem key={audience.value} value={audience.value}>
                     {audience.label}
                   </MenuItem>
@@ -389,20 +253,20 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
               </Select>
               {showErrors && errors.targetAudience && (
                 <FormHelperText error>
-                  שדה חובה
+                  {uiText.requiredField}
                 </FormHelperText>
               )}
             </FormControl>
 
             <FormControl fullWidth error={showErrors && errors.businessType}>
-              <InputLabel>סוג העסק *</InputLabel>
+              <InputLabel>{uiText.businessType} *</InputLabel>
               <Select
                 value={formData.businessType}
                 onChange={handleInputChange('businessType')}
-                label="סוג העסק *"
+                label={`${uiText.businessType} *`}
                 error={showErrors && errors.businessType}
               >
-                {businessTypes.map((type) => (
+                {AIInfoCollectionConfig.businessTypes.map((type) => (
                   <MenuItem key={type.value} value={type.value}>
                     {type.label}
                   </MenuItem>
@@ -410,55 +274,57 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
               </Select>
               {showErrors && errors.businessType && (
                 <FormHelperText error>
-                  שדה חובה
+                  {uiText.requiredField}
                 </FormHelperText>
               )}
             </FormControl>
 
             <FormControl fullWidth>
-              <InputLabel>Design Style</InputLabel>
+              <InputLabel>{uiText.designStyle}</InputLabel>
               <Select
                 value={formData.stylePreference}
                 onChange={handleInputChange('stylePreference')}
-                label="Design Style"
+                label={uiText.designStyle}
               >
-                <MenuItem value="modern">Modern - מודרני</MenuItem>
-                <MenuItem value="classic">Classic - קלאסי</MenuItem>
-                <MenuItem value="minimalist">Minimalist - מינימליסטי</MenuItem>
-                <MenuItem value="bold">Bold - נועז</MenuItem>
+                {AIInfoCollectionConfig.stylePreferences.map((style) => (
+                  <MenuItem key={style.value} value={style.value}>
+                    {style.label}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
 
             <FormControl fullWidth error={showErrors && errors.colorScheme}>
-              <InputLabel>Color Scheme *</InputLabel>
+              <InputLabel>{uiText.colorScheme} *</InputLabel>
               <Select
                 value={formData.colorScheme}
                 onChange={handleInputChange('colorScheme')}
-                label="Color Scheme *"
+                label={`${uiText.colorScheme} *`}
                 error={showErrors && errors.colorScheme}
               >
-                <MenuItem value="warm">Warm - חם</MenuItem>
-                <MenuItem value="cool">Cool - קר</MenuItem>
-                <MenuItem value="neutral">Neutral - ניטרלי</MenuItem>
-                <MenuItem value="vibrant">Vibrant - תוסס</MenuItem>
+                {AIInfoCollectionConfig.colorSchemes.map((scheme) => (
+                  <MenuItem key={scheme.value} value={scheme.value}>
+                    {scheme.label}
+                  </MenuItem>
+                ))}
               </Select>
               {showErrors && errors.colorScheme && (
-                <FormHelperText>Please select a color scheme</FormHelperText>
+                <FormHelperText error>{uiText.requiredField}</FormHelperText>
               )}
             </FormControl>
 
             <Box className="aiinfo-flier-image-box">
               <Typography variant="h5" className="aiinfo-flier-image-title">
-                העלאת תמונה לפלייר
+                {uiText.flierImageTitle}
               </Typography>
               <Typography variant="body2" color="text.secondary" className="aiinfo-flier-image-description">
-                בחר אחת מהאפשרויות הבאות להוספת תמונה לפלייר שלך
+                {uiText.flierImageDescription}
               </Typography>
 
               <Grid container spacing={3} className="aiinfo-flier-image-grid">
                 <Grid item xs={12} sm={6}>
                   <input
-                    accept="image/*"
+                    accept={AIInfoCollectionConfig.upload.acceptedFormats}
                     type="file"
                     id="regular-upload"
                     style={{ display: 'none' }}
@@ -466,8 +332,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                   />
                   <label htmlFor="regular-upload">
                     <UploadWindow
-                      title="העלאה רגילה"
-                      description="בחר תמונה ממכשיר זה"
+                      title={uiText.regularUpload}
+                      description={uiText.regularUploadDesc}
                       icon={<CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main' }} />}
                       preview={formData.uploadedImage}
                     />
@@ -476,8 +342,8 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
 
                 <Grid item xs={12} sm={6}>
                   <UploadWindow
-                    title="העלאה משופרת"
-                    description="צור תמונה עם בינה מלאכותית"
+                    title={uiText.enhancedUpload}
+                    description={uiText.enhancedUploadDesc}
                     icon={<AutoFixHighIcon sx={{ fontSize: 48, color: 'secondary.main' }} />}
                     onClick={handleEnhancedUpload}
                     disabled={true}
@@ -489,30 +355,34 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Flier Size</InputLabel>
+                  <InputLabel>{uiText.flierSize}</InputLabel>
                   <Select
                     value={formData.flierSize}
                     onChange={handleInputChange('flierSize')}
-                    label="Flier Size"
+                    label={uiText.flierSize}
                   >
-                    <MenuItem value="A4">A4 (210×297mm)</MenuItem>
-                    <MenuItem value="A5">A5 (148×210mm)</MenuItem>
-                    <MenuItem value="Letter">Letter (8.5×11in)</MenuItem>
-                    <MenuItem value="Custom">Custom Size</MenuItem>
+                    {AIInfoCollectionConfig.flierSizes.map((size) => (
+                      <MenuItem key={size.value} value={size.value}>
+                        {size.label}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
 
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Orientation</InputLabel>
+                  <InputLabel>{uiText.orientation}</InputLabel>
                   <Select
                     value={formData.orientation}
                     onChange={handleInputChange('orientation')}
-                    label="Orientation"
+                    label={uiText.orientation}
                   >
-                    <MenuItem value="portrait">Portrait - לאורך</MenuItem>
-                    <MenuItem value="landscape">Landscape - לרוחב</MenuItem>
+                    {AIInfoCollectionConfig.orientations.map((orient) => (
+                      <MenuItem key={orient.value} value={orient.value}>
+                        {orient.label}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -527,7 +397,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
                 startIcon={isAnalyzing ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
                 className="aiinfo-submit-button"
               >
-                {isAnalyzing ? 'מנתח תמונות...' : 'המשך לסיכום'}
+                {isAnalyzing ? uiText.analyzingImages : uiText.continueButton}
               </Button>
             </Box>
           </Stack>
@@ -537,4 +407,45 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   );
 };
 
-export default AIInfoCollection; 
+// ================================
+// HELPER SUB-COMPONENTS (Used in JSX above)
+// ================================
+
+const UploadWindow = ({ title, description, icon, onClick, disabled, preview }) => (
+  <Paper
+    elevation={2}
+    className={`${disabled ? 'aiinfo-disabled-paper' : 'aiinfo-paper'}`}
+    onClick={!disabled ? onClick : undefined}
+  >
+    <Stack spacing={2} alignItems="center" height="100%">
+      {icon}
+      <Typography variant="h6" align="center">
+        {title}
+      </Typography>
+      <Typography variant="body2" align="center" color="text.secondary">
+        {description}
+      </Typography>
+      {disabled && (
+        <Tooltip title={getUIText().comingSoon} placement="top">
+          <LockIcon sx={{ position: 'absolute', top: 10, right: 10, color: 'text.disabled' }} />
+        </Tooltip>
+      )}
+      {preview && (
+        <Box sx={{ mt: 'auto', width: '100%', maxHeight: AIInfoCollectionConfig.upload.previewMaxHeight, overflow: 'hidden' }}>
+          <img
+            src={preview}
+            alt="Upload preview"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '4px'
+            }}
+          />
+        </Box>
+      )}
+    </Stack>
+  </Paper>
+);
+
+export default AIInfoCollection;

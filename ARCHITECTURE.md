@@ -485,3 +485,14 @@ Future: Distributed Data Management
 ---
 
 This architecture documentation provides a comprehensive view of how the AI-powered flyer generation system is designed, implemented, and optimized for performance, scalability, and maintainability. 
+
+src/
+├── components/
+│   ├── AIFlierDesigner/      # AI Flier Creation Workflow
+│   │   ├── AIInfoProcess/    # User info collection and processing
+│   │   ├── AIFlierSummary/   # (Coming next)
+│   │   └── AIFlier/          # (Coming next)
+│   ├── DesignModeSelection/
+│   ├── ManualFlierDesigner/
+│   ├── StageUserInfo/
+│   └── AITextResults/ 

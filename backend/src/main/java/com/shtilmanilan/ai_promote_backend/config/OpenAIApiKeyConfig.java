@@ -12,9 +12,9 @@ import java.io.FileReader;
 import java.io.IOException;
 
 @Configuration
-public class ApiKeyConfig {
+public class OpenAIApiKeyConfig {
     
-    private static final Logger logger = LoggerFactory.getLogger(ApiKeyConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpenAIApiKeyConfig.class);
     
     @Bean
     public String openaiApiKey(Environment environment) {

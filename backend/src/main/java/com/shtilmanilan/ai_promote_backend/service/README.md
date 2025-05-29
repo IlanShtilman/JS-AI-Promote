@@ -1,9 +1,14 @@
-# AI Text Generation Service - Backend
+# AI Services - Backend
 
 ## Overview
-This backend provides endpoints for generating text using various AI providers (OpenAI, Claude, Gemini, Groq).
+This backend provides endpoints for various AI services:
+- **Text Generation:** OpenAI, Claude, Gemini, Groq for generating flier content
+- **Image Analysis:** Azure Vision for color extraction and scene analysis
 
-## Flow: User → Frontend → Backend → AI Provider
+## Service Types
+
+### 1. Text Generation Services
+**Flow:** User → Frontend → Backend → AI Provider
 
 1. **User** enters a prompt in the frontend UI.
 2. **Frontend** sends a POST request to `/api/v1/{provider}/generate` with the prompt and temperature.
@@ -13,20 +18,40 @@ This backend provides endpoints for generating text using various AI providers (
 6. **Backend** wraps the result in a `TextGenerationResponse` and sends it back to the frontend.
 7. **Frontend** displays the generated text to the user.
 
-## Main Files
-- `ClaudeController.java`, `OpenAIController.java`, etc.
-- `ClaudeServiceImpl.java`, `OpenAIServiceImpl.java`, etc.
-- `TextGenerationRequest.java`, `TextGenerationResponse.java`
-- `ClaudeApiKeyConfig.java`, etc.
+### 2. Azure Vision Service
+**Flow:** Frontend → Backend → Azure Vision API
 
-## Adding a New Provider
+1. **User** uploads logo/photo in AI flier designer
+2. **Frontend** converts images to base64 and sends to `/api/vision/analyze`
+3. **AzureVisionController** receives base64 image data
+4. **AzureVisionService** processes image and calls Azure Vision API
+5. **Azure Vision API** analyzes image for colors, objects, scene type
+6. **Backend** processes response and returns structured `AzureVisionResponse`
+7. **Frontend** uses color analysis for flier generation
+
+## Main Files
+
+### Text Generation
+- `ClaudeController.java`, `OpenAIController.java`, `GeminiController.java`, `GroqController.java`
+- `ClaudeServiceImpl.java`, `OpenAIServiceImpl.java`, `GeminiServiceImpl.java`, `GroqServiceImpl.java`
+- `TextGenerationRequest.java`, `TextGenerationResponse.java`
+- `OpenAIApiKeyConfig.java`
+
+### Azure Vision
+- `controller/azure/AzureVisionController.java`
+- `service/azure/AzureVisionService.java` 
+- `model/azure/AzureVisionResponse.java`
+
+## Adding a New Text Generation Provider
 1. Create a new service interface and implementation in its own subfolder.
 2. Add a new controller for the endpoint.
 3. Update the frontend to call the new endpoint.
 
-## Folder Structure Example
+## Folder Structure
 ```
 service/
+  azure/
+    AzureVisionService.java           # Image analysis & color extraction
   openai/
     OpenAIService.java
     OpenAIServiceImpl.java
@@ -39,5 +64,50 @@ service/
   groq/
     GroqService.java
     GroqServiceImpl.java
-  ...
-``` 
+
+controller/
+  azure/
+    AzureVisionController.java        # /api/vision/analyze endpoint
+    README.md                         # Detailed Azure Vision documentation
+  ClaudeController.java               # /api/v1/claude/generate
+  OpenAIController.java               # /api/v1/openai/generate
+  GeminiController.java               # /api/v1/gemini/generate
+  GroqController.java                 # /api/v1/groq/generate
+
+model/
+  azure/
+    AzureVisionResponse.java          # Azure Vision response structure
+  ai/
+    TextGenerationRequest.java        # Text generation request structure
+    TextGenerationResponse.java       # Text generation response structure
+```
+
+## Service Configurations
+
+### Text Generation Services
+- **API Keys:** Stored in `application.properties` or environment variables
+- **Endpoints:** Each provider has unique base URLs and authentication
+- **Rate Limiting:** Implemented per provider's limits
+
+### Azure Vision Service  
+- **Configuration:** `azure.vision.endpoint` and `azure.vision.key`
+- **Features:** Color analysis, object detection, scene categorization
+- **Processing:** Simplified photo-focused approach trusting Azure's analysis
+- **Integration:** Used in AI flier designer for automatic color palette generation
+
+## API Endpoints
+
+### Text Generation
+- `POST /api/v1/openai/generate`
+- `POST /api/v1/claude/generate`
+- `POST /api/v1/gemini/generate`
+- `POST /api/v1/groq/generate`
+
+### Image Analysis
+- `POST /api/vision/analyze` - Analyze image for colors and scene
+- `GET /api/vision/test` - Test Azure Vision API connection
+
+## Error Handling
+- **Text Generation:** Fallback responses when AI providers fail
+- **Azure Vision:** Default color palettes when image analysis fails
+- **Logging:** Comprehensive error logging for debugging and monitoring 

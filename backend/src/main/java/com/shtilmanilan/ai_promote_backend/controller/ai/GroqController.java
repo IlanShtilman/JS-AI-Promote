@@ -1,7 +1,7 @@
 package com.shtilmanilan.ai_promote_backend.controller.ai;
 
-import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
-import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
+import com.shtilmanilan.ai_promote_backend.model.ai.TextGenerationRequest;
+import com.shtilmanilan.ai_promote_backend.model.ai.TextGenerationResponse;
 import com.shtilmanilan.ai_promote_backend.service.groq.GroqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

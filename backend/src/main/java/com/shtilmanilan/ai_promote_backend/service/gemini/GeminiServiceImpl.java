@@ -1,7 +1,7 @@
 package com.shtilmanilan.ai_promote_backend.service.gemini;
 
-import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
-import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
+import com.shtilmanilan.ai_promote_backend.model.ai.TextGenerationRequest;
+import com.shtilmanilan.ai_promote_backend.model.ai.TextGenerationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +32,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public TextGenerationResponse generateText(TextGenerationRequest request) {
         try {
             if (apiKey == null || apiKey.isEmpty()) {
@@ -67,15 +68,15 @@ public class GeminiServiceImpl implements GeminiService {
                 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
                 
-                // Make request
-                ResponseEntity<Map> response = restTemplate.postForEntity(
+                // Make request - using proper generic types
+                ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(
                     apiUrl,
                     entity,
-                    Map.class
+                    (Class<Map<String, Object>>) (Class<?>) Map.class
                 );
                 
-                // Parse response
-                Map responseBody = response.getBody();
+                // Parse response - these casts are necessary when working with dynamic JSON responses
+                Map<String, Object> responseBody = response.getBody();
                 if (responseBody != null) {
                     List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
                     if (candidates != null && !candidates.isEmpty()) {
