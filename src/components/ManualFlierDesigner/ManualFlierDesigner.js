@@ -1,39 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
+import { FLIER_DESIGNER_CONFIG, getTextContent, formatText } from './ManualFlierDesignerConfig';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import ImageIcon from '@mui/icons-material/Image';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import './ManualFlierDesigner.css';
 
-const FONT_OPTIONS = [
-  { value: 'Heebo', label: 'Heebo' },
-  { value: 'Assistant', label: 'Assistant' },
-  { value: 'Rubik', label: 'Rubik' },
-];
+const ManualFlierDesigner = ({ title: initialTitle, selectedText, promotionText, language, logo, onBack }) => {
+  const config = FLIER_DESIGNER_CONFIG;
+  const t = (key) => getTextContent(language, key);
 
-const ManualFlierDesigner = ({ title: initialTitle, selectedText, promotionText, language, logo }) => {
-  const [flierTitle, setFlierTitle] = useState(initialTitle || '');
-  const [flierText, setFlierText] = useState(selectedText || promotionText || '');
-  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
-  const [titleColor, setTitleColor] = useState('#000000');
-  const [textColor, setTextColor] = useState('#000000');
-  const [qrLink, setQrLink] = useState('');
-  const [borderRadius, setBorderRadius] = useState(0);
+  // State initialization using config defaults
+  const [flierTitle, setFlierTitle] = useState(initialTitle || config.DEFAULTS.title);
+  const [flierText, setFlierText] = useState(selectedText || promotionText || config.DEFAULTS.text);
+  const [backgroundColor, setBackgroundColor] = useState(config.DEFAULTS.backgroundColor);
+  const [titleColor, setTitleColor] = useState(config.DEFAULTS.titleColor);
+  const [textColor, setTextColor] = useState(config.DEFAULTS.textColor);
+  const [qrLink, setQrLink] = useState(config.DEFAULTS.qrLink);
+  const [borderRadius, setBorderRadius] = useState(config.DEFAULTS.borderRadius);
   
   // Image controls
   const [uploadedImage, setUploadedImage] = useState(null);
-  const [isBackgroundImage, setIsBackgroundImage] = useState(false);
-  const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 }); // percentage values
+  const [isBackgroundImage, setIsBackgroundImage] = useState(config.DEFAULTS.isBackgroundImage);
+  const [imagePosition, setImagePosition] = useState(config.DEFAULTS.imagePosition);
   const imageRef = useRef(null);
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
-  const dragThreshold = useRef(5); // minimum pixels to move before starting drag
-  const startPos = useRef({ x: 0, y: 0 }); // initial click position
+  const dragThreshold = useRef(config.IMAGE.dragThreshold);
+  const startPos = useRef({ x: 0, y: 0 });
   const hasMoved = useRef(false);
 
   // Font controls
-  const [titleFont, setTitleFont] = useState('Heebo');
-  const [textFont, setTextFont] = useState('Heebo');
-  const [titleSize, setTitleSize] = useState(40);
-  const [textSize, setTextSize] = useState(18);
+  const [titleFont, setTitleFont] = useState(config.DEFAULTS.titleFont);
+  const [textFont, setTextFont] = useState(config.DEFAULTS.textFont);
+  const [titleSize, setTitleSize] = useState(config.DEFAULTS.titleSize);
+  const [textSize, setTextSize] = useState(config.DEFAULTS.textSize);
 
   const isRTL = language === 'Hebrew';
 
@@ -41,7 +44,7 @@ const ManualFlierDesigner = ({ title: initialTitle, selectedText, promotionText,
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file) {
+    if (file && config.SUPPORTED_IMAGE_TYPES.includes(file.type)) {
       const reader = new FileReader();
       reader.onload = (e) => setUploadedImage(e.target.result);
       reader.readAsDataURL(file);
@@ -64,7 +67,7 @@ const ManualFlierDesigner = ({ title: initialTitle, selectedText, promotionText,
     }
   };
 
-  const handleDrag = (e) => {
+  const handleDrag = useCallback((e) => {
     if (isDragging.current && !isBackgroundImage) {
       // Calculate distance moved
       const deltaX = Math.abs(e.clientX - startPos.current.x);
@@ -80,37 +83,38 @@ const ManualFlierDesigner = ({ title: initialTitle, selectedText, promotionText,
         const newX = e.clientX - dragStart.current.x;
         const newY = e.clientY - dragStart.current.y;
         
-        // Round to nearest 10 pixels for even smoother movement
-        const roundedX = Math.round(newX / 10) * 10;
-        const roundedY = Math.round(newY / 10) * 10;
+        // Round to nearest configured factor for smooth movement
+        const roundingFactor = config.IMAGE.roundingFactor;
+        const roundedX = Math.round(newX / roundingFactor) * roundingFactor;
+        const roundedY = Math.round(newY / roundingFactor) * roundingFactor;
         
         setImagePosition({
-          x: Math.max(0, Math.min(100, roundedX)),
-          y: Math.max(0, Math.min(100, roundedY))
+          x: Math.max(config.LIMITS.imagePosition.min, Math.min(config.LIMITS.imagePosition.max, roundedX)),
+          y: Math.max(config.LIMITS.imagePosition.min, Math.min(config.LIMITS.imagePosition.max, roundedY))
         });
       }
       e.preventDefault();
     }
-  };
+  }, [isBackgroundImage, config.IMAGE.roundingFactor, config.LIMITS.imagePosition]);
 
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     isDragging.current = false;
     hasMoved.current = false;
-  };
+  }, []);
 
   const handleDownload = async () => {
     if (flierRef.current) {
       try {
         const canvas = await html2canvas(flierRef.current, {
-          scale: 2,
+          scale: config.DOWNLOAD.scale,
           useCORS: true,
           allowTaint: true,
           backgroundColor: null,
         });
         
         const link = document.createElement('a');
-        link.download = 'mybenefitz-flier.png';
-        link.href = canvas.toDataURL('image/png');
+        link.download = config.DOWNLOAD.filename;
+        link.href = canvas.toDataURL(config.DOWNLOAD.format);
         link.click();
       } catch (error) {
         console.error('Error generating image:', error);
@@ -129,259 +133,261 @@ const ManualFlierDesigner = ({ title: initialTitle, selectedText, promotionText,
       document.removeEventListener('mousemove', handleDrag);
       document.removeEventListener('mouseup', handleDragEnd);
     };
-  }, [initialTitle, selectedText, promotionText]);
+  }, [initialTitle, selectedText, promotionText, handleDrag, handleDragEnd]);
 
   return (
-    <div className={`flier-designer-container ${isRTL ? 'rtl' : ''}`}>
-      <div className="image-controls">
-        <h3>{isRTL ? 'הגדרות תמונה' : 'Image Settings'}</h3>
-        <div className="image-preview" style={uploadedImage ? { backgroundImage: `url(${uploadedImage})` } : {}}>
-          {!uploadedImage && (
-            <span>{isRTL ? 'טרם נבחרה תמונה' : 'No image uploaded'}</span>
-          )}
-        </div>
-        <div className="control-group">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            style={{ display: 'none' }}
-            id="imageUpload"
-          />
-          <label htmlFor="imageUpload" className="image-upload-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
-            </svg>
-            {isRTL ? 'העלה תמונה' : 'Upload Image'}
-          </label>
-        </div>
-        {uploadedImage && (
-          <div className="switch-container">
-            <span>{isRTL ? 'תמונת רקע' : 'Background Image'}</span>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={isBackgroundImage}
-                onChange={(e) => setIsBackgroundImage(e.target.checked)}
-              />
-              <span className="slider"></span>
-            </label>
-          </div>
-        )}
-      </div>
-
-      <div className="flier-preview">
-        <div
-          ref={flierRef}
-          className="flier-canvas"
-          style={{
-            backgroundColor: backgroundColor,
-            borderRadius: `${borderRadius}px`,
-            backgroundImage: isBackgroundImage && uploadedImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${uploadedImage})` : 'none',
-          }}
-        >
-          <div className="phone-preview">
-            <img 
-              src="/assets/Phone-APP.png" 
-              alt="myBenefitz App Preview" 
-              className="phone-image"
-            />
-          </div>
-          {logo && (
-            <div className="flier-logo">
-              <img src={logo} alt="Business Logo" />
-            </div>
-          )}
-          <h1 style={{ 
-            color: titleColor,
-            fontFamily: titleFont,
-            fontSize: `${titleSize}px`,
-            direction: isRTL ? 'rtl' : 'ltr',
-            textAlign: 'center',
-            width: '100%',
-          }}>
-            {flierTitle || (isRTL ? 'הכנס כותרת' : 'Your Title Here')}
-          </h1>
-          <p style={{ 
-            color: textColor,
-            fontFamily: textFont,
-            fontSize: `${textSize}px`,
-            direction: isRTL ? 'rtl' : 'ltr',
-            textAlign: 'center',
-            width: '100%',
-            whiteSpace: 'pre-wrap',
-          }}>
-            {flierText || (isRTL ? 'הכנס טקסט פרסומי' : 'Enter your promotional text here')}
-          </p>
-          {uploadedImage && !isBackgroundImage && (
-            <img
-              ref={imageRef}
-              src={uploadedImage}
-              alt="Uploaded"
-              className="flier-image-element"
-              style={{
-                left: `${imagePosition.x}%`,
-                top: `${imagePosition.y}%`,
-              }}
-              onMouseDown={handleDragStart}
-            />
-          )}
-          {qrLink && (
-            <div className="qr-code-container">
-              <div className="qr-code">
-                <QRCodeSVG value={qrLink} size={120} />
-              </div>
-              <div className="qr-instructions">
-                <div className="qr-scan-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 3H4V6H7V3Z" fill="currentColor"/>
-                    <path d="M20 3H17V6H20V3Z" fill="currentColor"/>
-                    <path d="M7 18H4V21H7V18Z" fill="currentColor"/>
-                    <path d="M20 18H17V21H20V18Z" fill="currentColor"/>
-                    <path d="M20 11H4V13H20V11Z" fill="currentColor"/>
-                  </svg>
-                </div>
-                <div className="qr-text">
-                  <p className="primary">{isRTL ? 'סרקו את הקוד לקבלת ההטבה' : 'Scan the code to get the benefit'}</p>
-                  <p className="secondary">{isRTL ? 'פתחו את המצלמה בנייד' : 'Open your phone camera'}</p>
-                  <p className="secondary">{isRTL ? 'כוונו לקוד וקבלו את ההטבה' : 'Point at the code and get your benefit'}</p>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="flier-footer">
-            {isRTL ? (
-              <>באפליקציה השכונתית <span className="brand-name">myBenefitz</span> תומכת בעסקים הקטנים השכונתיים</>
-            ) : (
-              <><span className="brand-name">myBenefitz</span> The neighborhood app supporting local small businesses</>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flier-controls">
-        <div className="control-group">
-          <label htmlFor="flierTitle">{isRTL ? 'כותרת' : 'Title'}</label>
-          <input
-            type="text"
-            id="flierTitle"
-            value={flierTitle}
-            onChange={(e) => setFlierTitle(e.target.value)}
-            placeholder={initialTitle || (isRTL ? 'הכנס כותרת' : 'Enter title')}
-            style={{ direction: isRTL ? 'rtl' : 'ltr' }}
-          />
-          <div className="font-controls">
-            <select
-              value={titleFont}
-              onChange={(e) => setTitleFont(e.target.value)}
-              title={isRTL ? 'בחר פונט' : 'Select font'}
-            >
-              {FONT_OPTIONS.map(font => (
-                <option key={font.value} value={font.value}>{font.label}</option>
-              ))}
-            </select>
-            <input
-              type="number"
-              value={titleSize}
-              onChange={(e) => setTitleSize(Number(e.target.value))}
-              min="20"
-              max="80"
-              title={isRTL ? 'גודל פונט' : 'Font size'}
-            />
-          </div>
-        </div>
-        <div className="control-group">
-          <label htmlFor="flierText">{isRTL ? 'טקסט' : 'Text'}</label>
-          <textarea
-            id="flierText"
-            value={flierText}
-            onChange={(e) => setFlierText(e.target.value)}
-            placeholder={selectedText || promotionText || (isRTL ? 'הכנס טקסט פרסומי' : 'Enter promotional text')}
-            style={{ direction: isRTL ? 'rtl' : 'ltr' }}
-          />
-          <div className="font-controls">
-            <select
-              value={textFont}
-              onChange={(e) => setTextFont(e.target.value)}
-              title={isRTL ? 'בחר פונט' : 'Select font'}
-            >
-              {FONT_OPTIONS.map(font => (
-                <option key={font.value} value={font.value}>{font.label}</option>
-              ))}
-            </select>
-            <input
-              type="number"
-              value={textSize}
-              onChange={(e) => setTextSize(Number(e.target.value))}
-              min="12"
-              max="40"
-              title={isRTL ? 'גודל פונט' : 'Font size'}
-            />
-          </div>
-        </div>
-        <div className="control-group">
-          <label htmlFor="borderRadius">
-            {isRTL ? 'עיגול פינות' : 'Border Radius'}
-            <span className="radius-value">{borderRadius}px</span>
-          </label>
-          <input
-            type="range"
-            id="borderRadius"
-            value={borderRadius}
-            onChange={(e) => setBorderRadius(Number(e.target.value))}
-            min="0"
-            max="50"
-            step="1"
-          />
-        </div>
-        <div className="control-group">
-          <label htmlFor="qrLink">{isRTL ? 'קישור ל-QR' : 'QR Link'}</label>
-          <input
-            type="url"
-            id="qrLink"
-            value={qrLink}
-            onChange={(e) => setQrLink(e.target.value)}
-            placeholder={isRTL ? 'הכנס קישור ליצירת QR' : 'Enter link for QR code'}
-          />
-        </div>
-        <div className="control-group">
-          <label htmlFor="backgroundColor">{isRTL ? 'צבע רקע' : 'Background Color'}</label>
-          <input
-            type="color"
-            id="backgroundColor"
-            value={backgroundColor}
-            onChange={(e) => setBackgroundColor(e.target.value)}
-          />
-        </div>
-        <div className="control-group">
-          <label htmlFor="titleColor">{isRTL ? 'צבע כותרת' : 'Title Color'}</label>
-          <input
-            type="color"
-            id="titleColor"
-            value={titleColor}
-            onChange={(e) => setTitleColor(e.target.value)}
-          />
-        </div>
-        <div className="control-group">
-          <label htmlFor="textColor">{isRTL ? 'צבע טקסט' : 'Text Color'}</label>
-          <input
-            type="color"
-            id="textColor"
-            value={textColor}
-            onChange={(e) => setTextColor(e.target.value)}
-          />
-        </div>
+    <>
+      {/* Back button header */}
+      <div className="manual-flier-designer-header">
         <button 
-          className="download-button"
-          onClick={handleDownload}
+          className="manual-flier-designer-back-btn"
+          onClick={onBack}
+          aria-label={t('backToModeSelection')}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/>
-          </svg>
-          {isRTL ? 'הורד פלייר' : 'Download Flier'}
+          <ArrowBackIcon />
+          {t('backToModeSelection')}
         </button>
       </div>
-    </div>
+
+      <div className={`flier-designer-container ${isRTL ? 'rtl' : ''}`}>
+        <div className="image-controls">
+          <h3>{t('imageSettings')}</h3>
+          <div className="image-preview" style={uploadedImage ? { backgroundImage: `url(${uploadedImage})` } : {}}>
+            {!uploadedImage && (
+              <span>{t('noImageUploaded')}</span>
+            )}
+          </div>
+          <div className="control-group">
+            <input
+              type="file"
+              accept={config.SUPPORTED_IMAGE_TYPES.join(',')}
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+              id="imageUpload"
+            />
+            <label htmlFor="imageUpload" className="image-upload-button">
+              <ImageIcon />
+              {t('uploadImage')}
+            </label>
+          </div>
+          {uploadedImage && (
+            <div className="switch-container">
+              <span>{t('backgroundImage')}</span>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={isBackgroundImage}
+                  onChange={(e) => setIsBackgroundImage(e.target.checked)}
+                />
+                <span className="slider"></span>
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="flier-preview">
+          <div
+            ref={flierRef}
+            className="flier-canvas"
+            style={{
+              backgroundColor: backgroundColor,
+              borderRadius: `${borderRadius}px`,
+              backgroundImage: isBackgroundImage && uploadedImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${uploadedImage})` : 'none',
+            }}
+          >
+            <div className="phone-preview">
+              <img 
+                src={config.PHONE_PREVIEW.imagePath}
+                alt="myBenefitz App Preview" 
+                className="phone-image"
+              />
+            </div>
+            {logo && (
+              <div className="flier-logo">
+                <img src={logo} alt="Business Logo" />
+              </div>
+            )}
+            <h1 style={{ 
+              color: titleColor,
+              fontFamily: titleFont,
+              fontSize: `${titleSize}px`,
+              direction: isRTL ? 'rtl' : 'ltr',
+              textAlign: 'center',
+              width: '100%',
+            }}>
+              {flierTitle || t('yourTitleHere')}
+            </h1>
+            <p style={{ 
+              color: textColor,
+              fontFamily: textFont,
+              fontSize: `${textSize}px`,
+              direction: isRTL ? 'rtl' : 'ltr',
+              textAlign: 'center',
+              width: '100%',
+              whiteSpace: 'pre-wrap',
+            }}>
+              {flierText || t('enterPromotionalTextHere')}
+            </p>
+            {uploadedImage && !isBackgroundImage && (
+              <img
+                ref={imageRef}
+                src={uploadedImage}
+                alt="Uploaded"
+                className="flier-image-element"
+                style={{
+                  left: `${imagePosition.x}%`,
+                  top: `${imagePosition.y}%`,
+                }}
+                onMouseDown={handleDragStart}
+              />
+            )}
+            {qrLink && (
+              <div className="qr-code-container">
+                <div className="qr-code">
+                  <QRCodeSVG value={qrLink} size={config.QR_CODE.size} />
+                </div>
+                <div className="qr-instructions">
+                  <div className="qr-scan-icon">
+                    <QrCodeScannerIcon />
+                  </div>
+                  <div className="qr-text">
+                    <p className="primary">{t('qrPrimary')}</p>
+                    <p className="secondary">{t('qrSecondary1')}</p>
+                    <p className="secondary">{t('qrSecondary2')}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flier-footer">
+              {formatText(t('footerText'), { brandName: config.FOOTER.brandName })}
+            </div>
+          </div>
+        </div>
+
+        <div className="flier-controls">
+          <div className="control-group">
+            <label htmlFor="flierTitle">{t('title')}</label>
+            <input
+              type="text"
+              id="flierTitle"
+              value={flierTitle}
+              onChange={(e) => setFlierTitle(e.target.value)}
+              placeholder={initialTitle || t('enterTitle')}
+              style={{ direction: isRTL ? 'rtl' : 'ltr' }}
+            />
+            <div className="font-controls">
+              <select
+                value={titleFont}
+                onChange={(e) => setTitleFont(e.target.value)}
+                title={t('selectFont')}
+              >
+                {config.FONT_OPTIONS.map(font => (
+                  <option key={font.value} value={font.value}>{font.label}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                value={titleSize}
+                onChange={(e) => setTitleSize(Number(e.target.value))}
+                min={config.LIMITS.titleSize.min}
+                max={config.LIMITS.titleSize.max}
+                step={config.LIMITS.titleSize.step}
+                title={t('fontSize')}
+              />
+            </div>
+          </div>
+          <div className="control-group">
+            <label htmlFor="flierText">{t('text')}</label>
+            <textarea
+              id="flierText"
+              value={flierText}
+              onChange={(e) => setFlierText(e.target.value)}
+              placeholder={selectedText || promotionText || t('enterPromotionalText')}
+              style={{ direction: isRTL ? 'rtl' : 'ltr' }}
+            />
+            <div className="font-controls">
+              <select
+                value={textFont}
+                onChange={(e) => setTextFont(e.target.value)}
+                title={t('selectFont')}
+              >
+                {config.FONT_OPTIONS.map(font => (
+                  <option key={font.value} value={font.value}>{font.label}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                value={textSize}
+                onChange={(e) => setTextSize(Number(e.target.value))}
+                min={config.LIMITS.textSize.min}
+                max={config.LIMITS.textSize.max}
+                step={config.LIMITS.textSize.step}
+                title={t('fontSize')}
+              />
+            </div>
+          </div>
+          <div className="control-group">
+            <label htmlFor="borderRadius">
+              {t('borderRadius')}
+              <span className="radius-value">{borderRadius}px</span>
+            </label>
+            <input
+              type="range"
+              id="borderRadius"
+              value={borderRadius}
+              onChange={(e) => setBorderRadius(Number(e.target.value))}
+              min={config.LIMITS.borderRadius.min}
+              max={config.LIMITS.borderRadius.max}
+              step={config.LIMITS.borderRadius.step}
+            />
+          </div>
+          <div className="control-group">
+            <label htmlFor="qrLink">{t('qrLink')}</label>
+            <input
+              type="url"
+              id="qrLink"
+              value={qrLink}
+              onChange={(e) => setQrLink(e.target.value)}
+              placeholder={t('enterLinkForQR')}
+            />
+          </div>
+          <div className="control-group">
+            <label htmlFor="backgroundColor">{t('backgroundColor')}</label>
+            <input
+              type="color"
+              id="backgroundColor"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+            />
+          </div>
+          <div className="control-group">
+            <label htmlFor="titleColor">{t('titleColor')}</label>
+            <input
+              type="color"
+              id="titleColor"
+              value={titleColor}
+              onChange={(e) => setTitleColor(e.target.value)}
+            />
+          </div>
+          <div className="control-group">
+            <label htmlFor="textColor">{t('textColor')}</label>
+            <input
+              type="color"
+              id="textColor"
+              value={textColor}
+              onChange={(e) => setTextColor(e.target.value)}
+            />
+          </div>
+          <button 
+            className="download-button"
+            onClick={handleDownload}
+          >
+            <FileDownloadIcon />
+            {t('downloadFlier')}
+          </button>
+        </div>
+      </div>
+    </>
   );
 };
 

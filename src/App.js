@@ -65,6 +65,10 @@ function App() {
     setCurrentStage('input');
   };
 
+  const handleManualDesignBack = () => {
+    setCurrentStage('design-mode');
+  };
+
   const handleSummaryBack = () => {
     setCurrentStage('ai-info-collection');
   };
@@ -151,6 +155,7 @@ function App() {
             title={title}
             promotionTitle={title}
             promotionText={promotionalText}
+            onBack={handleManualDesignBack}
           />
         ) : currentStage === 'ai-info-collection' ? (
           <AIInfoCollection
