@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const ELEVENLABS_API_KEY = process.env.REACT_APP_ELEVENLABS_API_KEY;
 
-export const textToSpeech = async (text, voiceId = '21m00Tcm4TlvDq8ikWAM', stability = 0.5, similarity = 0.5) => {
+export const textToSpeech = async (text) => {
   try {
     if (!ELEVENLABS_API_KEY) {
       console.error('ElevenLabs API key is not configured');
@@ -12,13 +12,13 @@ export const textToSpeech = async (text, voiceId = '21m00Tcm4TlvDq8ikWAM', stabi
     console.log('Generating speech for text:', text);
     
     const response = await axios.post(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM',
       {
         text: text,
         model_id: "eleven_monolingual_v1",
         voice_settings: {
-          stability: stability,
-          similarity_boost: similarity
+          stability: 0.5,
+          similarity_boost: 0.5
         }
       },
       {
@@ -39,24 +39,4 @@ export const textToSpeech = async (text, voiceId = '21m00Tcm4TlvDq8ikWAM', stabi
     console.error('Error in textToSpeech:', error);
     throw error;
   }
-};
-
-// Helper function to convert base64 to Blob
-const base64ToBlob = (base64, contentType) => {
-  const byteCharacters = atob(base64);
-  const byteArrays = [];
-
-  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-    const slice = byteCharacters.slice(offset, offset + 512);
-
-    const byteNumbers = new Array(slice.length);
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
-  }
-
-  return new Blob(byteArrays, { type: contentType });
 }; 
