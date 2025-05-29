@@ -1,47 +1,20 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import './StageUserInfo.css';
-import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, CircularProgress, Paper, Stack, Tooltip, IconButton, TextField, Alert } from '@mui/material';
+import { Box, Typography, Button, InputLabel, Select, MenuItem, Paper, Stack, Tooltip, IconButton, TextField, Alert } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import MicIcon from '@mui/icons-material/Mic';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import { startSpeechRecognition, stopSpeechRecognition, playAudio } from '../../services/speechService';
-import { textToSpeech } from '../../services/elevenLabsService';
+import { startSpeechRecognition, stopSpeechRecognition, playAudio } from '../../services/VoiceServices/speechService';
+import { textToSpeech } from '../../services/VoiceServices/elevenLabsService';
 
-// Helper function to create help popup
-const createHelpPopup = (content, position, event) => {
-  const targetElement = event.currentTarget;
-  const rect = targetElement.getBoundingClientRect();
-  
-  const popup = document.createElement('div');
-  popup.className = `stage-user-info-hover-guide-popup stage-user-info-hover-guide-popup-${position}`;
-  
-  // Position popup relative to help icon
-  popup.style.top = (rect.top + window.scrollY + rect.height/2) + 'px';
-  
-  if (position === 'left') {
-    popup.style.left = (rect.left + window.scrollX + rect.width) + 'px';
-  } else {
-    popup.style.right = (window.innerWidth - rect.left - window.scrollX) + 'px';
-  }
-  
-  const title = document.createElement('div');
-  title.className = 'stage-user-info-hover-guide-title';
-  title.textContent = content.title;
-  
-  const desc = document.createElement('div');
-  desc.className = 'stage-user-info-hover-guide-desc';
-  desc.textContent = content.description;
-  
-  popup.appendChild(title);
-  popup.appendChild(desc);
-  
-  return popup;
-};
-
-// HelpIcon component
+// HelpIcon component with React Portal
 const HelpIcon = ({ id, position }) => {
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0, right: 0 });
+  const iconRef = React.useRef(null);
+
   const contentMap = {
     language: { title: 'בחירת שפה', description: 'בחר את השפה המועדפת עליך לתוכן הפלייר' },
     logo: { title: 'העלאת לוגו', description: 'הוסף את הלוגו של העסק שלך' },
@@ -53,36 +26,51 @@ const HelpIcon = ({ id, position }) => {
   const content = contentMap[id];
   
   const handleMouseEnter = (event) => {
-    const popup = createHelpPopup(content, position, event);
-    document.body.appendChild(popup);
-    popup.setAttribute('data-help-id', id);
+    if (iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      setPopupPosition({
+        top: rect.top + window.scrollY + rect.height/2,
+        left: position === 'left' ? rect.left + window.scrollX + rect.width : undefined,
+        right: position === 'right' ? window.innerWidth - rect.left - window.scrollX : undefined
+      });
+    }
+    setShowPopup(true);
   };
   
   const handleMouseLeave = () => {
-    const popups = document.querySelectorAll(`[data-help-id="${id}"]`);
-    popups.forEach(popup => {
-      if (document.body.contains(popup)) {
-        document.body.removeChild(popup);
-      }
-    });
+    setShowPopup(false);
   };
 
   return (
-    <div 
-      className="help-icon-container"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <HelpOutlineIcon fontSize="small" />
-    </div>
+    <>
+      <div 
+        ref={iconRef}
+        className="help-icon-container"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <HelpOutlineIcon fontSize="small" />
+      </div>
+      {showPopup && createPortal(
+        <div 
+          className={`stage-user-info-hover-guide-popup stage-user-info-hover-guide-popup-${position}`}
+          style={{
+            top: `${popupPosition.top}px`,
+            ...(popupPosition.left !== undefined ? { left: `${popupPosition.left}px` } : {}),
+            ...(popupPosition.right !== undefined ? { right: `${popupPosition.right}px` } : {})
+          }}
+        >
+          <div className="stage-user-info-hover-guide-title">{content.title}</div>
+          <div className="stage-user-info-hover-guide-desc">{content.description}</div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
 
 const StageUserInfo = ({
   loading,
-  selectedText,
-  handleSelectText,
-  handleContinueWithSelected,
   onGenerateTexts,
   onLogoChange
 }) => {
@@ -92,23 +80,39 @@ const StageUserInfo = ({
   const [promotionalText, setPromotionalText] = useState('');
   const [logo, setLogo] = useState(null);
   const [error, setError] = useState('');
+  
   // Speech-to-text and text-to-speech state
   const [isRecording, setIsRecording] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
 
-  // Logo upload handler
+  // Logo upload handler with improved error handling
   const handleLogoUpload = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogo(e.target.result);
-        if (onLogoChange) onLogoChange(e.target.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file');
+      return;
     }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLogo(e.target.result);
+      if (onLogoChange) onLogoChange(e.target.result);
+      setError(''); // Clear any previous errors
+    };
+    reader.onerror = () => {
+      setError('Error reading the file. Please try again.');
+    };
+    reader.readAsDataURL(file);
   };
 
   // Handlers for input fields
@@ -129,54 +133,82 @@ const StageUserInfo = ({
     }
   };
 
-  // Speech-to-text handler
+  // Text-to-speech handler with improved service integration
+  const handleTextToSpeech = useCallback(async (text) => {
+    if (language !== 'English') {
+      setError('Text-to-speech is only available in English');
+      return;
+    }
+    if (!text.trim()) {
+      setError('No text to convert to speech');
+      return;
+    }
+    try {
+      setIsPlaying(true);
+      setError('');
+      const audioUrl = await textToSpeech(text);
+      const audio = playAudio(audioUrl);
+      
+      // Use the service's events instead of timeout
+      audio.onended = () => {
+        setIsPlaying(false);
+      };
+      
+      audio.onerror = (err) => {
+        setIsPlaying(false);
+        setError('Error playing audio. Please try again.');
+      };
+    } catch (err) {
+      setIsPlaying(false);
+      setError('Error converting text to speech. Please try again.');
+    }
+  }, [language]);
+
+  // Speech-to-text handler with improved error handling
   const toggleRecording = useCallback((inputField) => {
     if (isRecording) {
       stopSpeechRecognition();
       setIsRecording(false);
       setActiveInput(null);
     } else {
-      setIsRecording(true);
-      setActiveInput(inputField);
-      startSpeechRecognition(
-        language,
-        (transcript) => {
-          if (inputField === 'title') {
-            setTitle(transcript);
-          } else if (inputField === 'promotional') {
-            setPromotionalText(transcript);
+      try {
+        setIsRecording(true);
+        setActiveInput(inputField);
+        startSpeechRecognition(
+          language,
+          (transcript) => {
+            if (inputField === 'title') {
+              setTitle(transcript);
+            } else if (inputField === 'promotional') {
+              setPromotionalText(transcript);
+            }
+          },
+          (error) => {
+            setIsRecording(false);
+            setActiveInput(null);
+            // Only show error if there actually was an error
+            if (error) {
+              setError(`Speech recognition error: ${error.message || 'Please try again'}`);
+            }
           }
-        },
-        () => {
-          setIsRecording(false);
-          setActiveInput(null);
-        }
-      );
+        );
+      } catch (error) {
+        setIsRecording(false);
+        setActiveInput(null);
+        setError('Speech recognition is not supported in your browser');
+      }
     }
   }, [isRecording, language]);
-
-  // Text-to-speech handler
-  const handleTextToSpeech = useCallback(async (text) => {
-    if (language !== 'English') {
-      // Optionally show an error or ignore
-      return;
-    }
-    try {
-      setIsPlaying(true);
-      const audioUrl = await textToSpeech(text);
-      playAudio(audioUrl);
-      setTimeout(() => {
-        setIsPlaying(false);
-      }, 10000);
-    } catch (err) {
-      setIsPlaying(false);
-    }
-  }, [language]);
 
   // Tooltip for speech
   const getSpeechTooltip = useCallback((inputType) => {
     return `Click to ${isRecording && activeInput === inputType ? 'stop' : 'start'} voice input for ${inputType}. Currently supporting ${language === 'Hebrew' ? 'Hebrew' : 'English'} language.`;
   }, [isRecording, activeInput, language]);
+
+  // Get text direction based on language
+  const getTextDirection = useCallback(() => {
+    return language === 'Hebrew' ? 'rtl' : 'ltr';
+  }, [language]);
 
   // InputControls component
   const InputControls = ({ inputType, text }) => (
@@ -237,7 +269,7 @@ const StageUserInfo = ({
         
         <Box className="stage-user-info-logo stage-user-info-relative-container">
           <Typography variant="h6" gutterBottom>
-            לוגו העסק
+            {language === 'Hebrew' ? 'לוגו העסק' : 'Business Logo'}
           </Typography>
           {logo && <img src={logo} alt="Business Logo" />}
           <Box className="stage-user-info-inline-container">
@@ -247,7 +279,7 @@ const StageUserInfo = ({
               startIcon={<CloudUploadIcon />}
               className="stage-user-info-button"
             >
-              העלאת לוגו
+              {language === 'Hebrew' ? 'העלאת לוגו' : 'Upload Logo'}
               <input type="file" hidden accept="image/*" onChange={handleLogoUpload} />
             </Button>
             <HelpIcon id="logo" position="right" />
@@ -258,10 +290,10 @@ const StageUserInfo = ({
           <Box className="stage-user-info-relative-container">
             <TextField
               fullWidth
-              label="כותרת"
+              label={language === 'Hebrew' ? 'כותרת' : 'Title'}
               value={title}
               onChange={handleTitleChange}
-              dir="rtl"
+              dir={getTextDirection()}
               InputProps={{ 
                 endAdornment: (
                   <Stack direction="row" spacing={1} alignItems="center">
@@ -280,12 +312,12 @@ const StageUserInfo = ({
           <Box className="stage-user-info-relative-container">
             <TextField
               fullWidth
-              label="טקסט פרסומי"
+              label={language === 'Hebrew' ? 'טקסט פרסומי' : 'Promotional Text'}
               multiline
               rows={4}
               value={promotionalText}
               onChange={handlePromotionalTextChange}
-              dir="rtl"
+              dir={getTextDirection()}
               InputProps={{ 
                 endAdornment: (
                   <Stack direction="row" spacing={1} alignItems="center">
@@ -311,14 +343,7 @@ const StageUserInfo = ({
               disabled={loading}
               className="stage-user-info-button"
             >
-              {loading ? (
-                <Box className="stage-user-info-loading">
-                  <CircularProgress size={24} color="inherit" />
-                  <span>מייצר טקסט...</span>
-                </Box>
-              ) : (
-                'צור טקסט'
-              )}
+              {language === 'Hebrew' ? 'צור טקסט' : 'Generate Text'}
             </Button>
             <HelpIcon id="generate" position="left" />
           </Box>

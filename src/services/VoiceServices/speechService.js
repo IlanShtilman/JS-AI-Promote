@@ -11,12 +11,20 @@ export const startSpeechRecognition = (language, onResult, onEnd) => {
     onResult(transcript);
   };
 
-  recognition.onend = onEnd;
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event.error);
+    onEnd(event.error);
+  };
+
+  recognition.onend = () => {
+    onEnd(null);
+  };
 
   try {
     recognition.start();
   } catch (error) {
     console.error('Speech recognition error:', error);
+    onEnd(error);
   }
 };
 
