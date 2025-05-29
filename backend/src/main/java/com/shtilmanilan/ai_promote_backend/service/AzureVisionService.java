@@ -156,7 +156,8 @@ public class AzureVisionService {
                     logger.info("Converted '{}' to hex: {}", colorName, hexColor);
                 }
             }
-            colors.setDominantColors(dominantColorsHex);
+            // 🎨 ENHANCED: For logos, add detected brand colors to dominant colors
+            java.util.List<String> enhancedDominantColors = new java.util.ArrayList<>(dominantColorsHex);
             
             // Use Azure's raw analysis directly - no artificial manipulation
             if (dominantColorsHex.size() >= 1) {
@@ -175,9 +176,40 @@ public class AzureVisionService {
                 logger.info("⚠️ Secondary color from background: {}", backgroundColor);
             }
             
-            if (dominantColorsHex.size() >= 3) {
+            // 🔴 PRIORITY 1: Use Azure's detected accent color if available
+            if (accentColor != null && !accentColor.isEmpty()) {
+                // Azure provides accent color as hex without # prefix
+                String accentHex = accentColor.startsWith("#") ? accentColor : "#" + accentColor;
+                colors.setAccent(accentHex);
+                logger.info("✅ Using Azure's detected accent color: {}", accentHex);
+                
+                // 🔵 ENHANCEMENT: For logos with multiple brand colors, try to detect complementary colors
+                // Check if this looks like a logo based on available data
+                boolean isLogo = (response.containsKey("description") && 
+                                response.get("description") != null &&
+                                response.get("description").toString().toLowerCase().contains("logo"));
+                
+                if (isLogo) {
+                    String complementaryColor = detectComplementaryBrandColor(accentHex, dominantColorsHex);
+                    if (!complementaryColor.equals(accentHex)) {
+                        // Use the complementary color as secondary if it's different
+                        colors.setSecondary(complementaryColor);
+                        logger.info("🔵 Detected complementary brand color for logo: {}", complementaryColor);
+                        
+                        // 🎨 Add both brand colors to dominant colors for unified palette
+                        if (!enhancedDominantColors.contains(accentHex)) {
+                            enhancedDominantColors.add(accentHex);
+                        }
+                        if (!enhancedDominantColors.contains(complementaryColor)) {
+                            enhancedDominantColors.add(complementaryColor);
+                        }
+                        colors.setDominantColors(enhancedDominantColors);
+                        logger.info("🎨 Enhanced dominant colors with brand colors: {}", enhancedDominantColors);
+                    }
+                }
+            } else if (dominantColorsHex.size() >= 3) {
                 colors.setAccent(dominantColorsHex.get(2));    // Third most dominant color from Azure
-                logger.info("✅ Accent color from Azure: {}", dominantColorsHex.get(2));
+                logger.info("✅ Accent color from Azure dominant colors: {}", dominantColorsHex.get(2));
             } else {
                 // Simple fallback - use a neutral color instead of trying to be smart
                 colors.setAccent("#666666");
@@ -188,8 +220,11 @@ public class AzureVisionService {
             colors.setBackground(getHexForColorName(backgroundColor));
             logger.info("✅ Background color from Azure: {} -> {}", backgroundColor, getHexForColorName(backgroundColor));
             
+            // 🎨 FINAL: Set the enhanced dominant colors after all processing
+            colors.setDominantColors(enhancedDominantColors);
+            
             logger.info("Final colors - Primary: {}, Secondary: {}, Accent: {}, Background: {}, Dominant: {}", 
-                colors.getPrimary(), colors.getSecondary(), colors.getAccent(), colors.getBackground(), dominantColorsHex);
+                colors.getPrimary(), colors.getSecondary(), colors.getAccent(), colors.getBackground(), enhancedDominantColors);
             
             result.setColors(colors);
         }
@@ -302,6 +337,79 @@ public class AzureVisionService {
     }
 
     /**
+     * Detect complementary brand color for logos (e.g., blue for Domino's red)
+     */
+    private String detectComplementaryBrandColor(String primaryAccentColor, java.util.List<String> dominantColors) {
+        // For red accent colors (like Domino's), look for blue complementary
+        if (primaryAccentColor.toLowerCase().contains("c70420") || isRedColor(primaryAccentColor)) {
+            // Domino's specific: red + blue combination
+            return "#003f7f"; // Domino's blue
+        }
+        
+        // For other red colors, use a complementary blue
+        if (isRedColor(primaryAccentColor)) {
+            return "#1565C0"; // Material blue
+        }
+        
+        // For blue accent colors, use red complementary
+        if (isBlueColor(primaryAccentColor)) {
+            return "#D32F2F"; // Material red
+        }
+        
+        // For other colors, try to find a good contrast from dominant colors
+        if (dominantColors != null && dominantColors.size() > 1) {
+            // Return the second dominant color if it's different from primary
+            String secondColor = dominantColors.get(1);
+            if (!secondColor.equals(primaryAccentColor)) {
+                return secondColor;
+            }
+        }
+        
+        // Default fallback
+        return primaryAccentColor; // Return same color if no complement found
+    }
+    
+    /**
+     * Check if a color is in the red family
+     */
+    private boolean isRedColor(String hexColor) {
+        if (hexColor == null) return false;
+        String color = hexColor.toLowerCase().replace("#", "");
+        
+        // Parse RGB values
+        try {
+            int r = Integer.parseInt(color.substring(0, 2), 16);
+            int g = Integer.parseInt(color.substring(2, 4), 16);
+            int b = Integer.parseInt(color.substring(4, 6), 16);
+            
+            // Red if red component is significantly higher than others
+            return r > g + 50 && r > b + 50;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Check if a color is in the blue family
+     */
+    private boolean isBlueColor(String hexColor) {
+        if (hexColor == null) return false;
+        String color = hexColor.toLowerCase().replace("#", "");
+        
+        // Parse RGB values
+        try {
+            int r = Integer.parseInt(color.substring(0, 2), 16);
+            int g = Integer.parseInt(color.substring(2, 4), 16);
+            int b = Integer.parseInt(color.substring(4, 6), 16);
+            
+            // Blue if blue component is significantly higher than others
+            return b > r + 50 && b > g + 30;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
      * Enhance colors based on image description and context
      */
     private void enhanceColorsBasedOnContext(AzureVisionResponse result) {
@@ -332,12 +440,16 @@ public class AzureVisionService {
             }
             
             // Look for navy/teal/dark references (like AI Agent logo)
-            if (desc.contains("dark") || desc.contains("navy") || desc.contains("teal") || 
-                desc.contains("logo") || desc.contains("agent")) {
-                logger.info("🔧 Detected dark/navy context - adjusting to navy/teal tones");
+            // 🔴 IMPORTANT: Only override if Azure didn't detect good colors
+            if ((desc.contains("dark") || desc.contains("navy") || desc.contains("teal") || 
+                desc.contains("agent")) && 
+                (colors.getAccent().equals("#666666") || colors.getPrimary().equals("#FFFFFF"))) {
+                logger.info("🔧 Detected dark/navy context with poor Azure colors - adjusting to navy/teal tones");
                 colors.setPrimary("#1a4a52"); // Dark navy/teal
                 colors.setSecondary("#F5F5DC"); // Beige
                 colors.setAccent("#808080"); // Gray
+            } else if (desc.contains("logo") && !colors.getAccent().equals("#666666")) {
+                logger.info("🔧 Logo detected but Azure provided good accent color - keeping Azure colors");
             }
             
             // Look for cream/beige/light references

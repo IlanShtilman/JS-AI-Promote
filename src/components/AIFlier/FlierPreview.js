@@ -176,10 +176,22 @@ const FlierPreview = ({
         </Box>
       )}
 
+      {/* Single overlay covering the entire flyer */}
+      <Box sx={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)', // Light transparent overlay
+        backdropFilter: 'blur(2px)', // Subtle blur effect
+        pointerEvents: 'none' // Allow clicks to pass through
+      }} />
+
       {/* Main grid layout for flier with RTL support */}
       <Box className="flier-main-grid flier-content-rtl" sx={{
         position: 'relative',
-        zIndex: 1,
+        zIndex: 2, // Above the overlay
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' },
         gridTemplateRows: 'auto 1fr auto auto',
@@ -252,7 +264,7 @@ const FlierPreview = ({
             overflow: 'hidden'
           }}>
             <Typography variant="h4" className="ai-flier-title" sx={{ 
-              color: getSmartBackgroundColor('title').textColor,
+              color: selectedStyle?.textColor || '#333333',
               fontWeight: selectedStyle.titleWeight || 800,
               mb: 1.5,
               fontSize: `${fontSize}rem`, // Use state value from slider
@@ -263,18 +275,13 @@ const FlierPreview = ({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               width: '100%',
-              // Smart background box using Azure Vision colors
-              backgroundColor: getSmartBackgroundColor('title').backgroundColor,
-              padding: '12px 20px',
-              borderRadius: '15px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-              backdropFilter: 'blur(8px)',
-              border: `1px solid ${getSmartBackgroundColor('title').borderColor}`
+              // Remove individual background box - use global overlay instead
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
             }}>
               {flierContent.title}
             </Typography>
             <Typography variant="body1" className="ai-flier-promo-text" sx={{ 
-              color: getSmartBackgroundColor('promotional').textColor,
+              color: selectedStyle?.textColor || '#333333',
               fontSize: `${bodyFontSize}rem`, // Use state value from slider
               fontWeight: selectedStyle.bodyWeight || 500,
               mb: 2,
@@ -285,13 +292,8 @@ const FlierPreview = ({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               width: '100%',
-              // Smart background box using Azure Vision colors
-              backgroundColor: getSmartBackgroundColor('promotional').backgroundColor,
-              padding: '16px 24px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-              backdropFilter: 'blur(8px)',
-              border: `1px solid ${getSmartBackgroundColor('promotional').borderColor}`
+              // Remove individual background box - use global overlay instead
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
             }}>
               {flierContent.promotionalText}
             </Typography>
@@ -303,21 +305,16 @@ const FlierPreview = ({
             width: '100%',
             mt: 1,
             mb: 2,
-            // Smart background box using Azure Vision colors
-            backgroundColor: getSmartBackgroundColor('mybenefitz').backgroundColor,
-            padding: '16px 20px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${getSmartBackgroundColor('mybenefitz').borderColor}`
+            // Remove individual background box - use global overlay instead
           }}>
             <Typography variant="body2" sx={{ 
-              color: getSmartBackgroundColor('mybenefitz').textColor,
+              color: selectedStyle?.textColor || '#333333',
               fontWeight: 400, 
               fontFamily: fontFamily, 
               fontSize: '1.2rem',
               lineHeight: 1.2,
-              mb: 0.2
+              mb: 0.2,
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
             }}>
               באפליקציה השכונתית
             </Typography>
@@ -333,11 +330,12 @@ const FlierPreview = ({
               myBenefitz
             </Typography>
             <Typography variant="caption" sx={{ 
-              color: getSmartBackgroundColor('mybenefitz').textColor,
+              color: selectedStyle?.textColor || '#333333',
               fontFamily: fontFamily, 
               fontSize: '1.2rem',
               lineHeight: 1.1,
-              display: 'block'
+              display: 'block',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
             }}>
               תומכת בעסקים הקטנים השכונתיים
             </Typography>

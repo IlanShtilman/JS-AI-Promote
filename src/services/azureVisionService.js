@@ -235,61 +235,99 @@ export const analyzeMultipleImagesWithAzure = async (images) => {
 };
 
 // Helper function to create unified color palette from logo and photo
-// Enhanced to intelligently combine logo and photo colors
+// Creates exactly 4 colors: ראשי (primary), משני (secondary), רקע (background), הדגשה (accent)
+// Distributes 2 dominant colors from each source when possible
 const createUnifiedColorPalette = (logoColors, photoColors) => {
-  console.log("🎨 Creating unified palette from enhanced Azure data:", { logoColors, photoColors });
+  console.log("🎨 Creating unified palette - distributing dominant colors from both sources:", { logoColors, photoColors });
+
+  // Extract dominant colors from each source
+  const logoDominantColors = logoColors?.dominantColors || [];
+  const photoDominantColors = photoColors?.dominantColors || [];
+  
+  console.log("🔴 Logo dominant colors:", logoDominantColors);
+  console.log("📸 Photo dominant colors:", photoDominantColors);
 
   // Start with defaults
   const unified = {
-    primary: '#666666',
-    secondary: '#999999', 
-    accent: '#CCCCCC',
-    background: '#FFFFFF'
+    primary: '#666666',    // ראשי
+    secondary: '#999999',  // משני  
+    accent: '#CCCCCC',     // הדגשה
+    background: '#FFFFFF'  // רקע
   };
 
-  // Smart combination logic
+  // Smart distribution logic for 4 colors
   if (logoColors && photoColors) {
-    console.log("🎨 Both logo and photo available - creating smart combination");
+    console.log("🎨 Both logo and photo available - distributing 2 colors from each");
     
-    // Use logo for brand identity (primary)
-    unified.primary = logoColors.primary || unified.primary;
+    // Get 2 best colors from logo (brand identity priority)
+    const logoColors2 = logoDominantColors.slice(0, 2);
+    // Get 2 best colors from photo (environmental context)
+    const photoColors2 = photoDominantColors.slice(0, 2);
     
-    // Use photo for environmental context (secondary/accent)
-    unified.secondary = photoColors.primary || logoColors.secondary || unified.secondary;
-    unified.accent = photoColors.secondary || logoColors.accent || unified.accent;
+    console.log("🔴 Taking 2 from logo:", logoColors2);
+    console.log("📸 Taking 2 from photo:", photoColors2);
     
-    // Choose best background
-    unified.background = logoColors.background || photoColors.background || unified.background;
+    // Distribute the 4 colors strategically:
+    // ראשי (primary) - Most important logo color (brand identity)
+    unified.primary = logoColors2[0] || logoColors.accent || logoColors.primary || unified.primary;
     
-    // Combine dominant colors from both sources
-    const allDominantColors = [
-      ...(logoColors.dominantColors || []),
-      ...(photoColors.dominantColors || [])
-    ];
-    unified.dominantColors = [...new Set(allDominantColors)]; // Remove duplicates
+    // משני (secondary) - Most important photo color (environmental context)  
+    unified.secondary = photoColors2[0] || photoColors.primary || unified.secondary;
     
-    console.log("✨ Smart combination: Logo primary + Photo environmental colors");
+    // הדגשה (accent) - Second logo color (brand accent)
+    unified.accent = logoColors2[1] || logoColors.secondary || unified.accent;
+    
+    // רקע (background) - Second photo color or best background
+    unified.background = photoColors2[1] || photoColors.background || logoColors.background || unified.background;
+    
+    // If we don't have enough colors from one side, give the other side more
+    if (logoColors2.length < 2 && photoColors2.length >= 3) {
+      console.log("🔄 Logo has <2 colors, giving photo more space");
+      unified.accent = photoColors2[2] || unified.accent;
+    } else if (photoColors2.length < 2 && logoColors2.length >= 3) {
+      console.log("🔄 Photo has <2 colors, giving logo more space");
+      unified.secondary = logoColors2[2] || unified.secondary;
+    }
+    
+    // Create dominantColors array with proper distribution
+    unified.dominantColors = [
+      unified.primary,    // Logo color 1
+      unified.secondary,  // Photo color 1  
+      unified.accent,     // Logo color 2
+      unified.background  // Photo color 2
+    ].filter(Boolean);
+    
+    console.log("✨ Distributed colors - Logo: [primary, accent], Photo: [secondary, background]");
   }
-  // Prioritize logo colors if available (brand identity is most important)
+  // Only logo available - use logo colors
   else if (logoColors) {
-    console.log("📸 Using logo colors as primary source");
-    unified.primary = logoColors.primary || unified.primary;
-    unified.secondary = logoColors.secondary || unified.secondary;
-    unified.accent = logoColors.accent || unified.accent;
+    console.log("🔴 Only logo available - using logo colors");
+    unified.primary = logoDominantColors[0] || logoColors.primary || unified.primary;
+    unified.secondary = logoDominantColors[1] || logoColors.secondary || unified.secondary;
+    unified.accent = logoDominantColors[2] || logoColors.accent || unified.accent;
     unified.background = logoColors.background || unified.background;
-    unified.dominantColors = logoColors.dominantColors || [];
+    unified.dominantColors = logoDominantColors.slice(0, 4);
   }
-  // If no logo, use photo colors
+  // Only photo available - use photo colors
   else if (photoColors) {
-    console.log("🖼️ Using photo colors as primary source");
-    unified.primary = photoColors.primary || unified.primary;
-    unified.secondary = photoColors.secondary || unified.secondary;
-    unified.accent = photoColors.accent || unified.accent;
+    console.log("📸 Only photo available - using photo colors");
+    unified.primary = photoDominantColors[0] || photoColors.primary || unified.primary;
+    unified.secondary = photoDominantColors[1] || photoColors.secondary || unified.secondary;
+    unified.accent = photoDominantColors[2] || photoColors.accent || unified.accent;
     unified.background = photoColors.background || unified.background;
-    unified.dominantColors = photoColors.dominantColors || [];
+    unified.dominantColors = photoDominantColors.slice(0, 4);
   }
 
-  console.log("🎨 Final unified palette (enhanced combination):", unified);
+  // Remove duplicates from dominantColors
+  unified.dominantColors = [...new Set(unified.dominantColors)].filter(Boolean);
+  
+  console.log("🎨 Final unified palette (4 colors distributed):");
+  console.log("  ראשי (primary):", unified.primary);
+  console.log("  משני (secondary):", unified.secondary);  
+  console.log("  הדגשה (accent):", unified.accent);
+  console.log("  רקע (background):", unified.background);
+  console.log("  dominantColors:", unified.dominantColors);
+  
   return unified;
 };
 

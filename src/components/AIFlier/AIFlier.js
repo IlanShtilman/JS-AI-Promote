@@ -117,6 +117,16 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
   });
   
   const [selectedStyleIndex, setSelectedStyleIndex] = useState(0);
+
+  // ✅ UPDATE STYLE OPTIONS when backgroundOptions prop changes
+  useEffect(() => {
+    console.log("🔄 backgroundOptions prop changed, updating styleOptions...");
+    const processed = processBackgroundOptions(backgroundOptions);
+    console.log("🎨 Updated processed styleOptions:", processed);
+    setStyleOptions(processed);
+    // Reset to first style when new options arrive
+    setSelectedStyleIndex(0);
+  }, [backgroundOptions]);
   const [activeTab, setActiveTab] = useState('background');
   const [flierContent, setFlierContent] = useState({
     title: flyerContent?.title || "באים לפה הרבה?",
