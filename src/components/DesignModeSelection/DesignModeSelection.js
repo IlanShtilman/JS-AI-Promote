@@ -63,6 +63,19 @@ const DesignModeSelection = ({ language, onModeSelect }) => {
           modeType="ai"
         />
       </Box>
+      
+      {/* Video displayed below the selection windows */}
+      <Box className="design-mode-selection-video-container">
+        <video 
+          className="design-mode-selection-video"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src="/assets/Untitled_Project.mp4" type="video/mp4" />
+        </video>
+      </Box>
     </motion.div>
   );
 };
