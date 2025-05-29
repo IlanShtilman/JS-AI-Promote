@@ -54,6 +54,17 @@ function App() {
     }
   };
 
+  const handleDesignModeBack = () => {
+    // Reset states to prevent AITextResults from showing previous results
+    setSelectedText(null);
+    setTriggerGeneration(false);
+    setLoading(false);
+    setError(null);
+    
+    // Go back to input stage
+    setCurrentStage('input');
+  };
+
   const handleSummaryBack = () => {
     setCurrentStage('ai-info-collection');
   };
@@ -130,6 +141,7 @@ function App() {
           <DesignModeSelection 
             language={language}
             onModeSelect={handleModeSelect}
+            onBack={handleDesignModeBack}
           />
         ) : currentStage === 'manual-design' ? (
           <ManualFlierDesigner

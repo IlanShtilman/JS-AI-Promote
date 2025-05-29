@@ -1,9 +1,10 @@
 import React from 'react';
 import './DesignModeSelection.css';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, IconButton } from '@mui/material';
 import { motion } from 'framer-motion';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const MotionPaper = motion(Paper);
 
@@ -29,13 +30,24 @@ const ModeSelectionWindow = ({ title, description, icon, onClick, modeType }) =>
   </MotionPaper>
 );
 
-const DesignModeSelection = ({ language, onModeSelect }) => {
+const DesignModeSelection = ({ language, onModeSelect, onBack }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/* Back button */}
+      <Box className="design-mode-selection-header">
+        <IconButton 
+          onClick={onBack}
+          className="design-mode-selection-back-btn"
+          aria-label={language === 'Hebrew' ? 'חזור' : 'Go back'}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+      </Box>
+
       <Typography 
         variant="h2" 
         align="center" 
@@ -62,6 +74,19 @@ const DesignModeSelection = ({ language, onModeSelect }) => {
           onClick={() => onModeSelect('ai-suggested')}
           modeType="ai"
         />
+      </Box>
+      
+      {/* Video displayed below the selection windows */}
+      <Box className="design-mode-selection-video-container">
+        <video 
+          className="design-mode-selection-video"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src="/assets/Untitled_Project.mp4" type="video/mp4" />
+        </video>
       </Box>
     </motion.div>
   );
