@@ -108,13 +108,13 @@ const StyleTab = ({
             value={fontSize}
             onChange={(e, newValue) => setFontSize(newValue)}
             min={1.5}
-            max={4}
+            max={3.5}
             step={0.1}
             valueLabelDisplay="auto"
             marks={[
               { value: 1.5, label: 'S' },
               { value: 2.5, label: 'M' },
-              { value: 4, label: 'L' },
+              { value: 3.5, label: 'L' },
             ]}
           />
         </Box>
@@ -127,13 +127,13 @@ const StyleTab = ({
             value={bodyFontSize}
             onChange={(e, newValue) => setBodyFontSize(newValue)}
             min={0.8}
-            max={1.8}
+            max={1.6}
             step={0.05}
             valueLabelDisplay="auto"
             marks={[
               { value: 0.8, label: 'S' },
               { value: 1.2, label: 'M' },
-              { value: 1.8, label: 'L' },
+              { value: 1.6, label: 'L' },
             ]}
           />
         </Box>
@@ -153,6 +153,8 @@ const StyleTab = ({
             <MenuItem value="David">David</MenuItem>
           </Select>
         </FormControl>
+        
+
         
         {/* Color pickers - Hide background color for image backgrounds */}
         {!hasImageBackground && (
@@ -235,6 +237,66 @@ const StyleTab = ({
           </Box>
         </Box>
         
+        <Box>
+          <Typography variant="subtitle2" gutterBottom>Primary Color (from Image Analysis)</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box 
+              sx={{ 
+                width: 36, 
+                height: 36, 
+                borderRadius: 1, 
+                border: '1px solid #ccc',
+                backgroundColor: selectedStyle.primaryColor || '#1a4a52',
+                cursor: 'pointer',
+                position: 'relative'
+              }} 
+              onClick={() => document.getElementById('primary-color-picker').click()}
+            >
+              <input
+                id="primary-color-picker"
+                type="color"
+                value={selectedStyle.primaryColor || '#1a4a52'}
+                onChange={handleStyleColorChange('primaryColor')}
+                style={{ opacity: 0, width: '100%', height: '100%', position: 'absolute', left: 0, top: 0, cursor: 'pointer' }}
+                tabIndex={-1}
+              />
+            </Box>
+            <Typography variant="body2" sx={{ color: '#666' }}>
+              {selectedStyle.primaryColor || '#1a4a52'}
+            </Typography>
+          </Box>
+        </Box>
+        
+        <Box>
+          <Typography variant="subtitle2" gutterBottom>Secondary Color (from Image Analysis)</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box 
+              sx={{ 
+                width: 36, 
+                height: 36, 
+                borderRadius: 1, 
+                border: '1px solid #ccc',
+                backgroundColor: selectedStyle.secondaryColor || '#F5F5DC',
+                cursor: 'pointer',
+                position: 'relative'
+              }} 
+              onClick={() => document.getElementById('secondary-color-picker').click()}
+            >
+              <input
+                id="secondary-color-picker"
+                type="color"
+                value={selectedStyle.secondaryColor || '#F5F5DC'}
+                onChange={handleStyleColorChange('secondaryColor')}
+                style={{ opacity: 0, width: '100%', height: '100%', position: 'absolute', left: 0, top: 0, cursor: 'pointer' }}
+                tabIndex={-1}
+              />
+            </Box>
+            <Typography variant="body2" sx={{ color: '#666' }}>
+              {selectedStyle.secondaryColor || '#F5F5DC'}
+            </Typography>
+          </Box>
+        </Box>
+
         <Box>
           <Typography variant="subtitle2" gutterBottom>Accent Color</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

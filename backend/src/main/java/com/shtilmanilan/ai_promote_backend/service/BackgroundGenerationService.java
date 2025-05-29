@@ -161,22 +161,42 @@ public class BackgroundGenerationService {
             prompt.append("Color Palette: ").append(request.getColorPalette().toString()).append("\n");
         }
         
+        prompt.append("\n🎨 DESIGN FOCUS: Text readability is CRITICAL!\n");
+        prompt.append("Create backgrounds that are visually stunning but optimized for text overlay.\n");
+        
         prompt.append("\nRequirements:\n");
-        prompt.append("1. CRITICAL: Ensure minimum 4.5:1 contrast ratio for text readability\n");
-        prompt.append("2. Use lighter background colors (#F0F0F0 to #FFFFFF range) for dark text\n");
-        prompt.append("3. Avoid dark or complex gradients that make text unreadable\n");
-        prompt.append("4. Test textColor against backgroundCSS for visibility\n");
-        prompt.append("5. Create subtle, professional gradients (no external images)\n");
-        prompt.append("6. Include high-contrast text colors (#333333 or darker)\n\n");
+        prompt.append("1. CRITICAL: Create backgrounds optimized for text readability\n");
+        prompt.append("2. Use BLURRED, ABSTRACT, or FLUID gradient backgrounds\n");
+        prompt.append("3. Include semi-transparent text overlay areas (rgba(255,255,255,0.9) or rgba(0,0,0,0.7))\n");
+        prompt.append("4. Avoid sharp contrasts or busy patterns in text areas\n");
+        prompt.append("5. Create soft, flowing gradients with smooth color transitions\n");
+        prompt.append("6. Ensure text areas have consistent, readable backgrounds\n");
+        prompt.append("7. Use backdrop-blur or overlay techniques for text sections\n\n");
+        
+        prompt.append("CREATIVE DESIGN FREEDOM:\n");
+        prompt.append("1. Create STUNNING, COMPLEX, and VISUALLY STRIKING backgrounds\n");
+        prompt.append("2. Use RICH colors, gradients, and artistic elements\n");
+        prompt.append("3. Don't worry about text readability - text overlays will handle that\n");
+        prompt.append("4. Focus on VISUAL IMPACT and brand alignment\n");
+        prompt.append("5. Create backgrounds that tell a story and capture attention\n\n");
+        
+        prompt.append("BACKGROUND STYLE EXAMPLES:\n");
+        prompt.append("• Rich gradients: 'linear-gradient(135deg, #8B4513, #D2691E, #CD853F)'\n");
+        prompt.append("• Complex patterns: Geometric shapes, organic forms, artistic elements\n");
+        prompt.append("• Full coverage: Use the entire canvas for visual impact\n");
+        prompt.append("• Brand colors: Incorporate the provided color palette prominently\n");
+        prompt.append("• Artistic flair: Abstract shapes, flowing lines, creative compositions\n\n");
         
         prompt.append("Return ONLY a valid JSON array with 3 options:\n");
         prompt.append("[\n");
         prompt.append("  {\n");
         prompt.append("    \"name\": \"Style Name\",\n");
-        prompt.append("    \"backgroundCSS\": \"linear-gradient(...)\",\n");
-        prompt.append("    \"textColor\": \"#hexcode\",\n");
+        prompt.append("    \"backgroundCSS\": \"Simple gradient with max 20% opacity\",\n");
+        prompt.append("    \"textOverlay\": \"rgba(255,255,255,0.95) for maximum contrast\",\n");
+        prompt.append("    \"textColor\": \"#333333 or #000000 for maximum readability\",\n");
         prompt.append("    \"accentColor\": \"#hexcode\",\n");
-        prompt.append("    \"description\": \"Brief description\"\n");
+        prompt.append("    \"blurEffect\": \"backdrop-blur(5px) - minimal blur only\",\n");
+        prompt.append("    \"description\": \"Text-optimized design with clear reading areas\"\n");
         prompt.append("  }\n");
         prompt.append("]");
         
@@ -254,6 +274,11 @@ public class BackgroundGenerationService {
                 bg.setAccentColor((String) item.get("accentColor"));
                 bg.setDescription((String) item.get("description"));
                 bg.setSource("ai");
+                
+                // ✅ NEW: Text readability fields
+                bg.setTextOverlay((String) item.get("textOverlay"));
+                bg.setBlurEffect((String) item.get("blurEffect"));
+                
                 backgrounds.add(bg);
             }
             
@@ -280,31 +305,44 @@ public class BackgroundGenerationService {
         
         List<BackgroundOption> fallbacks = new ArrayList<>();
         
-        fallbacks.add(new BackgroundOption(
-            "Clean Gradient",
-            String.format("linear-gradient(135deg, %s15, %s25)", primary, secondary),
-            textColor,
+        // Fallback 1: Ultra-minimal gradient - TEXT FIRST!
+        BackgroundOption bg1 = new BackgroundOption(
+            "Text-Optimized Minimal",
+            String.format("linear-gradient(135deg, %s08, %s12)", primary, secondary),
+            "#333333", // Dark text for maximum readability
             accent,
-            "Clean gradient background with subtle colors"
-        ));
+            "Ultra-minimal gradient optimized for text readability"
+        );
+        bg1.setTextOverlay("rgba(255,255,255,0.98)"); // Almost solid white for text
+        bg1.setBlurEffect("none");
+        bg1.setSource("fallback");
+        fallbacks.add(bg1);
         
-        fallbacks.add(new BackgroundOption(
-            "Solid Professional",
-            "#FFFFFF",
-            textColor,
+        // Fallback 2: Clean professional with corner accent
+        BackgroundOption bg2 = new BackgroundOption(
+            "Clean with Corner Accent",
+            String.format("#FFFFFF, radial-gradient(circle at 85%% 15%%, %s15, transparent 40%%)", primary),
+            "#333333", // Dark text
             primary,
-            "Clean white background for professional look"
-        ));
+            "Clean white background with subtle corner accent"
+        );
+        bg2.setTextOverlay("rgba(255,255,255,0.95)");
+        bg2.setBlurEffect("none");
+        bg2.setSource("fallback");
+        fallbacks.add(bg2);
         
-        fallbacks.add(new BackgroundOption(
-            "Subtle Pattern",
-            String.format("linear-gradient(45deg, %s05, %s10)", accent, primary),
-            textColor,
+        // Fallback 3: Simple side pattern - keeps text area clear
+        BackgroundOption bg3 = new BackgroundOption(
+            "Side Pattern Clean",
+            String.format("linear-gradient(90deg, %s10 0%%, transparent 30%%, transparent 100%%)", accent),
+            "#333333", // Dark text
             secondary,
-            "Minimal background with subtle pattern"
-        ));
-        
-        fallbacks.forEach(bg -> bg.setSource("fallback"));
+            "Simple side pattern with clear text area"
+        );
+        bg3.setTextOverlay("rgba(255,255,255,0.96)");
+        bg3.setBlurEffect("none");
+        bg3.setSource("fallback");
+        fallbacks.add(bg3);
         
         return fallbacks;
     }

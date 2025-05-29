@@ -46,8 +46,8 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
     return rawOptions.map((option, index) => {
       // ✅ DERIVE COMPLETE TYPOGRAPHY from AI decisions
       const fontFamily = option.fontFamily || 'Roboto, sans-serif';
-      const fontSize = option.fontSize || 4.0;
-      const bodyFontSize = option.bodyFontSize || 1.7;
+      const fontSize = option.fontSize || 2.8;  // Reduced default from 4.0 to 2.8
+      const bodyFontSize = option.bodyFontSize || 1.3;  // Reduced default from 1.7 to 1.3
       
       // ✅ DERIVE ADDITIONAL TYPOGRAPHY PROPERTIES from AI font choice
       let letterSpacing, lineHeight, textAlign, titleWeight, bodyWeight;
@@ -84,6 +84,8 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
         // ✅ AI-DECIDED COLORS (harmonized with background)
         textColor: option.textColor || '#333333',                          
         accentColor: option.accentColor || '#2196F3',
+        primaryColor: option.primaryColor || '#1a4a52',
+        secondaryColor: option.secondaryColor || '#F5F5DC',
         
         // ✅ AI-DECIDED TYPOGRAPHY (complete set)
         fontFamily: fontFamily,
@@ -115,6 +117,16 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
   });
   
   const [selectedStyleIndex, setSelectedStyleIndex] = useState(0);
+
+  // ✅ UPDATE STYLE OPTIONS when backgroundOptions prop changes
+  useEffect(() => {
+    console.log("🔄 backgroundOptions prop changed, updating styleOptions...");
+    const processed = processBackgroundOptions(backgroundOptions);
+    console.log("🎨 Updated processed styleOptions:", processed);
+    setStyleOptions(processed);
+    // Reset to first style when new options arrive
+    setSelectedStyleIndex(0);
+  }, [backgroundOptions]);
   const [activeTab, setActiveTab] = useState('background');
   const [flierContent, setFlierContent] = useState({
     title: flyerContent?.title || "באים לפה הרבה?",
@@ -130,8 +142,8 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
   const [borderRadius, setBorderRadius] = useState(22);
   const [useBackgroundImage, setUseBackgroundImage] = useState(false);
   const [uploadedBackgroundImage, setUploadedBackgroundImage] = useState(null);
-  const [fontSize, setFontSize] = useState(3.9);
-  const [bodyFontSize, setBodyFontSize] = useState(1.7);
+  const [fontSize, setFontSize] = useState(2.8);  // Reduced from 3.9 to 2.8
+  const [bodyFontSize, setBodyFontSize] = useState(1.3);  // Reduced from 1.7 to 1.3
   const [fontFamily, setFontFamily] = useState('Roboto');
   const [showImageAsBackground, setShowImageAsBackground] = useState(false);
   const [backgroundImageOpacity, setBackgroundImageOpacity] = useState(0.1);
@@ -139,6 +151,8 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
   const [showFlierPhoto, setShowFlierPhoto] = useState(true);
   const [flierPhotoSource, setFlierPhotoSource] = useState('upload');
   const [favoritePreset, setFavoritePreset] = useState('AI Recommendation');
+  const [hasUserAdjustedFonts, setHasUserAdjustedFonts] = useState(false);
+  // Text overlays are always enabled - no toggle needed
   
   const flierRef = useRef(null);
 
@@ -159,14 +173,19 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
         console.log("🔤 Font applied:", selectedStyle.fontFamily);
       }
       
-      if (selectedStyle.fontSize) {
-        setFontSize(selectedStyle.fontSize);
-        console.log("📏 Title size applied:", selectedStyle.fontSize);
-      }
-      
-      if (selectedStyle.bodyFontSize) {
-        setBodyFontSize(selectedStyle.bodyFontSize);
-        console.log("📏 Body size applied:", selectedStyle.bodyFontSize);
+      // Only apply AI font sizes if user hasn't manually adjusted them
+      if (!hasUserAdjustedFonts) {
+        if (selectedStyle.fontSize) {
+          setFontSize(selectedStyle.fontSize);
+          console.log("📏 AI Title size applied:", selectedStyle.fontSize);
+        }
+        
+        if (selectedStyle.bodyFontSize) {
+          setBodyFontSize(selectedStyle.bodyFontSize);
+          console.log("📏 AI Body size applied:", selectedStyle.bodyFontSize);
+        }
+      } else {
+        console.log("📏 Font sizes controlled by user sliders");
       }
       
       console.log("🎨 Complete style applied:", {
@@ -417,11 +436,20 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
             borderRadius={borderRadius}
             setBorderRadius={setBorderRadius}
             fontSize={fontSize}
-            setFontSize={setFontSize}
+            setFontSize={(value) => {
+              setFontSize(value);
+              setHasUserAdjustedFonts(true);
+            }}
             bodyFontSize={bodyFontSize}
-            setBodyFontSize={setBodyFontSize}
+            setBodyFontSize={(value) => {
+              setBodyFontSize(value);
+              setHasUserAdjustedFonts(true);
+            }}
             fontFamily={fontFamily}
-            setFontFamily={setFontFamily}
+            setFontFamily={(value) => {
+              setFontFamily(value);
+              setHasUserAdjustedFonts(true);
+            }}
             selectedStyle={selectedStyle}
             handleStyleColorChange={handleStyleColorChange}
           />
@@ -445,8 +473,8 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
         textColor: '#333333',
         accentColor: '#1976d2',
         fontFamily: 'Roboto, sans-serif',
-        fontSize: 4.0,
-        bodyFontSize: 1.7,
+        fontSize: 2.8,
+        bodyFontSize: 1.3,
         letterSpacing: '-0.02em',
         lineHeight: 1.1,
         textAlign: 'right',
@@ -466,8 +494,8 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
         textColor: '#2c2c2c',
         accentColor: '#8b4513',
         fontFamily: 'Georgia, serif',
-        fontSize: 3.8,
-        bodyFontSize: 1.6,
+        fontSize: 2.6,
+        bodyFontSize: 1.2,
         letterSpacing: '0.01em',
         lineHeight: 1.2,
         textAlign: 'center',
@@ -487,8 +515,8 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
         textColor: '#ffffff',
         accentColor: '#ff6b35',
         fontFamily: 'Montserrat, sans-serif',
-        fontSize: 4.5,
-        bodyFontSize: 1.9,
+        fontSize: 3.0,
+        bodyFontSize: 1.4,
         letterSpacing: '-0.03em',
         lineHeight: 1.0,
         textAlign: 'right',

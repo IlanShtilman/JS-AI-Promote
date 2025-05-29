@@ -18,6 +18,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
+import java.awt.Color;
 
 @Service
 public class ImagenBackgroundService {
@@ -246,9 +250,9 @@ public class ImagenBackgroundService {
         String targetAudience = request.getTargetAudience();
         String colorScheme = request.getColorScheme();
         
-        // ✅ GET USER'S ACTUAL CONTENT FOR RELEVANT BACKGROUNDS
-        String title = request.getTitle();                    // "Crazy Sale", "Grand Opening"
-        String promotionalText = request.getPromotionalText(); // "50% Off Everything!"
+        // Get user's actual content for relevant backgrounds
+        String title = request.getTitle();
+        String promotionalText = request.getPromotionalText();
         
         // Get more specific details if available
         Map<String, String> palette = request.getColorPalette();
@@ -257,7 +261,7 @@ public class ImagenBackgroundService {
         
         List<String> prompts = new ArrayList<>();
         
-        // ✅ ENHANCED BUSINESS-SPECIFIC CONTEXT
+        // Enhanced business-specific context
         String specificBusinessContext = getSpecificBusinessContext(businessType, title, promotionalText);
         String contentContext = "";
         if (title != null && !title.isEmpty()) {
@@ -269,7 +273,14 @@ public class ImagenBackgroundService {
             contentContext += promotionalText + " promotion theme";
         }
         
-        // Professional gradient background - USING SPECIFIC BUSINESS CONTEXT
+        // Optional: Subtle food motif phrase
+        String foodElementHint = getBusinessVisualElements(businessType);
+        String foodElementPhrase = String.format(
+            "Incorporate gentle, abstract motifs inspired by %s, blended smoothly into the background with low opacity, so they do not distract from the flyer's main content. ",
+            foodElementHint
+        );
+
+        // PROMPT 1: Professional gradient geometric
         prompts.add(String.format(
             "Abstract geometric background pattern for %s targeting %s, " +
             "%s color scheme with %s tones, smooth gradients and geometric shapes inspired by %s aesthetic, " +
@@ -277,36 +288,38 @@ public class ImagenBackgroundService {
             "NO LOREM IPSUM, NO PLACEHOLDER TEXT, NO READABLE CONTENT OF ANY KIND, " +
             "NO RESTAURANT NAMES, NO BUSINESS NAMES, NO PROMOTIONAL TEXT, NO TYPOGRAPHY, " +
             "ONLY pure abstract visual patterns, shapes, gradients, and colors, 1024x1024 resolution",
-            specificBusinessContext, targetAudience, colorScheme, primaryColor, specificBusinessContext
+            specificBusinessContext, targetAudience, colorScheme, primaryColor, 
+            contentContext.isEmpty() ? "modern business" : contentContext
         ));
-        
-        // Abstract artistic background - BUSINESS-THEMED VISUALS
+
+        // PROMPT 2: Dynamic diagonal/linear
         prompts.add(String.format(
-            "Abstract flowing artistic pattern inspired by %s atmosphere for %s audience, " +
-            "%s and %s color palette, organic flowing shapes and curves with %s visual elements, " +
-            "%s energy theme with subtle %s-inspired abstract motifs, " +
+            "Dynamic diagonal stripe pattern for %s business targeting %s audience, " +
+            "%s and %s color palette, bold diagonal lines and angular geometric elements, " +
+            "modern linear design with %s energy, sharp angles and directional flow for %s theme, " +
+            "contemporary stripe pattern with varying thickness and spacing, gradient transitions between stripes, " +
             "CRITICAL: NO TEXT ELEMENTS, NO WORDS, NO LETTERS, NO SIGNS, NO LOREM TEXT, " +
             "NO PLACEHOLDER CONTENT, NO BUSINESS NAMES, NO PROMOTIONAL MESSAGES, " +
             "NO READABLE SYMBOLS, NO TYPOGRAPHY, NO LOGOS, NO RESTAURANT BRANDING, " +
-            "pure abstract visual art only, 1024x1024 resolution",
+            "pure diagonal linear geometric pattern only, 1024x1024 resolution",
             specificBusinessContext, targetAudience, primaryColor, secondaryColor,
-            getBusinessVisualElements(businessType),
-            contentContext.toLowerCase().contains("sale") ? "exciting sale" : "professional business",
-            businessType
+            contentContext.toLowerCase().contains("sale") ? "exciting dynamic" : "professional modern",
+            contentContext.isEmpty() ? "business" : contentContext
         ));
-        
-        // Subtle textured background - INDUSTRY-THEMED TEXTURES
+
+        // PROMPT 3: Minimalist geometric with depth (with subtle food motif)
         prompts.add(String.format(
-            "Minimalist texture pattern for %s %s design theme, " +
-            "%s color scheme, simple geometric textures with subtle %s-inspired abstract elements, " +
-            "clean visual design for %s business targeting %s, soft %s atmospheric feeling, " +
-            "ESSENTIAL: NO VISIBLE TEXT, NO WORDS, NO LETTERS, NO LOREM ELEMENTS, " +
-            "NO PLACEHOLDER TEXT, NO BUSINESS CONTENT, NO PROMOTIONAL TEXT, " +
-            "NO READABLE ELEMENTS, just pure minimalist texture patterns, 1024x1024 resolution",
-            specificBusinessContext, contentContext.isEmpty() ? "" : contentContext,
-            colorScheme, businessType, businessType, targetAudience, businessType
+            "Sophisticated minimalist geometric background for %s flyer targeting %s. " +
+            "Utilize a %s color palette, with %s as the dominant color and %s for accents. " +
+            "Emphasize clean lines, subtle shadow play to create a sense of depth, and strategic use of negative space. " +
+            "Inspired by modern architectural elements and %s design principles. " +
+            foodElementPhrase +
+            "CRITICAL CONSTRAINT: NO TEXT, NO WORDS, NO LETTERING, NO LOGOS, NO SYMBOLS, NO BRAND NAMES. " +
+            "Pure abstract geometric forms, light, and shadow, 1024x1024 resolution",
+            specificBusinessContext, targetAudience, colorScheme, primaryColor, secondaryColor,
+            contentContext.isEmpty() ? "contemporary" : contentContext
         ));
-        
+
         return prompts;
     }
     
@@ -456,7 +469,7 @@ public class ImagenBackgroundService {
             background.setBackgroundImage(imageUrl);
             
             // Analyze image for optimal text colors
-            String[] styleAnalysis = analyzeImageForTextColors(imageBytes, request, imageNumber);
+            String[] styleAnalysis = analyzeGeneratedBackgroundForTextColors(imageBytes, request, imageNumber);
             String aiTextColor = styleAnalysis[0];
             String aiAccentColor = styleAnalysis[1];
             String aiFontFamily = styleAnalysis[2];
@@ -584,148 +597,305 @@ public class ImagenBackgroundService {
     }
 
     /**
-     * Analyze image for optimal text colors based on brightness and contrast
-     * Each background slot gets a predetermined style for variety
+     * Analyze the actual generated background image for optimal text colors
+     * This replaces guessing based on input colors with real image analysis
      */
-    private String[] analyzeImageForTextColors(byte[] imageBytes, BackgroundGenerationRequest request, int backgroundNumber) {
+    private String[] analyzeGeneratedBackgroundForTextColors(byte[] imageBytes, BackgroundGenerationRequest request, int backgroundNumber) {
         try {
-            Map<String, String> palette = request.getColorPalette();
-            String businessType = request.getBusinessType();
-            String targetAudience = request.getTargetAudience();
-            String title = request.getTitle();
-            String promotionalText = request.getPromotionalText();
+            System.out.println("🔍 Analyzing actual generated background " + backgroundNumber + " for optimal text colors...");
             
+            // 1. Analyze the ACTUAL generated background image
+            String actualBackgroundBrightness = analyzeImageBrightness(imageBytes);
+            String dominantBackgroundColor = extractDominantColor(imageBytes);
+            
+            System.out.println("📊 Background " + backgroundNumber + " analysis: brightness=" + actualBackgroundBrightness + 
+                             ", dominant=" + dominantBackgroundColor);
+            
+            // 2. Choose text colors based on ACTUAL background with more flexibility
             String textColor;
             String accentColor;
-            String fontFamily;
-            float fontSize;
-            float bodyFontSize;
             
-            // ✅ PREDETERMINED STYLE SLOTS for variety (regardless of business context)
-            if (backgroundNumber == 1) {
-                // SLOT 1: Professional Clean Style
-                fontFamily = "Roboto, sans-serif";
-                fontSize = 4.0f;
-                bodyFontSize = 1.7f;
-                System.out.println("🎨 Background 1: Professional Clean Style");
-                
-            } else if (backgroundNumber == 2) {
-                // SLOT 2: Elegant Sophisticated Style  
-                fontFamily = "Georgia, serif";
-                fontSize = 3.8f;
-                bodyFontSize = 1.6f;
-                System.out.println("🎨 Background 2: Elegant Sophisticated Style");
-                
-            } else {
-                // SLOT 3: Bold Modern Style
-                fontFamily = "Montserrat, sans-serif";
-                fontSize = 4.5f;
-                bodyFontSize = 1.9f;
-                System.out.println("🎨 Background 3: Bold Modern Style");
+            switch (actualBackgroundBrightness) {
+                case "very-light":
+                    textColor = "#1A1A1A"; // Very dark text on very light background
+                    accentColor = chooseDarkAccent(dominantBackgroundColor, request);
+                    System.out.println("☀️ Very light background detected → Using very dark text");
+                    break;
+                case "light":
+                    textColor = "#2C2C2C"; // Dark text on light background
+                    accentColor = chooseDarkAccent(dominantBackgroundColor, request);
+                    System.out.println("💡 Light background detected → Using dark text");
+                    break;
+                case "medium":
+                    // For medium backgrounds, choose based on dominant color
+                    if (isDominantColorWarm(dominantBackgroundColor)) {
+                        textColor = "#1A1A1A"; // Dark text for warm medium backgrounds
+                        accentColor = chooseDarkAccent(dominantBackgroundColor, request);
+                        System.out.println("🔶 Medium warm background detected → Using dark text");
+                    } else {
+                        textColor = "#F5F5F5"; // Light text for cool medium backgrounds
+                        accentColor = chooseLightAccent(dominantBackgroundColor, request);
+                        System.out.println("🔷 Medium cool background detected → Using light text");
+                    }
+                    break;
+                case "dark":
+                    textColor = "#F5F5F5"; // Light text on dark background
+                    accentColor = chooseLightAccent(dominantBackgroundColor, request);
+                    System.out.println("🌙 Dark background detected → Using light text");
+                    break;
+                case "very-dark":
+                    textColor = "#FFFFFF"; // Pure white text on very dark background
+                    accentColor = chooseLightAccent(dominantBackgroundColor, request);
+                    System.out.println("🌚 Very dark background detected → Using white text");
+                    break;
+                default:
+                    textColor = "#2C2C2C"; // Safe default
+                    accentColor = chooseDarkAccent(dominantBackgroundColor, request);
+                    System.out.println("❓ Unknown brightness → Using safe dark text");
             }
             
-            // ✅ SMART COLOR ANALYSIS for contrast
-            // PRIORITY 1: Use actual analyzed colors from uploaded images if available
-            if (palette != null && palette.get("primary") != null && !palette.get("primary").equals("#2196F3")) {
-                // We have real analyzed colors from uploaded images - use them!
-                String primaryColor = palette.get("primary");
-                String secondaryColor = palette.get("secondary");
-                String extractedAccent = palette.get("accent");
-                
-                // ✅ IMPROVED CONTRAST ANALYSIS
-                if (isBackgroundLight(primaryColor)) {
-                    // Light background → Dark text for contrast
-                    textColor = "#1A1A1A";
-                } else {
-                    // Dark background → Light text for contrast  
-                    textColor = "#FFFFFF";
-                }
-                
-                // Choose accent that contrasts with both background and text
-                accentColor = chooseContrastingAccent(primaryColor, textColor, extractedAccent, secondaryColor);
-                
-                System.out.println("🎨 Background " + backgroundNumber + " - EXTRACTED COLORS: Primary=" + primaryColor + 
-                                 ", Text=" + textColor + ", Accent=" + accentColor);
-                
-            } else {
-                // ✅ BUSINESS-BASED COLORS with improved contrast
-                if (businessType != null && businessType.toLowerCase().contains("food")) {
-                    textColor = "#2C1810"; // Warm brown
-                    accentColor = "#D4862D"; // Food orange
-                } else if (targetAudience != null && targetAudience.toLowerCase().contains("young")) {
-                    textColor = "#1A1A1A"; // High contrast
-                    accentColor = "#FF6B35"; // Energetic orange
-                } else if (targetAudience != null && targetAudience.toLowerCase().contains("professional")) {
-                    textColor = "#2D2D2D"; // Professional gray
-                    accentColor = "#1976d2"; // Professional blue
-                } else {
-                    // Default high-contrast colors
-                    textColor = "#1A1A1A"; // Very dark for readability
-                    accentColor = "#2196F3"; // Clear blue
-                }
-                
-                System.out.println("🎨 Background " + backgroundNumber + " - BUSINESS COLORS: " + businessType + 
-                                 " → Text=" + textColor + ", Accent=" + accentColor);
-            }
+            // 3. Keep existing typography logic for variety
+            String fontFamily = getFontFamilyForSlot(backgroundNumber);
+            float fontSize = getFontSizeForSlot(backgroundNumber);
+            float bodyFontSize = getBodyFontSizeForSlot(backgroundNumber);
             
-            System.out.println("🔤 Background " + backgroundNumber + " TYPOGRAPHY: " + fontFamily + 
-                             " (" + fontSize + "rem title, " + bodyFontSize + "rem body)");
+            System.out.println("✅ Background " + backgroundNumber + " final colors: text=" + textColor + 
+                             ", accent=" + accentColor + ", font=" + fontFamily.split(",")[0]);
             
-            // Return all AI decisions as array
             return new String[]{textColor, accentColor, fontFamily, String.valueOf(fontSize), String.valueOf(bodyFontSize)};
             
         } catch (Exception e) {
-            System.err.println("❌ Error in AI style analysis: " + e.getMessage());
+            System.err.println("❌ Error analyzing generated background: " + e.getMessage());
+            // Fallback to safe defaults
             return new String[]{"#1A1A1A", "#2196F3", "Roboto, sans-serif", "4.0", "1.7"};
         }
     }
-    
+
     /**
-     * Improved background brightness detection
+     * Analyze the brightness of the generated background image with more nuanced results
      */
-    private boolean isBackgroundLight(String hexColor) {
+    private String analyzeImageBrightness(byte[] imageBytes) {
         try {
-            // Remove # if present
-            String hex = hexColor.replace("#", "");
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             
-            // Convert to RGB
-            int r = Integer.parseInt(hex.substring(0, 2), 16);
-            int g = Integer.parseInt(hex.substring(2, 4), 16); 
-            int b = Integer.parseInt(hex.substring(4, 6), 16);
+            int width = image.getWidth();
+            int height = image.getHeight();
             
-            // Use proper luminance formula (WCAG guidelines)
-            double luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0;
-            boolean isLight = luminance > 0.5; // More conservative threshold
+            // Sample pixels from different areas of the image
+            long totalBrightness = 0;
+            int sampleCount = 0;
             
-            System.out.println("🔍 Color " + hexColor + " luminance: " + String.format("%.2f", luminance) + 
-                             " → " + (isLight ? "LIGHT" : "DARK"));
-            return isLight;
+            // Sample every 50th pixel to get a good representation without being too slow
+            for (int y = 0; y < height; y += 50) {
+                for (int x = 0; x < width; x += 50) {
+                    int rgb = image.getRGB(x, y);
+                    Color color = new Color(rgb);
+                    
+                    // Calculate luminance using standard formula
+                    double luminance = (0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue()) / 255.0;
+                    totalBrightness += (luminance * 100); // Convert to 0-100 scale
+                    sampleCount++;
+                }
+            }
+            
+            double averageBrightness = (double) totalBrightness / sampleCount;
+            
+            System.out.println("🔍 Image brightness analysis: " + String.format("%.1f", averageBrightness) + "% brightness");
+            
+            // More nuanced brightness categories
+            if (averageBrightness > 75.0) {
+                return "very-light";
+            } else if (averageBrightness > 55.0) {
+                return "light";
+            } else if (averageBrightness > 35.0) {
+                return "medium";
+            } else if (averageBrightness > 15.0) {
+                return "dark";
+            } else {
+                return "very-dark";
+            }
             
         } catch (Exception e) {
-            System.err.println("❌ Error analyzing color brightness: " + e.getMessage());
-            return true; // Default to light (safer for dark text)
+            System.err.println("❌ Error analyzing image brightness: " + e.getMessage());
+            return "light"; // Default to light (safer for dark text)
         }
     }
-    
+
     /**
-     * Choose accent color that contrasts well with both background and text
+     * Extract the dominant color from the generated background image
      */
-    private String chooseContrastingAccent(String backgroundColor, String textColor, String extractedAccent, String secondaryColor) {
-        // If we have extracted accent and it's different from background, use it
-        if (extractedAccent != null && !extractedAccent.equals(backgroundColor) && !extractedAccent.equals(textColor)) {
-            return extractedAccent;
+    private String extractDominantColor(byte[] imageBytes) {
+        try {
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            
+            // Count color frequencies (simplified approach)
+            java.util.Map<Integer, Integer> colorCounts = new java.util.HashMap<>();
+            
+            int width = image.getWidth();
+            int height = image.getHeight();
+            
+            // Sample every 100th pixel for performance
+            for (int y = 0; y < height; y += 100) {
+                for (int x = 0; x < width; x += 100) {
+                    int rgb = image.getRGB(x, y);
+                    
+                    // Group similar colors by reducing precision
+                    int groupedRgb = groupSimilarColors(rgb);
+                    colorCounts.put(groupedRgb, colorCounts.getOrDefault(groupedRgb, 0) + 1);
+                }
+            }
+            
+            // Find most frequent color
+            int dominantRgb = colorCounts.entrySet().stream()
+                .max(java.util.Map.Entry.comparingByValue())
+                .map(java.util.Map.Entry::getKey)
+                .orElse(0xFFFFFF); // Default to white
+            
+            Color dominantColor = new Color(dominantRgb);
+            String hexColor = String.format("#%02X%02X%02X", 
+                dominantColor.getRed(), dominantColor.getGreen(), dominantColor.getBlue());
+            
+            System.out.println("🎨 Dominant color extracted: " + hexColor);
+            return hexColor;
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error extracting dominant color: " + e.getMessage());
+            return "#CCCCCC"; // Default to neutral gray
+        }
+    }
+
+    /**
+     * Group similar colors together by reducing color precision
+     */
+    private int groupSimilarColors(int rgb) {
+        Color color = new Color(rgb);
+        
+        // Reduce precision by grouping into 32-step increments (256/8 = 32)
+        int r = (color.getRed() / 32) * 32;
+        int g = (color.getGreen() / 32) * 32;
+        int b = (color.getBlue() / 32) * 32;
+        
+        return new Color(r, g, b).getRGB();
+    }
+
+    /**
+     * Determine if a dominant color is warm (reds, oranges, yellows) or cool (blues, greens, purples)
+     */
+    private boolean isDominantColorWarm(String hexColor) {
+        try {
+            // Remove # if present
+            String cleanHex = hexColor.replace("#", "");
+            
+            // Parse RGB values
+            int r = Integer.parseInt(cleanHex.substring(0, 2), 16);
+            int g = Integer.parseInt(cleanHex.substring(2, 4), 16);
+            int b = Integer.parseInt(cleanHex.substring(4, 6), 16);
+            
+            // Warm colors have higher red values and lower blue values
+            // Also consider orange (high red + medium green) and yellow (high red + high green)
+            boolean isWarm = (r > b + 30) || (r > 120 && g > 100 && b < 80);
+            
+            System.out.println("🎨 Color warmth analysis: " + hexColor + " → " + (isWarm ? "warm" : "cool"));
+            return isWarm;
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error analyzing color warmth: " + e.getMessage());
+            return false; // Default to cool (safer)
+        }
+    }
+
+    /**
+     * Choose a dark accent color that works well with light backgrounds
+     */
+    private String chooseDarkAccent(String dominantColor, BackgroundGenerationRequest request) {
+        // Try to use business context for accent color
+        String businessType = request.getBusinessType();
+        
+        if (businessType != null) {
+            String business = businessType.toLowerCase();
+            if (business.contains("food") || business.contains("restaurant") || business.contains("burger") || business.contains("pizza")) {
+                return "#B8860B"; // Dark golden rod for food
+            } else if (business.contains("tech") || business.contains("software")) {
+                return "#1565C0"; // Dark blue for tech
+            } else if (business.contains("health") || business.contains("medical")) {
+                return "#2E7D32"; // Dark green for health
+            } else if (business.contains("finance") || business.contains("bank")) {
+                return "#1B5E20"; // Dark forest green for finance
+            }
         }
         
-        // If we have secondary color and it contrasts, use it
-        if (secondaryColor != null && !secondaryColor.equals(backgroundColor) && !secondaryColor.equals(textColor)) {
-            return secondaryColor;
-        }
-        
-        // Fallback to high-contrast accent based on background
-        if (isBackgroundLight(backgroundColor)) {
-            return "#1976d2"; // Blue for light backgrounds
+        // Choose accent that contrasts with dominant color
+        if (isDominantColorWarm(dominantColor)) {
+            return "#1565C0"; // Cool blue for warm backgrounds
         } else {
-            return "#FF9800"; // Orange for dark backgrounds
+            return "#D84315"; // Warm orange-red for cool backgrounds
+        }
+    }
+
+    /**
+     * Choose a light accent color that works well with dark backgrounds
+     */
+    private String chooseLightAccent(String dominantColor, BackgroundGenerationRequest request) {
+        // Try to use business context for accent color
+        String businessType = request.getBusinessType();
+        
+        if (businessType != null) {
+            String business = businessType.toLowerCase();
+            if (business.contains("food") || business.contains("restaurant") || business.contains("burger") || business.contains("pizza")) {
+                return "#FFD54F"; // Light golden yellow for food
+            } else if (business.contains("tech") || business.contains("software")) {
+                return "#81C784"; // Light green for tech
+            } else if (business.contains("health") || business.contains("medical")) {
+                return "#81C784"; // Light green for health
+            } else if (business.contains("finance") || business.contains("bank")) {
+                return "#A5D6A7"; // Light mint green for finance
+            }
+        }
+        
+        // Choose light accent that contrasts with dominant color
+        if (isDominantColorWarm(dominantColor)) {
+            return "#81C784"; // Cool light green for warm backgrounds
+        } else {
+            return "#FFB74D"; // Warm light orange for cool backgrounds
+        }
+    }
+
+    /**
+     * Get font family for predetermined style slots
+     */
+    private String getFontFamilyForSlot(int backgroundNumber) {
+        if (backgroundNumber == 1) {
+            return "Roboto, sans-serif"; // Professional Clean
+        } else if (backgroundNumber == 2) {
+            return "Georgia, serif"; // Elegant Sophisticated
+        } else {
+            return "Montserrat, sans-serif"; // Bold Modern
+        }
+    }
+
+    /**
+     * Get font size for predetermined style slots
+     */
+    private float getFontSizeForSlot(int backgroundNumber) {
+        if (backgroundNumber == 1) {
+            return 4.0f; // Professional Clean
+        } else if (backgroundNumber == 2) {
+            return 3.8f; // Elegant Sophisticated
+        } else {
+            return 4.5f; // Bold Modern
+        }
+    }
+
+    /**
+     * Get body font size for predetermined style slots
+     */
+    private float getBodyFontSizeForSlot(int backgroundNumber) {
+        if (backgroundNumber == 1) {
+            return 1.7f; // Professional Clean
+        } else if (backgroundNumber == 2) {
+            return 1.6f; // Elegant Sophisticated
+        } else {
+            return 1.9f; // Bold Modern
         }
     }
 
