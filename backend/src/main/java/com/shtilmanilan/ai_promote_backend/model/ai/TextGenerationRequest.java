@@ -1,4 +1,4 @@
-package com.shtilmanilan.ai_promote_backend.model;
+package com.shtilmanilan.ai_promote_backend.model.ai;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

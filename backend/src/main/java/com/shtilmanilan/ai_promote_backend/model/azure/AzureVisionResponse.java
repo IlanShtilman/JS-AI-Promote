@@ -1,4 +1,4 @@
-package com.shtilmanilan.ai_promote_backend.model;
+package com.shtilmanilan.ai_promote_backend.model.azure;
 
 import lombok.Data;
 import java.util.List;

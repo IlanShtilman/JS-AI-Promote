@@ -2,8 +2,8 @@ package com.shtilmanilan.ai_promote_backend.service.openai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shtilmanilan.ai_promote_backend.model.TextGenerationRequest;
-import com.shtilmanilan.ai_promote_backend.model.TextGenerationResponse;
+import com.shtilmanilan.ai_promote_backend.model.ai.TextGenerationRequest;
+import com.shtilmanilan.ai_promote_backend.model.ai.TextGenerationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

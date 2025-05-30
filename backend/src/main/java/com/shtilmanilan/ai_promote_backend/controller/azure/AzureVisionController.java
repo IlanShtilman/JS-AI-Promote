@@ -1,7 +1,7 @@
-package com.shtilmanilan.ai_promote_backend.controller;
+package com.shtilmanilan.ai_promote_backend.controller.azure;
 
-import com.shtilmanilan.ai_promote_backend.model.AzureVisionResponse;
-import com.shtilmanilan.ai_promote_backend.service.AzureVisionService;
+import com.shtilmanilan.ai_promote_backend.model.azure.AzureVisionResponse;
+import com.shtilmanilan.ai_promote_backend.service.azure.AzureVisionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;

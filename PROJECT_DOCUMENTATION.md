@@ -21,15 +21,15 @@ The **AI-Powered Flyer Generation System** is a sophisticated web application th
 ```
 src/
 ├── components/
-│   ├── AIFlier/              # Main flyer generation and preview
-│   ├── StageUserInfo/        # User input collection
-│   ├── AITextResults/        # AI-generated content display
-│   ├── AIInfoProcess/        # Processing status and feedback
-│   ├── AIFlierSummary/       # Final flyer summary and export
-│   ├── ManualFlierDesigner/  # Manual design tools
-│   └── DesignModeSelection/  # AI vs Manual mode selection
-├── services/                 # API communication services
-└── utils/                    # Utility functions and helpers
+│   ├── AIFlierDesigner/      # AI Flier Creation Workflow
+│   │   └── AIInfoProcess/    # User info collection and processing
+│   ├── DesignModeSelection/  # Choose between AI or manual design
+│   ├── ManualFlierDesigner/  # Manual flier creation tool
+│   ├── StageUserInfo/        # Initial user input collection
+│   └── AITextResults/        # AI-generated text display and selection
+├── services/                 # Backend communication
+├── assets/                   # Images, fonts, static files
+└── styles/                   # Global CSS and themes
 ```
 
 ### Backend (Spring Boot)
