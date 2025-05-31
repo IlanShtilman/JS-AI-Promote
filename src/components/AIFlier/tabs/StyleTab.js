@@ -1,13 +1,7 @@
 import React from 'react';
 import { Box, Typography, Slider, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import AppleIcon from '@mui/icons-material/Apple';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import PaletteIcon from '@mui/icons-material/Palette';
 
 const StyleTab = ({
-  favoritePreset,
-  handleFavoritePresetChange,
   borderRadius,
   setBorderRadius,
   fontSize,
@@ -26,56 +20,6 @@ const StyleTab = ({
 
   return (
     <>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Our Favorite</Typography>
-        <FormControl fullWidth>
-          <InputLabel id="favorite-preset-label">Choose a Style</InputLabel>
-          <Select
-            labelId="favorite-preset-label"
-            value={favoritePreset}
-            label="Choose a Style"
-            onChange={handleFavoritePresetChange}
-          >
-            <MenuItem value="AI Recommendation">
-              <AutoAwesomeIcon sx={{ mr: 1, color: '#fbc02d' }} /> AI Recommendation
-            </MenuItem>
-            <MenuItem value="Google Clean">
-              <Box sx={{ width: 20, height: 20, background: '#4285F4', borderRadius: '4px', display: 'inline-block', mr: 1, border: '1px solid #ccc' }} /> Google Clean
-            </MenuItem>
-            <MenuItem value="Apple Matte">
-              <AppleIcon sx={{ mr: 1, color: '#1d1d1f' }} /> Apple Matte
-            </MenuItem>
-            <MenuItem value="Canva Style">
-              <PaletteIcon sx={{ mr: 1, color: '#3ec6e0' }} /> Canva Style
-            </MenuItem>
-            <MenuItem value="Facebook Meta">
-              <FacebookIcon sx={{ mr: 1, color: '#1877f2' }} /> Facebook Meta
-            </MenuItem>
-            <MenuItem value="Samsung">
-              <span style={{fontSize: '1.2em', marginRight: 6}}>📱</span> Samsung
-            </MenuItem>
-            <MenuItem value="Nokia">
-              <span style={{fontSize: '1.2em', marginRight: 6}}>📞</span> Nokia
-            </MenuItem>
-            <MenuItem value="HTC">
-              <span style={{fontSize: '1.2em', marginRight: 6}}>🟩</span> HTC
-            </MenuItem>
-            <MenuItem value="Sony">
-              <span style={{fontSize: '1.2em', marginRight: 6}}>🎵</span> Sony
-            </MenuItem>
-            <MenuItem value="Netflix">
-              <span style={{fontSize: '1.2em', marginRight: 6}}>🎬</span> Netflix
-            </MenuItem>
-            <MenuItem value="Android">
-              <span style={{fontSize: '1.2em', marginRight: 6}}>🤖</span> Android
-            </MenuItem>
-            <MenuItem value="Xiaomi">
-              <span style={{fontSize: '1.2em', marginRight: 6}}>🟧</span> Xiaomi
-            </MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-      
       <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Style Options</Typography>
       
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -153,8 +97,6 @@ const StyleTab = ({
             <MenuItem value="David">David</MenuItem>
           </Select>
         </FormControl>
-        
-
         
         {/* Color pickers - Hide background color for image backgrounds */}
         {!hasImageBackground && (

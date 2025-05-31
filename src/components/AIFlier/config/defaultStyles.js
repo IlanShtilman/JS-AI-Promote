@@ -147,10 +147,12 @@ export const getRandomDefaultStyles = (count = 3) => {
   return shuffled.slice(0, count);
 };
 
-export default {
+const defaultStylesConfig = {
   DEFAULT_STYLE_OPTIONS,
   getDefaultStylesForBusiness,
   getAllDefaultStyles,
   getRandomDefaultStyles,
   getLanguageAwareDefaultStyles
-}; 
+};
+
+export default defaultStylesConfig; 

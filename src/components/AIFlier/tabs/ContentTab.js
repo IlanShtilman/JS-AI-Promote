@@ -128,7 +128,7 @@ const ContentTab = ({
               </Typography>
               <img 
                 src={flierContent.flierPhoto} 
-                alt="Flier Photo" 
+                alt="Flier" 
                 style={{ 
                   maxWidth: '100%', 
                   maxHeight: '100px', 

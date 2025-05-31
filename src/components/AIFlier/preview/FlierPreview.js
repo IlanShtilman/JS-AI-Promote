@@ -50,15 +50,6 @@ const FlierPreview = ({
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     };
     
-    // Determine if a color is light or dark
-    const isLightColor = (hex) => {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-      return brightness > 128;
-    };
-    
     switch (elementType) {
              case 'title':
          // Glass effect for title - semi-transparent with blur
@@ -175,7 +166,7 @@ const FlierPreview = ({
         >
           <img
             src={flierContent.flierPhoto}
-            alt="Flier Photo"
+            alt="Flier"
             style={{ width: '100%', height: 'auto', display: 'block', maxHeight: flierLayout.flierPhoto.maxHeight }}
           />
         </Box>

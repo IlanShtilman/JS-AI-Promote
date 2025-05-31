@@ -396,7 +396,7 @@ export const detectLanguageFromText = (text) => {
   return 'en';
 };
 
-export default {
+const languageConfigExports = {
   SUPPORTED_LANGUAGES,
   LANGUAGE_CONTENT,
   LANGUAGE_LAYOUTS,
@@ -404,4 +404,6 @@ export default {
   FLIER_LAYOUT_CONFIG,
   getLanguageConfig,
   detectLanguageFromText
-}; 
+};
+
+export default languageConfigExports; 
