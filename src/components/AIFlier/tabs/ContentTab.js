@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Typography, TextField, Button, RadioGroup, FormControlLabel, Radio, Checkbox, Tooltip } from '@mui/material';
+import { detectLanguageFromText } from '../config/languageConfig';
 
 // Helper function to detect RTL (Hebrew/Arabic) or LTR (default)
 function getDirection(text) {
@@ -19,6 +20,10 @@ const ContentTab = ({
   showFlierPhoto,
   setShowFlierPhoto
 }) => {
+  // Detect language for photo positioning guidance
+  const detectedLanguage = detectLanguageFromText(flierContent?.title || flierContent?.promotionalText);
+  const photoPositionText = detectedLanguage === 'he' ? 'הצגה בצד ימין של הפליירי' : 'Displayed on left side of flier';
+  
   return (
     <>
       <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Edit Content</Typography>
@@ -71,7 +76,12 @@ const ContentTab = ({
 
         {/* Add Photo to Flier (not as background) */}
         <Box>
-          <Typography variant="subtitle2" gutterBottom>Add Photo to Flier</Typography>
+          <Typography variant="subtitle2" gutterBottom>
+            Add Photo to Flier
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>
+              📍 {photoPositionText}
+            </Typography>
+          </Typography>
           <RadioGroup
             row
             value={flierPhotoSource}
@@ -118,7 +128,7 @@ const ContentTab = ({
               </Typography>
               <img 
                 src={flierContent.flierPhoto} 
-                alt="Flier Photo" 
+                alt="Flier" 
                 style={{ 
                   maxWidth: '100%', 
                   maxHeight: '100px', 
