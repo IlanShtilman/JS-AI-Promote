@@ -1,8 +1,7 @@
-package com.shtilmanilan.ai_promote_backend.service;
+package com.shtilmanilan.ai_promote_backend.service.background;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shtilmanilan.ai_promote_backend.model.BackgroundGenerationRequest;
-import com.shtilmanilan.ai_promote_backend.model.BackgroundOption;
+import com.shtilmanilan.ai_promote_backend.model.background.BackgroundGenerationRequest;
+import com.shtilmanilan.ai_promote_backend.model.background.BackgroundOption;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -23,6 +22,24 @@ import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
 import java.awt.Color;
 
+/**
+ * Imagen 3.0 Background Generation Service
+ * 
+ * Generates professional AI background images using Google's Imagen 3.0 model.
+ * Creates actual PNG images with advanced analysis and optimization.
+ * 
+ * Features:
+ * - Real PNG image generation via Imagen 3.0
+ * - Smart image brightness analysis
+ * - Automatic text color optimization
+ * - Business-specific visual prompting
+ * - Parallel image generation for speed
+ * - Filesystem caching with HTTP serving
+ * 
+ * Cost: ~$0.04 per image ($0.12 for 3 backgrounds)
+ * 
+ * @author AI-Promote Team
+ */
 @Service
 public class ImagenBackgroundService {
 
@@ -39,7 +56,6 @@ public class ImagenBackgroundService {
     private String backgroundImagesPath;
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Generate 3 background images using Google Imagen 3.0
@@ -93,129 +109,6 @@ public class ImagenBackgroundService {
     }
 
     /**
-     * Check for existing backgrounds that match the current request
-     * Smart matching based on business type, color scheme, and recency
-     */
-    private List<BackgroundOption> checkExistingBackgrounds(BackgroundGenerationRequest request) {
-        List<BackgroundOption> existingBackgrounds = new ArrayList<>();
-        
-        try {
-            Path backgroundDir = Paths.get(backgroundImagesPath);
-            if (!Files.exists(backgroundDir)) {
-                return existingBackgrounds;
-            }
-            
-            String businessType = request.getBusinessType();
-            String colorScheme = request.getColorScheme();
-            
-            System.out.println("🔍 Checking cache for: " + businessType + " with " + colorScheme + " colors");
-            
-            // Get all PNG files in the directory
-            Files.list(backgroundDir)
-                .filter(path -> path.toString().toLowerCase().endsWith(".png"))
-                .filter(path -> path.getFileName().toString().startsWith("background_"))
-                .sorted((p1, p2) -> {
-                    // Sort by modification time, newest first
-                    try {
-                        return Files.getLastModifiedTime(p2).compareTo(Files.getLastModifiedTime(p1));
-                    } catch (IOException e) {
-                        return 0;
-                    }
-                })
-                .limit(20) // Check more recent files for better matching
-                .forEach(path -> {
-                    try {
-                        String filename = path.getFileName().toString();
-                        
-                        // Smart matching logic
-                        boolean isGoodMatch = isBackgroundSuitableForRequest(filename, request);
-                        
-                        if (isGoodMatch && existingBackgrounds.size() < 3) {
-                            String imageUrl = "http://localhost:8081/api/backgrounds/images/" + filename;
-                            
-                            BackgroundOption background = new BackgroundOption();
-                            background.setName("Cached " + capitalizeFirst(businessType) + " Background");
-                            background.setBackgroundImage(imageUrl);
-                            background.setTextColor("#333333");
-                            background.setAccentColor(getAccentColorFromRequest(request));
-                            background.setDescription("Previously generated " + businessType + " background");
-                            background.setSource("cache");
-                            
-                            existingBackgrounds.add(background);
-                            System.out.println("✅ Found suitable cached background: " + filename);
-                        }
-                        
-                    } catch (Exception e) {
-                        System.err.println("❌ Error processing cached background: " + e.getMessage());
-                    }
-                });
-                
-            System.out.println("📁 Found " + existingBackgrounds.size() + " suitable cached backgrounds for " + businessType);
-            
-        } catch (Exception e) {
-            System.err.println("❌ Error checking existing backgrounds: " + e.getMessage());
-        }
-        
-        return existingBackgrounds;
-    }
-    
-    /**
-     * Determine if a cached background is suitable for the current request
-     */
-    private boolean isBackgroundSuitableForRequest(String filename, BackgroundGenerationRequest request) {
-        // For now, use simple time-based logic with business type awareness
-        // In the future, we could store metadata files alongside images
-        
-        try {
-            // Extract timestamp from filename (background_20250524_184501_1.png)
-            String timestamp = filename.substring(11, 26); // Extract "20250524_184501"
-            LocalDateTime fileTime = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            LocalDateTime now = LocalDateTime.now();
-            
-            // Use backgrounds generated within the last 24 hours for same business type
-            // Or within last 6 hours for any business type
-            long hoursOld = java.time.Duration.between(fileTime, now).toHours();
-            
-            String businessType = request.getBusinessType();
-            
-            if (hoursOld <= 6) {
-                // Very recent - probably good for any business type
-                System.out.println("⚡ Using recent background (" + hoursOld + "h old): " + filename);
-                return true;
-            } else if (hoursOld <= 24 && isSimilarBusinessType(businessType, filename)) {
-                // Somewhat recent and similar business type
-                System.out.println("🎯 Using cached background for similar business (" + hoursOld + "h old): " + filename);
-                return true;
-            }
-            
-            return false;
-            
-        } catch (Exception e) {
-            // If we can't parse the timestamp, be conservative
-            return false;
-        }
-    }
-    
-    /**
-     * Check if the business type is similar (could be enhanced with ML in the future)
-     */
-    private boolean isSimilarBusinessType(String currentBusinessType, String filename) {
-        // Simple heuristic - in the future we could store metadata with each background
-        // For now, assume recent backgrounds are generally suitable
-        return true; // Conservative approach
-    }
-    
-    /**
-     * Capitalize first letter of a string
-     */
-    private String capitalizeFirst(String str) {
-        if (str == null || str.isEmpty()) {
-            return str;
-        }
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
-    /**
      * Generate a single background image using Imagen 3.0
      */
     private BackgroundOption generateSingleBackgroundImage(String prompt, int imageNumber, BackgroundGenerationRequest request) {
@@ -231,6 +124,7 @@ public class ImagenBackgroundService {
             String url = "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=" + geminiApiKey;
             
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.postForObject(url, entity, Map.class);
             
             // Parse response and save image
@@ -331,7 +225,7 @@ public class ImagenBackgroundService {
         
         String business = businessType.toLowerCase();
         
-        // ✅ SPECIFIC FOOD BUSINESS TYPES
+        // Specific food business types
         if (business.contains("hamburger") || business.contains("burger")) {
             return "hamburger restaurant with burger joint atmosphere";
         } else if (business.contains("pizza")) {
@@ -361,7 +255,7 @@ public class ImagenBackgroundService {
         } else if (business.contains("fine dining") || business.contains("upscale")) {
             return "fine dining restaurant with elegant upscale atmosphere";
         } 
-        // ✅ OTHER BUSINESS TYPES
+        // Other business types
         else if (business.contains("tech") || business.contains("software") || business.contains("digital")) {
             return "tech company with modern digital atmosphere";
         } else if (business.contains("retail") || business.contains("store") || business.contains("shop")) {
@@ -433,6 +327,7 @@ public class ImagenBackgroundService {
     /**
      * Parse Imagen response and save image to filesystem
      */
+    @SuppressWarnings("unchecked")
     private BackgroundOption parseImagenResponse(Map<String, Object> response, int imageNumber, String prompt, BackgroundGenerationRequest request) {
         try {
             List<Map<String, Object>> predictions = (List<Map<String, Object>>) response.get("predictions");
@@ -479,7 +374,7 @@ public class ImagenBackgroundService {
             background.setTextColor(aiTextColor);
             background.setAccentColor(aiAccentColor);
             
-            // ✅ ADD AI-DECIDED TYPOGRAPHY TO RESPONSE
+            // Add AI-decided typography to response
             background.setFontFamily(aiFontFamily);
             background.setFontSize(Float.parseFloat(aiFontSize));
             background.setBodyFontSize(Float.parseFloat(aiBodyFontSize));
@@ -578,22 +473,6 @@ public class ImagenBackgroundService {
         fallback.setSource("fallback");
         
         return fallback;
-    }
-
-    /**
-     * Get accent color from request
-     */
-    private String getAccentColorFromRequest(BackgroundGenerationRequest request) {
-        Map<String, String> palette = request.getColorPalette();
-        return palette != null ? palette.get("accent") : "#4CAF50";
-    }
-
-    /**
-     * Estimate cost for Imagen generation
-     */
-    public double estimateCost() {
-        // Imagen 3.0 costs approximately $0.04 per image
-        return 0.04 * 3; // Cost for 3 images
     }
 
     /**
@@ -729,7 +608,7 @@ public class ImagenBackgroundService {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             
             // Count color frequencies (simplified approach)
-            java.util.Map<Integer, Integer> colorCounts = new java.util.HashMap<>();
+            Map<Integer, Integer> colorCounts = new HashMap<>();
             
             int width = image.getWidth();
             int height = image.getHeight();
@@ -747,8 +626,8 @@ public class ImagenBackgroundService {
             
             // Find most frequent color
             int dominantRgb = colorCounts.entrySet().stream()
-                .max(java.util.Map.Entry.comparingByValue())
-                .map(java.util.Map.Entry::getKey)
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
                 .orElse(0xFFFFFF); // Default to white
             
             Color dominantColor = new Color(dominantRgb);
@@ -931,5 +810,13 @@ public class ImagenBackgroundService {
         } catch (Exception e) {
             return "Professional Style";
         }
+    }
+
+    /**
+     * Estimate cost for Imagen generation
+     */
+    public double estimateCost() {
+        // Imagen 3.0 costs approximately $0.04 per image
+        return 0.04 * 3; // Cost for 3 images
     }
 } 

@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 import DesignModeSelection from './components/DesignModeSelection/DesignModeSelection';
 import ManualFlierDesigner from './components/ManualFlierDesigner/ManualFlierDesigner';
 import AIInfoCollection from './components/AIFlierDesigner/AIInfoProcess/AIInfoCollection';
-import AIFlierSummary from './components/AIFlierSummary/AIFlierSummary';
+import AIFlierSummary from './components/AIFlierDesigner/AIFlierSummary/AIFlierSummary';
 import AIFlier from './components/AIFlier/AIFlier';
 import StageUserInfo from './components/StageUserInfo/StageUserInfo';
 import AITextResults from './components/AITextResults/AITextResults';
@@ -71,6 +71,10 @@ function App() {
 
   const handleSummaryBack = () => {
     setCurrentStage('ai-info-collection');
+  };
+
+  const handleAIInfoCollectionBack = () => {
+    setCurrentStage('design-mode');
   };
 
   const handleSummaryConfirm = async (enhancedSummaryInfo) => {
@@ -164,6 +168,7 @@ function App() {
               setSummaryInfo(summaryInfo);
               setCurrentStage('summary');
             }}
+            onBack={handleAIInfoCollectionBack}
             initialData={{
               businessType: '',
               targetAudience: '',

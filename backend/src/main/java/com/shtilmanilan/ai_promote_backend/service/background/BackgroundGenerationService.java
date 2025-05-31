@@ -1,10 +1,10 @@
-package com.shtilmanilan.ai_promote_backend.service;
+package com.shtilmanilan.ai_promote_backend.service.background;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.shtilmanilan.ai_promote_backend.model.BackgroundGenerationRequest;
-import com.shtilmanilan.ai_promote_backend.model.BackgroundOption;
+import com.shtilmanilan.ai_promote_backend.model.background.BackgroundGenerationRequest;
+import com.shtilmanilan.ai_promote_backend.model.background.BackgroundOption;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +14,20 @@ import org.springframework.http.MediaType;
 
 import java.util.*;
 
+/**
+ * CSS Background Generation Service
+ * 
+ * Generates CSS-based backgrounds using AI text generation models.
+ * Fast and cost-effective solution for creating gradient and pattern backgrounds.
+ * 
+ * Features:
+ * - Gemini Pro integration (~$0.002 per generation)
+ * - OpenAI GPT-4 fallback (~$0.03 per generation) 
+ * - Smart fallback backgrounds when AI fails
+ * - Business-specific styling
+ * 
+ * @author AI-Promote Team
+ */
 @Service
 public class BackgroundGenerationService {
 
@@ -28,26 +42,11 @@ public class BackgroundGenerationService {
 
     /**
      * Generate 3 background options using AI
-     * TODO: Implement database-first approach for better quality and text contrast
+     * Tries Gemini first (cheaper), fallback to OpenAI, then hardcoded fallbacks
      */
     public List<BackgroundOption> generateBackgrounds(BackgroundGenerationRequest request) {
         System.out.println("🎨 Background Service: Starting AI generation...");
         
-        // TODO: Phase 1 - Check curated database first
-        // List<BackgroundOption> databaseResults = checkCuratedDatabase(request);
-        // if (databaseResults.size() >= 3) {
-        //     System.out.println("✅ Found professional backgrounds in database");
-        //     return databaseResults.subList(0, 3);
-        // }
-        
-        // TODO: Phase 2 - AI-powered matching from database
-        // List<BackgroundOption> aiMatched = selectFromDatabaseWithAI(request);
-        // if (aiMatched.size() >= 3) {
-        //     System.out.println("✅ AI selected backgrounds from database");
-        //     return aiMatched.subList(0, 3);
-        // }
-        
-        // Phase 3 - Generate with AI (current implementation)
         try {
             // Create AI prompt based on request
             String prompt = createAIPrompt(request);
@@ -95,6 +94,7 @@ public class BackgroundGenerationService {
             String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey;
             
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.postForObject(url, entity, Map.class);
             
             // Parse Gemini response
@@ -129,6 +129,7 @@ public class BackgroundGenerationService {
             String url = "https://api.openai.com/v1/chat/completions";
             
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.postForObject(url, entity, Map.class);
             
             // Parse OpenAI response
@@ -150,7 +151,7 @@ public class BackgroundGenerationService {
               .append(request.getBusinessType()).append(" business targeting ")
               .append(request.getTargetAudience()).append(".\n\n");
         
-        prompt.append("Style: ").append(request.getBackgroundStyle()).append("\n");
+        prompt.append("Style: ").append(request.getStylePreference()).append("\n");
         prompt.append("Color Scheme: ").append(request.getColorScheme()).append("\n");
         
         if (request.getMoodKeywords() != null && !request.getMoodKeywords().isEmpty()) {
@@ -173,20 +174,6 @@ public class BackgroundGenerationService {
         prompt.append("6. Ensure text areas have consistent, readable backgrounds\n");
         prompt.append("7. Use backdrop-blur or overlay techniques for text sections\n\n");
         
-        prompt.append("CREATIVE DESIGN FREEDOM:\n");
-        prompt.append("1. Create STUNNING, COMPLEX, and VISUALLY STRIKING backgrounds\n");
-        prompt.append("2. Use RICH colors, gradients, and artistic elements\n");
-        prompt.append("3. Don't worry about text readability - text overlays will handle that\n");
-        prompt.append("4. Focus on VISUAL IMPACT and brand alignment\n");
-        prompt.append("5. Create backgrounds that tell a story and capture attention\n\n");
-        
-        prompt.append("BACKGROUND STYLE EXAMPLES:\n");
-        prompt.append("• Rich gradients: 'linear-gradient(135deg, #8B4513, #D2691E, #CD853F)'\n");
-        prompt.append("• Complex patterns: Geometric shapes, organic forms, artistic elements\n");
-        prompt.append("• Full coverage: Use the entire canvas for visual impact\n");
-        prompt.append("• Brand colors: Incorporate the provided color palette prominently\n");
-        prompt.append("• Artistic flair: Abstract shapes, flowing lines, creative compositions\n\n");
-        
         prompt.append("Return ONLY a valid JSON array with 3 options:\n");
         prompt.append("[\n");
         prompt.append("  {\n");
@@ -206,6 +193,7 @@ public class BackgroundGenerationService {
     /**
      * Parse Gemini API response
      */
+    @SuppressWarnings("unchecked")
     private List<BackgroundOption> parseGeminiResponse(Map<String, Object> response) {
         try {
             List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
@@ -227,6 +215,7 @@ public class BackgroundGenerationService {
     /**
      * Parse OpenAI API response
      */
+    @SuppressWarnings("unchecked")
     private List<BackgroundOption> parseOpenAIResponse(Map<String, Object> response) {
         try {
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
@@ -275,7 +264,7 @@ public class BackgroundGenerationService {
                 bg.setDescription((String) item.get("description"));
                 bg.setSource("ai");
                 
-                // ✅ NEW: Text readability fields
+                // Text readability fields
                 bg.setTextOverlay((String) item.get("textOverlay"));
                 bg.setBlurEffect((String) item.get("blurEffect"));
                 
@@ -301,7 +290,6 @@ public class BackgroundGenerationService {
         String primary = palette != null ? palette.get("primary") : "#2196F3";
         String secondary = palette != null ? palette.get("secondary") : "#FF9800";
         String accent = palette != null ? palette.get("accent") : "#4CAF50";
-        String textColor = palette != null ? palette.get("textDark") : "#333333";
         
         List<BackgroundOption> fallbacks = new ArrayList<>();
         

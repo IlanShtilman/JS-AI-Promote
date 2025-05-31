@@ -209,11 +209,6 @@
 }
 
 /* Color swatches styling */
-.flier-summary-colors-section {
-  margin-top: 12px;
-  margin-bottom: 16px;
-}
-
 .flier-summary-color-swatches {
   display: flex;
   flex-wrap: wrap;

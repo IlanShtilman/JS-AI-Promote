@@ -101,5 +101,6 @@ export function validateFormData(formData) {
  * @returns {Object} Text content object
  */
 export function getUIText(language = 'hebrew') {
-  return AIInfoCollectionConfig.text[language] || AIInfoCollectionConfig.text.hebrew;
+  const langKey = language.toLowerCase() === 'english' ? 'english' : 'hebrew';
+  return AIInfoCollectionConfig.text[langKey] || AIInfoCollectionConfig.text.hebrew;
 } 

@@ -1,5 +1,20 @@
-package com.shtilmanilan.ai_promote_backend.model;
+package com.shtilmanilan.ai_promote_backend.model.background;
 
+/**
+ * Background Option Model
+ * 
+ * Represents a single background option for flyer generation.
+ * Can contain either CSS-based backgrounds or AI-generated image backgrounds.
+ * 
+ * Features:
+ * - Support for both CSS gradients and actual images
+ * - AI-analyzed text colors and typography
+ * - Azure Vision API color integration
+ * - Text readability optimization fields
+ * - Business context adaptation
+ * 
+ * @author AI-Promote Team
+ */
 public class BackgroundOption {
     
     private String name;
@@ -14,7 +29,7 @@ public class BackgroundOption {
     private String secondaryColor;    // From Azure Vision analysis
     private String backgroundColor;   // From Azure Vision analysis
     private String description;
-    private String source; // "ai", "fallback", "database"
+    private String source; // "ai", "fallback", "database", "imagen"
     private Double contrastRatio;
     private String patternCSS; // For overlay patterns
     

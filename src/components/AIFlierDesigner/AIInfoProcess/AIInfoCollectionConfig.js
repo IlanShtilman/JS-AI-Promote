@@ -148,7 +148,34 @@ export const AIInfoCollectionConfig = {
       enhancedUploadComingSoon: 'העלאה משופרת תופיע כאן',
       close: 'סגור',
       confirm: 'אישור',
-      comingSoon: 'Coming soon!'
+      comingSoon: 'Coming soon!',
+      backButton: 'חזור לבחירת מצב עיצוב'
+    },
+    english: {
+      title: 'Additional Design Information',
+      targetAudience: 'Target Audience',
+      businessType: 'Business Type',
+      designStyle: 'Design Style',
+      colorScheme: 'Color Scheme',
+      flierImageTitle: 'Upload Image for Flier',
+      flierImageDescription: 'Choose one of the following options to add an image to your flier',
+      regularUpload: 'Regular Upload',
+      regularUploadDesc: 'Choose image from this device',
+      enhancedUpload: 'Enhanced Upload',
+      enhancedUploadDesc: 'Create image with AI',
+      flierSize: 'Flier Size',
+      orientation: 'Orientation',
+      continueButton: 'Continue to Summary',
+      analyzingImages: 'Analyzing images...',
+      requiredField: 'Required field',
+      fillAllFields: 'Please fill all required fields before continuing',
+      enhancedUploadTitle: 'Enhanced Upload',
+      enhancedUploadPlaceholder: 'Describe the image you want to create',
+      enhancedUploadComingSoon: 'Enhanced upload will appear here',
+      close: 'Close',
+      confirm: 'Confirm',
+      comingSoon: 'Coming soon!',
+      backButton: 'Back to Design Mode'
     }
   },
 

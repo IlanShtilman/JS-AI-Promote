@@ -18,6 +18,7 @@
   margin-top: 32px;
   font-weight: 700;
   background: linear-gradient(45deg, #FF9800 30%, #F57C00 90%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -146,4 +147,65 @@
 .vertical-radio-group .MuiFormControlLabel-root {
   margin-bottom: 8px;
   margin-top: 8px;
+}
+
+/* Submit button styling */
+.aiinfo-submit-box {
+  margin-top: 24px;
+  padding: 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.aiinfo-back-button {
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  border-width: 2px !important;
+  transition: all 0.3s ease !important;
+}
+
+.aiinfo-back-button:hover {
+  background-color: rgba(33, 150, 243, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+.aiinfo-submit-button {
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  background: linear-gradient(45deg, #2196F3 30%, #1976D2 90%) !important;
+  box-shadow: 0 3px 5px 2px rgba(33, 150, 243, .3) !important;
+  transition: all 0.3s ease !important;
+  flex-grow: 1;
+  max-width: 250px;
+}
+
+.aiinfo-submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px 2px rgba(33, 150, 243, .3) !important;
+}
+
+/* Responsive design for buttons */
+@media (max-width: 600px) {
+  .aiinfo-submit-box {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+  
+  .aiinfo-back-button,
+  .aiinfo-submit-button {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* RTL support for Hebrew */
+.aiinfo-collection-container[dir="rtl"] .aiinfo-submit-box {
+  flex-direction: row-reverse;
+}
+
+.aiinfo-collection-container[dir="rtl"] .aiinfo-back-button {
+  margin-right: 0 !important;
+  margin-left: 16px !important;
 } 

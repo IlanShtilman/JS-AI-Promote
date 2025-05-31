@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Button, Grid, Divider, Avatar, Chip, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, Button, Grid, Divider, Chip, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import BusinessIcon from '@mui/icons-material/Business';
 import PaletteIcon from '@mui/icons-material/Palette';
-import { generateBackgroundParameters } from '../../services/simpleRulesEngine';
-import { generateBackgrounds, generateBackgroundImages } from '../../services/backgroundGeneratorService';
+import { generateBackgroundParameters, generateBackgrounds, generateBackgroundImages } from '../../../services/background';
+import { getDisplayValue } from './displayMappings';
 import './AIFlierSummary.css';
 
 const InfoRow = ({ label, value }) => (
@@ -100,61 +100,6 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
   
   // Debug the info object to check for logo and colors
   console.log("Summary info received:", info);
-  
-  // Map the values to display labels
-  const getDisplayValue = (key, value) => {
-    // For fields with specific mappings
-    const displayMaps = {
-      stylePreference: {
-        'modern': 'Modern - מודרני',
-        'classic': 'Classic - קלאסי',
-        'minimalist': 'Minimalist - מינימליסטי',
-        'bold': 'Bold - נועז'
-      },
-      colorScheme: {
-        'warm': 'Warm - חם',
-        'cool': 'Cool - קר',
-        'neutral': 'Neutral - ניטרלי',
-        'vibrant': 'Vibrant - תוסס',
-        'black': 'Black - שחור',
-        'white': 'White - לבן',
-        'blue': 'Blue - כחול',
-        'red': 'Red - אדום',
-        'green': 'Green - ירוק',
-        'yellow': 'Yellow - צהוב',
-        'purple': 'Purple - סגול',
-        'orange': 'Orange - כתום',
-        'brown': 'Brown - חום',
-        'gray': 'Gray - אפור'
-      }
-    };
-    
-    if (displayMaps[key] && displayMaps[key][value]) {
-      return displayMaps[key][value];
-    }
-    
-    return value;
-  };
-
-  // Helper function to translate color names to Hebrew
-  const translateColorNameToHebrew = (colorName) => {
-    const hebrewColorNames = {
-      'foreground': 'קדמה',
-      'background': 'רקע',
-      'border': 'גבול',
-      'text': 'טקסט',
-      'link': 'קישור',
-      'button': 'כפתור',
-      'header': 'כותרת',
-      'footer': 'כותרת תחתונה',
-      'accent': 'הדגשה',
-      'primary': 'ראשי',
-      'secondary': 'משני',
-      'highlight': 'מודגש'
-    };
-    
-    return hebrewColorNames[colorName.toLowerCase()] || colorName;
-  };
 
   // Determine what analysis was performed
   const hasLogoAnalysis = info.hasLogoAnalysis || (info.logoAnalysis && Object.keys(info.logoAnalysis).length > 0);
@@ -344,7 +289,7 @@ const AIFlierSummary = ({ info, onBack, onConfirm, language }) => {
           <div className="flier-summary-fallback-logo">
             <img 
               src={info.uploadedImage} 
-              alt="Uploaded Image" 
+              alt="Uploaded content" 
               className="flier-summary-header-logo flier-summary-fallback-image"
             />
             {isRTL 

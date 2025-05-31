@@ -1,8 +1,8 @@
 package com.shtilmanilan.ai_promote_backend.service.azure;
 
 import com.shtilmanilan.ai_promote_backend.model.azure.AzureVisionResponse;
-import com.shtilmanilan.ai_promote_backend.model.FlierConfig;
-import com.shtilmanilan.ai_promote_backend.model.FlierInfo;
+import com.shtilmanilan.ai_promote_backend.model.azure.AzureFlierConfig;
+import com.shtilmanilan.ai_promote_backend.model.azure.AzureFlierInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -273,11 +273,11 @@ public class AzureVisionService {
         }
     }
 
-    public FlierConfig generateFlierConfig(FlierInfo info) {
-        FlierConfig config = new FlierConfig();
+    public AzureFlierConfig generateFlierConfig(AzureFlierInfo info) {
+        AzureFlierConfig config = new AzureFlierConfig();
 
         // Layout
-        FlierConfig.Layout layout = new FlierConfig.Layout();
+        AzureFlierConfig.Layout layout = new AzureFlierConfig.Layout();
         layout.orientation = info.orientation;
         layout.imagePosition = "center";
         layout.imageSize = "large";
@@ -286,14 +286,14 @@ public class AzureVisionService {
         config.layout = layout;
 
         // Color Palette
-        FlierConfig.ColorPalette palette = new FlierConfig.ColorPalette();
-        palette.background = info.azureVision.colors != null ? info.azureVision.colors.background : "black";
+        AzureFlierConfig.ColorPalette palette = new AzureFlierConfig.ColorPalette();
+        palette.background = info.azureVision.getColors() != null ? info.azureVision.getColors().getBackground() : "black";
         palette.text = "white";
-        palette.accentColor = info.azureVision.colors != null ? info.azureVision.colors.accent : "yellow";
+        palette.accentColor = info.azureVision.getColors() != null ? info.azureVision.getColors().getAccent() : "yellow";
         config.colorPalette = palette;
 
         // Font
-        FlierConfig.Font font = new FlierConfig.Font();
+        AzureFlierConfig.Font font = new AzureFlierConfig.Font();
         font.title = "bold, sans-serif, large";
         font.body = "regular, sans-serif, medium";
         font.promotionalText = "bold, sans-serif, extra-large";
@@ -303,13 +303,13 @@ public class AzureVisionService {
         config.mood = "energetic"; // You can map this from info.moodLevel
 
         // Content
-        FlierConfig.Content content = new FlierConfig.Content();
+        AzureFlierConfig.Content content = new AzureFlierConfig.Content();
         content.title = info.title;
         content.promotionalText = info.promotionalText;
         config.content = content;
 
         // Additional Design
-        FlierConfig.AdditionalDesign add = new FlierConfig.AdditionalDesign();
+        AzureFlierConfig.AdditionalDesign add = new AzureFlierConfig.AdditionalDesign();
         add.imageEffects = "light filter for warmth";
         add.textEffect = "highlight discount with a box around it";
         config.additionalDesign = add;
