@@ -1,5 +1,5 @@
-// Simplified Rules Engine - Focused on background generation
-// Replaces the complex layoutEngine.js with targeted rules
+// Background Parameters Generator
+// Generates intelligent parameters for AI background generation based on user choices and Azure analysis
 
 /**
  * Generate background generation parameters based on user choices and Azure colors
@@ -7,7 +7,7 @@
  * @returns {Object} Parameters for AI background generation
  */
 export function generateBackgroundParameters(flierData) {
-  console.log("🎨 Simple Rules Engine: Processing flier data for background generation");
+  console.log("🎨 Background Parameters Generator: Processing flier data for background generation");
   
   const params = {
     // Core user choices
@@ -29,9 +29,6 @@ export function generateBackgroundParameters(flierData) {
     backgroundStyle: '',
     contrastRequirements: '',
     
-    // Database search criteria (for future)
-    searchTags: [],
-    
     // Generation settings
     generateMultiple: 3, // Always generate 3 options
     includePatterns: true,
@@ -40,26 +37,20 @@ export function generateBackgroundParameters(flierData) {
   
   // Apply business type rules
   params.moodKeywords.push(...getBusinessMoodKeywords(params.businessType));
-  params.searchTags.push(params.businessType);
   
   // Apply audience rules  
   params.moodKeywords.push(...getAudienceMoodKeywords(params.targetAudience));
-  params.searchTags.push(params.targetAudience);
   
   // Apply color scheme rules
   const colorRules = getColorSchemeRules(params.colorScheme);
   params.moodKeywords.push(...colorRules.mood);
   params.backgroundStyle = colorRules.style;
-  params.searchTags.push(params.colorScheme);
   
   // Generate intelligent color palette (prioritize Azure colors)
   params.colorPalette = generateIntelligentPalette(flierData);
   
   // Set contrast requirements
   params.contrastRequirements = generateContrastRequirements(params.colorPalette);
-  
-  // Generate search tags for future database lookup
-  params.searchTags = [...new Set(params.searchTags)]; // Remove duplicates
   
   console.log("✅ Generated background parameters:", params);
   return params;
@@ -111,23 +102,19 @@ function getColorSchemeRules(colorScheme) {
   const schemeRules = {
     warm: {
       mood: ['cozy', 'inviting', 'energetic'],
-      style: 'warm gradients with earth tones',
-      baseColors: ['#FF6B35', '#F7931E', '#FFD23F', '#EE4B2B']
+      style: 'warm gradients with earth tones'
     },
     cool: {
       mood: ['calm', 'professional', 'modern'],
-      style: 'cool gradients with blue and teal tones',
-      baseColors: ['#4A90E2', '#00BCD4', '#3F51B5', '#1976D2']
+      style: 'cool gradients with blue and teal tones'
     },
     neutral: {
       mood: ['balanced', 'sophisticated', 'timeless'],
-      style: 'neutral gradients with gray and beige tones',
-      baseColors: ['#607D8B', '#9E9E9E', '#795548', '#5D4037']
+      style: 'neutral gradients with gray and beige tones'
     },
     vibrant: {
       mood: ['bold', 'exciting', 'dynamic'],
-      style: 'vibrant gradients with bright colors',
-      baseColors: ['#E91E63', '#9C27B0', '#FF5722', '#FF9800']
+      style: 'vibrant gradients with bright colors'
     }
   };
   
@@ -203,70 +190,4 @@ function isLightColor(color) {
   // Calculate relative luminance
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
   return brightness > 128;
-}
-
-/**
- * Create prompt for AI background generation
- */
-export function createAIPrompt(params) {
-  const moodText = params.moodKeywords.slice(0, 5).join(', ');
-  const businessContext = `${params.businessType} business targeting ${params.targetAudience}`;
-  
-  return {
-    system: "You are an expert graphic designer creating professional flyer backgrounds. Generate CSS gradients and patterns that ensure text readability.",
-    
-    user: `Create 3 distinct background variations for a ${businessContext}.
-    
-    Style: ${params.backgroundStyle}
-    Mood: ${moodText}
-    Color Palette: ${JSON.stringify(params.colorPalette)}
-    
-    Requirements:
-    1. Ensure high contrast for text readability
-    2. Use provided color palette as inspiration
-    3. Create CSS gradients/patterns (no external images)
-    4. Include recommended text colors
-    
-    Return JSON array with 3 options:
-    [
-      {
-        "name": "Style Name",
-        "backgroundCSS": "linear-gradient(...)",
-        "textColor": "#hexcode",
-        "accentColor": "#hexcode", 
-        "description": "Brief description"
-      }
-    ]`
-  };
-}
-
-/**
- * Database search criteria generator (for future implementation)
- */
-export function generateDatabaseSearchCriteria(params) {
-  return {
-    business_type: params.businessType,
-    target_audience: params.targetAudience,
-    color_scheme: params.colorScheme,
-    style_preference: params.stylePreference,
-    primary_color_range: getColorRange(params.colorPalette.primary),
-    search_tags: params.searchTags,
-    
-    // For fuzzy matching
-    similarity_threshold: 0.8,
-    color_tolerance: 30 // RGB color difference tolerance
-  };
-}
-
-/**
- * Helper to get color range for database searching
- */
-function getColorRange(hexColor) {
-  // Convert to HSL and create range for similar colors
-  // This would be used for finding similar backgrounds in database
-  return {
-    center: hexColor,
-    tolerance: 30,
-    // Future: implement actual color similarity matching
-  };
 } 

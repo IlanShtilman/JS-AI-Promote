@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockIcon from '@mui/icons-material/Lock';
@@ -31,7 +32,7 @@ import { assembleSummaryInfo, validateFormData, getUIText, generateDefaultColors
 import AIInfoCollectionConfig from './AIInfoCollectionConfig';
 import './AIInfoCollection.css';
 
-const AIInfoCollection = ({ language, onSubmit, initialData }) => {
+const AIInfoCollection = ({ language, onSubmit, onBack, initialData }) => {
   
   // ================================
   // 1. STATE INITIALIZATION
@@ -46,6 +47,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   // 2. UI SETUP (Based on language prop)
   // ================================
   const uiText = getUIText(language);
+  const isRTL = language === 'Hebrew';
 
   // ================================
   // 3. EVENT HANDLERS (Functions that respond to user actions)
@@ -184,7 +186,7 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
   // ================================
   
   return (
-    <Container maxWidth="md" className="aiinfo-collection-container">
+    <Container maxWidth="md" className="aiinfo-collection-container" dir={isRTL ? 'rtl' : 'ltr'}>
       <Dialog
         open={enhancedUploadOpen}
         onClose={handleEnhancedUploadClose}
@@ -390,11 +392,23 @@ const AIInfoCollection = ({ language, onSubmit, initialData }) => {
 
             <Box className="aiinfo-submit-box">
               <Button
+                variant="outlined"
+                size="large"
+                onClick={onBack}
+                startIcon={!isRTL ? <ArrowBackIcon /> : null}
+                endIcon={isRTL ? <ArrowBackIcon /> : null}
+                className="aiinfo-back-button"
+                sx={{ mr: isRTL ? 0 : 2, ml: isRTL ? 2 : 0 }}
+              >
+                {uiText.backButton}
+              </Button>
+              <Button
                 variant="contained"
                 size="large"
                 onClick={handleSubmit}
                 disabled={isAnalyzing}
-                startIcon={isAnalyzing ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
+                startIcon={(!isRTL && !isAnalyzing) ? <ArrowForwardIcon /> : (isAnalyzing ? <CircularProgress size={20} color="inherit" /> : null)}
+                endIcon={(isRTL && !isAnalyzing) ? <ArrowForwardIcon /> : null}
                 className="aiinfo-submit-button"
               >
                 {isAnalyzing ? uiText.analyzingImages : uiText.continueButton}

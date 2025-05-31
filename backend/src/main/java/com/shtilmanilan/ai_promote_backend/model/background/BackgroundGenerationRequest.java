@@ -1,8 +1,22 @@
-package com.shtilmanilan.ai_promote_backend.model;
+package com.shtilmanilan.ai_promote_backend.model.background;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Background Generation Request Model
+ * 
+ * Encapsulates all the information needed to generate appropriate backgrounds
+ * for a business flyer. Used by both CSS and image generation services.
+ * 
+ * Features:
+ * - Business context fields
+ * - User's actual flyer content
+ * - Azure Vision color analysis results
+ * - Style preferences and requirements
+ * 
+ * @author AI-Promote Team
+ */
 public class BackgroundGenerationRequest {
     
     private String businessType;

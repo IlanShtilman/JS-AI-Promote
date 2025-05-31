@@ -1,9 +1,9 @@
-package com.shtilmanilan.ai_promote_backend.controller;
+package com.shtilmanilan.ai_promote_backend.controller.background;
 
-import com.shtilmanilan.ai_promote_backend.model.BackgroundGenerationRequest;
-import com.shtilmanilan.ai_promote_backend.model.BackgroundOption;
-import com.shtilmanilan.ai_promote_backend.service.BackgroundGenerationService;
-import com.shtilmanilan.ai_promote_backend.service.ImagenBackgroundService;
+import com.shtilmanilan.ai_promote_backend.model.background.BackgroundGenerationRequest;
+import com.shtilmanilan.ai_promote_backend.model.background.BackgroundOption;
+import com.shtilmanilan.ai_promote_backend.service.background.BackgroundGenerationService;
+import com.shtilmanilan.ai_promote_backend.service.background.ImagenBackgroundService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -19,6 +19,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * Background Generation Controller
+ * 
+ * Handles both CSS-based and AI image-based background generation for flyers.
+ * Provides endpoints for generating backgrounds using different AI services.
+ * 
+ * Services Available:
+ * - CSS Generation: Fast, cheap gradients via Gemini/OpenAI ($0.002)
+ * - Image Generation: Professional images via Imagen 3.0 ($0.12)
+ * 
+ * @author AI-Promote Team
+ */
 @RestController
 @RequestMapping("/api/backgrounds")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -34,7 +46,9 @@ public class BackgroundController {
     private String backgroundImagesPath;
 
     /**
-     * Generate 3 CSS-based background options (Original AI method)
+     * Generate 3 CSS-based background options (Fast & Cheap)
+     * Uses Gemini/OpenAI to create CSS gradients and patterns
+     * Cost: ~$0.002 per generation
      */
     @PostMapping("/generate")
     public ResponseEntity<List<BackgroundOption>> generateBackgrounds(
@@ -60,7 +74,9 @@ public class BackgroundController {
     }
 
     /**
-     * Generate 3 actual background images using Google Imagen 3.0
+     * Generate 3 actual background images using Google Imagen 3.0 (Premium Quality)
+     * Creates real PNG images with advanced AI analysis
+     * Cost: ~$0.12 per generation (3 images)
      */
     @PostMapping("/generate-images")
     public ResponseEntity<List<BackgroundOption>> generateBackgroundImages(
@@ -138,7 +154,7 @@ public class BackgroundController {
     }
 
     /**
-     * Serve generated background images
+     * Serve generated background images as HTTP resources
      */
     @GetMapping("/images/{filename}")
     public ResponseEntity<Resource> getBackgroundImage(@PathVariable String filename) {

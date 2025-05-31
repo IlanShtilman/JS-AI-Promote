@@ -123,7 +123,12 @@ const StageUserInfo = ({
   // Generate button handler with validation
   const handleGenerateClick = () => {
     if (!title.trim()) {
-      setError('Please enter a title');
+      setError(language === 'Hebrew' ? 'אנא הזן כותרת' : 'Please enter a title');
+      return;
+    }
+
+    if (!promotionalText.trim()) {
+      setError(language === 'Hebrew' ? 'אנא הזן טקסט פרסומי' : 'Please enter promotional text');
       return;
     }
 
