@@ -10,37 +10,22 @@ import ContentTab from './tabs/ContentTab';
 import StyleTab from './tabs/StyleTab';
 import FlierPreview from './preview/FlierPreview';
 
-// Pattern templates for background patterns
-const patternTemplates = {
-  dots: {
-    pattern: 'radial-gradient(#0002 1px, transparent 1px)',
-    size: '12px 12px'
-  },
-  grid: {
-    pattern: 'linear-gradient(#0001 1px, transparent 1px), linear-gradient(90deg, #0001 1px, transparent 1px)',
-    size: '20px 20px'
-  },
-  diagonal: {
-    pattern: 'repeating-linear-gradient(45deg, #0001 0, #0001 1px, transparent 0, transparent 8px)',
-    size: '12px 12px'
-  },
-  lines: {
-    pattern: 'linear-gradient(45deg, #0001 1px, transparent 1px)',
-    size: '10px 10px'
-  },
-  circles: {
-    pattern: 'radial-gradient(circle, #0002 2px, transparent 2px)',
-    size: '20px 20px'
-  }
-};
+// Import configuration files
+import { patternTemplates } from './config/patternTemplates';
+import { getLanguageConfig, detectLanguageFromText } from './config/languageConfig';
+import { DEFAULT_STYLE_OPTIONS, getLanguageAwareDefaultStyles } from './config/defaultStyles';
 
 const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
   console.log("🎨 AIFlier received backgroundOptions:", backgroundOptions);
   
+  // Detect language from content
+  const detectedLanguage = detectLanguageFromText(flyerContent?.title || flyerContent?.promotionalText);
+  const languageConfig = getLanguageConfig(detectedLanguage);
+  
   // ✅ PROCESS RAW BACKEND OPTIONS INTO COMPLETE STYLE OPTIONS
   const processBackgroundOptions = (rawOptions) => {
     if (!rawOptions || rawOptions.length === 0) {
-      return getDefaultStyleOptions();
+      return getLanguageAwareDefaultStyles(detectedLanguage);
     }
     
     return rawOptions.map((option, index) => {
@@ -63,14 +48,14 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
         // Bold modern fonts  
         letterSpacing = '-0.03em';
         lineHeight = 1.0;
-        textAlign = 'right';
+        textAlign = languageConfig.layout.textAlign;
         titleWeight = 900;
         bodyWeight = 600;
       } else {
         // Clean professional fonts (Roboto, Arial)
         letterSpacing = '-0.02em';
         lineHeight = 1.1;
-        textAlign = 'right';
+        textAlign = languageConfig.layout.textAlign;
         titleWeight = 800;
         bodyWeight = 400;
       }
@@ -135,7 +120,7 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
     qrUrl: flyerContent?.qrUrl || "https://example.com",
     logo: flyerContent?.logo || null,
     image: flyerContent?.image || null,
-    qrInstructions: flyerContent?.qrInstructions || 'scan the QR code\nfill in the form\nget the discount',
+    qrInstructions: flyerContent?.qrInstructions || languageConfig.content.qrInstructions,
     flierPhoto: null
   });
   
@@ -310,7 +295,6 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
       fontFamily: 'San Francisco, Arial, Helvetica Neue, Helvetica, sans-serif',
       backgroundImage: "linear-gradient(120deg, #F7F7F7 0%, #FF3B30 25%, #FF9500 50%, #007AFF 75%, #34AADC 100%), url('data:image/svg+xml;utf8,<svg width=\"100%25\" height=\"100%25\" xmlns=\"http://www.w3.org/2000/svg\"><ellipse cx=\"80\" cy=\"220\" rx=\"60\" ry=\"30\" fill=\"%23FF3B30\" fill-opacity=\"0.07\"/><ellipse cx=\"350\" cy=\"80\" rx=\"80\" ry=\"40\" fill=\"%23007AFF\" fill-opacity=\"0.04\"/><ellipse cx=\"200\" cy=\"300\" rx=\"50\" ry=\"20\" fill=\"%23FFD3E0\" fill-opacity=\"0.08\"/></svg>')"
     },
-    // Add other presets as needed...
   };
 
   const handleFavoritePresetChange = (event) => {
@@ -458,75 +442,6 @@ const AIFlier = ({ backgroundOptions = [], flyerContent }) => {
       default:
         return null;
     }
-  };
-
-  // ✅ DEFAULT STYLE OPTIONS with variety when no AI backgrounds available
-  const getDefaultStyleOptions = () => {
-    return [
-      {
-        // Style 1: Professional Clean
-        name: "Professional Clean",
-        styleName: "Professional Clean",
-        backgroundColor: '#ffffff',
-        backgroundImage: 'none',
-        backgroundCSS: '#ffffff',
-        textColor: '#333333',
-        accentColor: '#1976d2',
-        fontFamily: 'Roboto, sans-serif',
-        fontSize: 2.8,
-        bodyFontSize: 1.3,
-        letterSpacing: '-0.02em',
-        lineHeight: 1.1,
-        textAlign: 'right',
-        titleWeight: 800,
-        bodyWeight: 400,
-        pattern: 'none',
-        description: 'Clean professional style with high readability',
-        source: 'default'
-      },
-      {
-        // Style 2: Elegant Sophisticated  
-        name: "Elegant Sophisticated",
-        styleName: "Elegant Sophisticated",
-        backgroundColor: '#f8f9fa',
-        backgroundImage: 'none',
-        backgroundCSS: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-        textColor: '#2c2c2c',
-        accentColor: '#8b4513',
-        fontFamily: 'Georgia, serif',
-        fontSize: 2.6,
-        bodyFontSize: 1.2,
-        letterSpacing: '0.01em',
-        lineHeight: 1.2,
-        textAlign: 'center',
-        titleWeight: 700,
-        bodyWeight: 400,
-        pattern: 'none',
-        description: 'Elegant serif style with sophisticated appeal',
-        source: 'default'
-      },
-      {
-        // Style 3: Bold Modern
-        name: "Bold Modern",
-        styleName: "Bold Modern", 
-        backgroundColor: '#1976d2',
-        backgroundImage: 'none',
-        backgroundCSS: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-        textColor: '#ffffff',
-        accentColor: '#ff6b35',
-        fontFamily: 'Montserrat, sans-serif',
-        fontSize: 3.0,
-        bodyFontSize: 1.4,
-        letterSpacing: '-0.03em',
-        lineHeight: 1.0,
-        textAlign: 'right',
-        titleWeight: 900,
-        bodyWeight: 600,
-        pattern: 'none',
-        description: 'Bold energetic style with high impact',
-        source: 'default'
-      }
-    ];
   };
 
   return (

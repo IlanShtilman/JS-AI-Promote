@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { QRCodeSVG } from 'qrcode.react';
+import { getLanguageConfig, detectLanguageFromText } from '../config/languageConfig';
 
 // Helper function to detect RTL (Hebrew/Arabic) or LTR (default)
 function getDirection(text) {
@@ -27,6 +28,11 @@ const FlierPreview = ({
   fontFamily,
   // Text overlays are always enabled
 }) => {
+  
+  // Get language configuration based on content
+  const detectedLanguage = detectLanguageFromText(flierContent?.title || flierContent?.promotionalText);
+  const languageConfig = getLanguageConfig(detectedLanguage);
+  const { flierLayout, content } = languageConfig;
   
   // Helper function to get smart background colors from the color palette
   const getSmartBackgroundColor = (elementType) => {
@@ -151,16 +157,15 @@ const FlierPreview = ({
         />
       ) : null}
 
-      {/* Flier photo at bottom left corner */}
+      {/* Flier photo - position based on language config */}
       {flierContent.flierPhoto && showFlierPhoto && (
         <Box
           sx={{
             position: 'absolute',
-            left: 70,
-            bottom: '12%',
+            ...flierLayout.flierPhoto.position,
             zIndex: 2,
-            maxWidth: 300,
-            maxHeight: 300,
+            maxWidth: flierLayout.flierPhoto.maxWidth,
+            maxHeight: flierLayout.flierPhoto.maxHeight,
             borderRadius: 8,
             boxShadow: '0 8px 24px rgba(0,0,0,0.22)',
             overflow: 'hidden',
@@ -171,7 +176,7 @@ const FlierPreview = ({
           <img
             src={flierContent.flierPhoto}
             alt="Flier Photo"
-            style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 300 }}
+            style={{ width: '100%', height: 'auto', display: 'block', maxHeight: flierLayout.flierPhoto.maxHeight }}
           />
         </Box>
       )}
@@ -188,77 +193,83 @@ const FlierPreview = ({
         pointerEvents: 'none' // Allow clicks to pass through
       }} />
 
-      {/* Main grid layout for flier with RTL support */}
+      {/* Main grid layout for flier with language-aware configuration */}
       <Box className="flier-main-grid flier-content-rtl" sx={{
         position: 'relative',
         zIndex: 2, // Above the overlay
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' },
-        gridTemplateRows: 'auto 1fr auto auto',
+        gridTemplateColumns: flierLayout.mainGrid.gridTemplateColumns,
+        gridTemplateRows: flierLayout.mainGrid.gridTemplateRows,
         height: '100%',
         gap: 2,
         padding: 2,
         overflow: 'hidden',
-        opacity: 1 // Keep original content visible
+        opacity: 1, // Keep original content visible
+        direction: flierLayout.mainGrid.direction
       }}>
-        {/* Logo at top left */}
+        {/* Logo - position based on language config */}
         <Box sx={{
           position: 'absolute',
-          top: 15,
-          left: 30,
+          ...flierLayout.logo.position,
           zIndex: 3,
           display: 'flex',
-          justifyContent: 'flex-start',
+          justifyContent: flierLayout.logo.justifyContent,
           alignItems: 'center'
         }}>
           {flierContent.logo && (
-            <img src={flierContent.logo} alt="Logo" className="ai-flier-logo" style={{ maxHeight: 100, maxWidth: 200 }} />
+            <img 
+              src={flierContent.logo} 
+              alt="Logo" 
+              className="ai-flier-logo" 
+              style={{ 
+                maxHeight: flierLayout.logo.maxHeight, 
+                maxWidth: flierLayout.logo.maxWidth 
+              }} 
+            />
           )}
         </Box>
         
-        {/* Phone image top-middle right */}
+        {/* Phone image - position and transform based on language config */}
         <Box sx={{
-          gridColumn: '2',
-          gridRow: '1 / span 3',
+          gridColumn: flierLayout.phone.gridColumn,
+          gridRow: flierLayout.phone.gridRow,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
           position: 'relative',
           zIndex: 2,
-          transform: 'translateX(35px)',
-          width: '120%',
+          transform: flierLayout.phone.transform,
+          width: flierLayout.phone.width,
           overflow: 'visible'
         }}>
           <img 
             src="/assets/Phone-APP.png" 
             alt="MyBenefitz App" 
             style={{ 
-              maxWidth: '520px', 
-              width: '120%',
+              maxWidth: flierLayout.phone.maxWidth, 
+              width: flierLayout.phone.width,
               height: 'auto',
-              transform: 'rotate(-12deg) scale(1.5)',
               filter: 'drop-shadow(0px 15px 20px rgba(0,0,0,0.25))'
             }} 
           />
         </Box>
         
-        {/* Left column - Title, Text, myBenefitz */}
+        {/* Content column - configuration based on language */}
         <Box sx={{
-          gridColumn: '1',
-          gridRow: '1 / span 3',
+          gridColumn: flierLayout.contentColumn.gridColumn,
+          gridRow: flierLayout.contentColumn.gridRow,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-start',
-          pr: { xs: 2, md: 3 },
-          pl: { xs: 2, md: 1 },
+          alignItems: flierLayout.contentColumn.alignItems,
+          ...flierLayout.contentColumn.padding,
           overflow: 'hidden',
           mt: 5
         }}>
           <Box sx={{ 
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'flex-end',
+            alignItems: flierLayout.contentColumn.innerBox.alignItems,
             width: '100%',
             mt: 0,
             overflow: 'hidden'
@@ -267,45 +278,42 @@ const FlierPreview = ({
               color: selectedStyle?.textColor || '#333333',
               fontWeight: selectedStyle.titleWeight || 800,
               mb: 1.5,
-              fontSize: `${fontSize}rem`, // Use state value from slider
+              fontSize: `${fontSize}rem`,
               letterSpacing: selectedStyle.letterSpacing || '-0.5px',
               lineHeight: selectedStyle.lineHeight || 1.1,
-              textAlign: selectedStyle.textAlign || 'right',
+              textAlign: flierLayout.contentColumn.textAlign,
               fontFamily: fontFamily,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               width: '100%',
-              // Remove individual background box - use global overlay instead
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
             }}>
               {flierContent.title}
             </Typography>
             <Typography variant="body1" className="ai-flier-promo-text" sx={{ 
               color: selectedStyle?.textColor || '#333333',
-              fontSize: `${bodyFontSize}rem`, // Use state value from slider
+              fontSize: `${bodyFontSize}rem`,
               fontWeight: selectedStyle.bodyWeight || 500,
               mb: 2,
               lineHeight: selectedStyle.lineHeight || 1.5,
               letterSpacing: selectedStyle.letterSpacing || 'normal',
-              textAlign: selectedStyle.textAlign || 'right',
+              textAlign: flierLayout.contentColumn.textAlign,
               fontFamily: fontFamily,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               width: '100%',
-              // Remove individual background box - use global overlay instead
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
             }}>
               {flierContent.promotionalText}
             </Typography>
           </Box>
           
-          {/* MyBenefitz section */}
+          {/* MyBenefitz section - text alignment based on language config */}
           <Box sx={{ 
-            textAlign: 'right', 
-            width: '100%',
+            textAlign: flierLayout.myBenefitz.textAlign,
+            width: flierLayout.myBenefitz.width,
             mt: 1,
             mb: 2,
-            // Remove individual background box - use global overlay instead
           }}>
             <Typography variant="body2" sx={{ 
               color: selectedStyle?.textColor || '#333333',
@@ -314,9 +322,9 @@ const FlierPreview = ({
               fontSize: '1.2rem',
               lineHeight: 1.2,
               mb: 0.2,
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
             }}>
-              באפליקציה השכונתית
+              {content.appDescription}
             </Typography>
             <Typography variant="h5" sx={{ 
               color: selectedStyle?.accentColor || '#00b2c8', 
@@ -327,7 +335,7 @@ const FlierPreview = ({
               lineHeight: 1.2,
               mb: 0.2
             }}>
-              myBenefitz
+              {content.appName}
             </Typography>
             <Typography variant="caption" sx={{ 
               color: selectedStyle?.textColor || '#333333',
@@ -335,25 +343,23 @@ const FlierPreview = ({
               fontSize: '1.2rem',
               lineHeight: 1.1,
               display: 'block',
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' // Add text shadow for readability
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
             }}>
-              תומכת בעסקים הקטנים השכונתיים
+              {content.appTagline}
             </Typography>
           </Box>
         </Box>
         
-        {/* QR Code section */}
+        {/* QR Code section - position based on language config */}
         <Box sx={{
-          gridColumn: '1',
-          gridRow: '3',
+          gridColumn: flierLayout.qrCode.gridColumn,
+          gridRow: flierLayout.qrCode.gridRow,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start',
+          alignItems: flierLayout.qrCode.alignItems,
+          justifyContent: flierLayout.qrCode.justifyContent,
           width: '100%',
-          mt: 2,
-          mb: 1,
-          ml: 2
+          ...flierLayout.qrCode.margin
         }}>
           <Box sx={{
             display: 'flex',
@@ -376,7 +382,7 @@ const FlierPreview = ({
               level={"L"}
               includeMargin={false}
             />
-            {/* QR instructions from content */}
+            {/* QR instructions from language config */}
             {flierContent.qrInstructions.split('\n').map((line, idx) => (
               <Typography key={idx} variant="subtitle2" sx={{ 
                 color: selectedStyle?.accentColor || getSmartBackgroundColor('qr').textColor,
