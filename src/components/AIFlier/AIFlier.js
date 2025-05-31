@@ -4,11 +4,11 @@ import html2canvas from 'html2canvas';
 import './AIFlier.css';
 
 // Import our new components
-import TabNavigation from './TabNavigation';
-import BackgroundTab from './BackgroundTab';
-import ContentTab from './ContentTab';
-import StyleTab from './StyleTab';
-import FlierPreview from './FlierPreview';
+import TabNavigation from './tabs/TabNavigation';
+import BackgroundTab from './tabs/BackgroundTab';
+import ContentTab from './tabs/ContentTab';
+import StyleTab from './tabs/StyleTab';
+import FlierPreview from './preview/FlierPreview';
 
 // Pattern templates for background patterns
 const patternTemplates = {
