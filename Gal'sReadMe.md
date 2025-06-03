@@ -2,10 +2,10 @@
 🖥️ Frontend Setup
 Navigate to the frontend directory:
 
+```
 bash
-Copy
-Edit
 cd js-ai-promote
+```
 Install dependencies:
 
 bash
