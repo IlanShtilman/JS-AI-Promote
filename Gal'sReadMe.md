@@ -1,0 +1,78 @@
+
+🖥️ Frontend Setup
+Navigate to the frontend directory:
+
+bash
+Copy
+Edit
+cd js-ai-promote
+Install dependencies:
+
+bash
+Copy
+Edit
+npm install
+Create a .env file in the root of the frontend folder with the following values:
+
+env
+Copy
+Edit
+REACT_APP_CLOUDINARY_CLOUD_NAME=dy6oi9e4b
+REACT_APP_CLOUDINARY_API_KEY=134728936585759
+REACT_APP_CLOUDINARY_UPLOAD_PRESET=my_benefitz_upload
+CLOUDINARY_URL=cloudinary://134728936585759:u7yf27vsQ226INa7CgZHtnpItSM@dy6oi9e4b
+
+REACT_APP_ELEVENLABS_API_KEY=sk_21f56b42366e0b4bf781b6f981572f1356ce83206e1b2831
+REACT_APP_GOOGLE_CLIENT_ID=1077898531854-psik7b5h8sgjc67rd47ik7aeirklen9m.apps.googleusercontent.com
+REACT_APP_HUGGING_FACE_API_KEY=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
+REACT_APP_IMAGEN_API_KEY=vk-S3f9D7x4rFLV7wImpDIB6FMSOaqo56JFg3NkesC2u2JM6xv
+Run the frontend:
+
+bash
+Copy
+Edit
+npm start
+🔙 Backend Setup
+Navigate to the backend directory.
+
+Create a .env file in the root of the backend with the following content:
+
+env
+Copy
+Edit
+AZURE_VISION_ENDPOINT=https://eastasia.api.cognitive.microsoft.com/
+AZURE_VISION_KEY=CKsCc3zHgrzuu4PYEtsnVM3zH12maXVvnBqaMQCN9RwD59FY3TfGJQQJ99BDAC3pKaRXJ3w3AAAFACOGmcXY
+
+GROQ_API_KEY=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
+CLAUDE_API_KEY=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
+GEMINI_API_KEY=AIzaSyAkNUz6ay17EbVoKfngcghG9ijY0z7uUM4
+OPENAI_API_KEY=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
+OPENROUTER_API_KEY=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
+GPT4_API_KEY=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
+Create a file application.properties inside backend/src/main/resources with the following content:
+
+properties
+Copy
+Edit
+# Server Configuration
+server.port=8081
+
+# Azure Vision Configuration
+azure.vision.endpoint=https://eastasia.api.cognitive.microsoft.com/
+azure.vision.key=CKsCc3zHgrzuu4PYEtsnVM3zH12maXVvnBqaMQCN9RwD59FY3TfGJQQJ99BDAC3pKaRXJ3w3AAAFACOGmcXY
+
+# API Keys
+groq.api.key=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
+claude.api.key=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
+gemini.api.key=AIzaSyAkNUz6ay17EbVoKfngcghG9ijY0z7uUM4
+openai.api.key=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
+
+# Image Enhancement API Configuration
+claidAi.api.key=4bde0a1bf5dd4c3db4fef0b9ed295ff0
+claidAi.api.url=https://api.claid.ai/v1-beta1/image/edit
+Run the backend (using Maven):
+
+bash
+Copy
+Edit
+./mvnw spring-boot:run
