@@ -1,20 +1,20 @@
 
-Frontend Setup
+### **Frontend Setup**
 
 Navigate to the frontend directory:
 
-bash
-```
+
+```bash
 cd js-ai-promote
 ```
 Install dependencies:
 
-bash
-``
-npm install
-``
 
-Create a .env file in the root of the JS folder with the following values:
+```bash
+npm install
+```
+
+Create a `.env` file in the root of the JS folder with the following values:
 
 env
 ```
@@ -31,14 +31,14 @@ REACT_APP_IMAGEN_API_KEY=vk-S3f9D7x4rFLV7wImpDIB6FMSOaqo56JFg3NkesC2u2JM6xv
 
 Run the frontend:
 
-bash
-```
+
+```bash
 npm start
 ```
 
 ### **Backend Setup**
 Navigate to the backend directory.
-Create a .env file in the root of the backend with the following content:
+Create a `.env` file in the root of the backend with the following content:
 
 env
 ```
@@ -52,7 +52,7 @@ OPENAI_API_KEY=sk-proj-c2uDBXU9TkA26lK4xMxmHdgeo9PXy1T4f97WB6dQ6xSkIhw_1otTAi6Bx
 OPENROUTER_API_KEY=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
 GPT4_API_KEY=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
 ```
-Create a file application.properties inside backend/src/main/resources with the following content:
+Create a file `application.properties` inside backend/src/main/resources with the following content:
 
 properties
 ```
@@ -76,7 +76,7 @@ claidAi.api.url=https://api.claid.ai/v1-beta1/image/edit
 ```
 Run the backend (using Maven):
 
-bash
-```
+
+```bash
 ./mvnw spring-boot:run
 ```
