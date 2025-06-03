@@ -87,25 +87,55 @@ The application features a sophisticated dual-approach background generation sys
 
 ## 🚀 **Getting Started**
 
-### **Prerequisites**:
-- Node.js (v16+)
-- Java 17+
-- Maven or Maven Wrapper
+### **📋 System Requirements**:
+- **Node.js**: 18.20.4 (specified in `.nvmrc`)
+- **npm**: 8.0.0 or higher
+- **Java**: 17+ (for backend)
+- **Operating System**: Windows 10/11, macOS, or Linux
 
-### **Backend Setup**:
+### **🔧 Installation Steps**:
+
+#### **Step 1: Clone the Repository**
+```bash
+git clone <repository-url>
+cd JS-AI-PROMOTE
+```
+
+#### **Step 2: Install Node.js (Recommended Method)**
+```bash
+# Using Node Version Manager (nvm) - RECOMMENDED
+# Windows: Install nvm-windows first
+nvm install 18.20.4
+nvm use 18.20.4
+
+# Verify installation
+node --version  # Should show v18.20.4
+npm --version   # Should show 8.0.0+
+```
+
+#### **Step 3: Install Frontend Dependencies**
+```bash
+# Install exact versions from package-lock.json
+npm ci
+
+# Verify installation success
+npm list --depth=0
+```
+
+#### **Step 4: Backend Setup**
 ```bash
 cd backend
+./mvnw clean install
 ./mvnw spring-boot:run
 ```
 
-### **Frontend Setup**:
+#### **Step 5: Start Frontend**
 ```bash
-cd frontend  # (if you have a separate frontend directory)
-npm install
+# Open new terminal, navigate to project root
 npm start
 ```
 
-### **Environment Configuration**:
+### **🔒 Environment Configuration**:
 Create `backend/.env` with your API keys:
 ```bash
 # AI Text Generation
@@ -118,9 +148,51 @@ GROQ_API_KEY=your_groq_key
 AZURE_VISION_API_KEY=your_azure_key
 AZURE_VISION_ENDPOINT=your_azure_endpoint
 
-# File Storage
-BACKGROUND_IMAGES_PATH=C:/Users/ishti/JS-AI-PROMOTE/generated-backgrounds
+# File Storage (Update path as needed)
+BACKGROUND_IMAGES_PATH=./generated-backgrounds
 ```
+
+### **✅ Verification Checklist**:
+- [ ] Node.js version is exactly 18.20.4: `node --version`
+- [ ] npm version is 8.0.0+: `npm --version`
+- [ ] All dependencies installed without errors: `npm ci`
+- [ ] Backend starts without errors: `./mvnw spring-boot:run`
+- [ ] Frontend accessible at http://localhost:3000
+- [ ] No console errors in browser developer tools
+
+### **🆘 Troubleshooting**:
+
+#### **Common Issues & Solutions**:
+
+1. **Node.js Version Mismatch**:
+   ```bash
+   # Use nvm to switch versions
+   nvm use 18.20.4
+   ```
+
+2. **Dependencies Installation Fails**:
+   ```bash
+   # Clear npm cache and reinstall
+   npm cache clean --force
+   rm -rf node_modules
+   npm ci
+   ```
+
+3. **Port Already in Use**:
+   ```bash
+   # Kill process on port 3000
+   npx kill-port 3000
+   # Or run on different port
+   PORT=3001 npm start
+   ```
+
+4. **Backend Won't Start**:
+   ```bash
+   # Check Java version
+   java --version
+   # Clean and rebuild
+   ./mvnw clean install
+   ```
 
 ## 🌟 **Key Features**
 
