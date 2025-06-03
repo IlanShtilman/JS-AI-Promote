@@ -39,7 +39,6 @@ const EnhanceBackendCall = async (imageUrl) => {
 
         // Log response headers for debugging
         const configHash = response.headers.get('X-Config-Hash');
-        console.log(`[Request ${requestId}] Received response with config hash:`, configHash);
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Unknown error occurred' }));
@@ -62,7 +61,6 @@ const EnhanceBackendCall = async (imageUrl) => {
             };
         }
 
-        console.log(`[Request ${requestId}] Successfully enhanced image with config hash:`, configHash);
         return { 
             data: { 
                 enhancedUrl: data.enhancedImageUrl,

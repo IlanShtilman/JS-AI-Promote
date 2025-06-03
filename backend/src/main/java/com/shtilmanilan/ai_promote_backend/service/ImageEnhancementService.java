@@ -52,8 +52,6 @@ public class ImageEnhancementService {
         logger.info("\n\n=== ENHANCEMENT REQUEST START ===");
         logger.info("[Request {}] Starting enhancement for image: {}", requestId, imageUrl);
         try {
-            logger.info("\n\nDEBUG: Starting image enhancement process for image: {}\n\n", imageUrl);
-            // Create a more specific prompt for GPT-4 Vision that encourages varied responses
             String imageEnhancementPrompt = String.format(
                 "You are a highly skilled image enhancement AI. Your task is to analyze the provided image URL and generate precise, image-specific enhancement settings.%n%n" +
                 "Image URL: %s%n%n" +
@@ -181,14 +179,13 @@ public class ImageEnhancementService {
                 "Ensure proper JSON formatting with quotes and commas.%n",
                 imageUrl,imageUrl
             );
-            logger.info("[Request {}] Sending prompt to GPT-4 Vision:\n{}", requestId, imageEnhancementPrompt);
+
             // Generate enhancement instructions using GPT-4 Vision with higher temperature for more variation
             TextGenerationRequest requestPromptClaid = new TextGenerationRequest();
             requestPromptClaid.setPrompt(imageEnhancementPrompt);
             requestPromptClaid.setTemperature(0.7); // Increased temperature for more variation
             TextGenerationResponse aiResponse = gpt4Service.generateText(requestPromptClaid);
             String responseText = aiResponse.getGeneratedText();
-            logger.info("[Request {}] Received GPT-4 Vision response:\n{}", requestId, responseText);
             // Validate and clean the response text
             if (responseText == null || responseText.trim().isEmpty()) {
                 logger.error("[Request {}] GPT-4 Vision response was empty", requestId);
@@ -196,7 +193,6 @@ public class ImageEnhancementService {
             }
             // Remove markdown formatting if present
             responseText = responseText.replaceAll("```json\\s*", "").replaceAll("```\\s*$", "").trim();
-            logger.info("[Request {}] Cleaned GPT-4 Vision response:\n{}", requestId, responseText);
             // Parse enhancement configuration from GPT-4 Vision response
             JsonNode enhancementConfig;
             try {
@@ -209,9 +205,6 @@ public class ImageEnhancementService {
             }
             // Generate and log config hash - now including imageUrl
             String configHash = generateConfigHash(imageUrl, enhancementConfig);
-            logger.info("[Request {}] Generated enhancement config hash: {} for image: {}", 
-                requestId, configHash, imageUrl);
-
             // Validate the enhancement configuration structure
             if (!enhancementConfig.has("operations")) {
                 logger.error("[Request {}] Missing operations in config hash: {}", requestId, configHash);
@@ -219,8 +212,6 @@ public class ImageEnhancementService {
             }
             // Get the operations node
             JsonNode operationsConfig = enhancementConfig.get("operations");
-            logger.info("[Request {}] Operations config:\n{}", requestId, 
-                objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(operationsConfig));
             // Validate upscale value
             if (operationsConfig.has("restorations") && 
                 operationsConfig.get("restorations").has("upscale")) {

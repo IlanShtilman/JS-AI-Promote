@@ -117,11 +117,8 @@ const ImageEnhance = ({ onClose, onImageEnhanced }) => {
       setEnhanceError('');
       setImagesLoaded(false);
       setImageLoadError(false);
-      console.log("Uploading to temporary Cloudinary URL: " + uploadedImageUrl);
-
       try {
         const result = await EnhanceBackendCall(uploadedImageUrl);
-        console.log("Backend result:", result);
         if (result?.data?.enhancedUrl) {
           setEnhancedImageUrl(result.data.enhancedUrl);
         } else if (result?.error) {
