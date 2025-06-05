@@ -122,16 +122,18 @@ npm ci
 npm list --depth=0
 ```
 
-#### **Step 4: Backend Setup**
+#### **Step 4: Start Both Servers (One Command)**
 ```bash
-cd backend
-./mvnw clean install
-./mvnw spring-boot:run
+# This starts both frontend and backend automatically
+npm run dev
 ```
 
-#### **Step 5: Start Frontend**
+**Alternative: Manual Setup**
 ```bash
-# Open new terminal, navigate to project root
+# Backend (Terminal 1)
+cd backend && ./mvnw spring-boot:run
+
+# Frontend (Terminal 2) 
 npm start
 ```
 

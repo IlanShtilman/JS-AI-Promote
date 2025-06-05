@@ -20,13 +20,13 @@ function checkPassed(message) {
 // Check Node.js version
 try {
   const nodeVersion = execSync('node --version', { encoding: 'utf8' }).trim();
-  const expectedVersion = 'v18.20.4';
+  const [major] = nodeVersion.replace('v', '').split('.').map(Number);
   
-  if (nodeVersion === expectedVersion) {
-    checkPassed(`Node.js version: ${nodeVersion}`);
+  if (major >= 16) {
+    checkPassed(`Node.js version: ${nodeVersion} (16+ required)`);
   } else {
-    checkFailed(`Node.js version mismatch. Expected: ${expectedVersion}, Found: ${nodeVersion}`);
-    console.log('   💡 Run: nvm use 18.20.4');
+    checkFailed(`Node.js version too old. Found: ${nodeVersion}, Required: v16.0.0+`);
+    console.log('   💡 Please upgrade Node.js to version 16 or higher');
   }
 } catch (error) {
   checkFailed('Node.js not found');

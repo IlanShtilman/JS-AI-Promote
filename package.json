@@ -39,7 +39,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "verify": "node verify-setup.js",
-    "check-deps": "node check-dependencies.js"
+    "check-deps": "node check-dependencies.js",
+    "dev": "concurrently --names \"FRONTEND,BACKEND\" --prefix-colors \"cyan,yellow\" \"npm start\" \"cd backend && mvnw spring-boot:run\""
   },
   "eslintConfig": {
     "extends": [
@@ -58,5 +59,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }
