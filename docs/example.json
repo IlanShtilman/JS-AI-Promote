@@ -1,0 +1,24 @@
+{
+    "logo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLA...", 
+    "title": "באים לפה הרבה?",
+    "promotionalText": "פיצה חמה, גבינה נמסה, טעם שלא תשכחו! הזמינו עכשיו ותיהנו מהפיצה הטובה ביותר בעיר.\nבואו לגלות עוד!",
+    "targetAudience": "families",
+    "businessType": "cafe",
+    "stylePreference": "modern",
+    "colorScheme": "warm",
+    "imagePreference": "upload",
+    "uploadedImage": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA...",
+    "uploadType": "regular",
+    "flierSize": "A4",
+    "orientation": "landscape",
+    "sceneType": "abstract_",
+    "description": "a shelf with books and pictures on it",
+    "detectedObjects": ["person", "book"],
+    "colors": {
+      "primary": "White",
+      "secondary": "White",
+      "accent": "#FFA726",
+      "background": "#FFFFFF",
+      "semanticColors": null
+    }
+  }

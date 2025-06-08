@@ -1,307 +1,63 @@
 # 🚀 AI-Promote: Professional Flyer Builder
 
-AI-Promote is a sophisticated web application that leverages multiple AI services to create professional-quality flyers. The system combines AI text generation, image analysis, and background creation to deliver a seamless user experience.
+AI-Promote is a web application that uses AI to create professional flyers. It combines AI text generation, image analysis, and background creation in one easy-to-use interface.
 
-## 📁 **Project Structure**
+## 📁 Project Structure
 
 ```
 JS-AI-PROMOTE/
-├── frontend/                           # React.js frontend application
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── AIInfoCollection/       # User input collection
-│   │   │   ├── ManualFlierDesigner/    # Manual design interface
-│   │   │   └── FlierPreview/           # Final flyer preview
-│   │   ├── services/
-│   │   │   └── background/             # Background generation
-│   │   └── utils/                      # Utility functions
-│   └── package.json
-├── backend/                            # Spring Boot backend
-│   ├── src/main/java/com/shtilmanilan/ai_promote_backend/
-│   │   ├── controller/
-│   │   │   ├── ai/                     # AI service controllers
-│   │   │   └── background/             # Background generation API
-│   │   ├── service/
-│   │   │   ├── ai/                     # AI text generation services
-│   │   │   └── background/             # Background generation services
-│   │   ├── model/                      # Data models
-│   │   └── config/                     # Configuration
-│   ├── .env                            # Environment variables
-│   └── pom.xml
-├── generated-backgrounds/              # AI-generated background images
-└── README.md                          # This file
+├── frontend/          # React.js frontend
+├── backend/           # Spring Boot backend
+├── docs/             # Documentation and guides
+└── generated-backgrounds/  # AI-generated images
 ```
 
-## 🤖 **AI Services Integration**
+## 🚀 Quick Start
 
-AI-Promote integrates with multiple AI services to provide comprehensive functionality:
+1. **Prerequisites**:
+   - Node.js 18.20.4
+   - Java 17+
+   - npm 8.0.0+
 
-### **Text Generation Services**:
-- **Claude (Anthropic)**: Primary text generation for titles and descriptions
-- **Gemini Pro**: Cost-effective alternative and background CSS generation
-- **OpenAI GPT-4**: Fallback for text generation
-- **Groq**: High-speed text generation option
+2. **Install & Run**:
+   ```bash
+   cd frontend
+   npm ci
+   npm run dev
+   ```
 
-### **Image Generation & Analysis**:
-- **Imagen 3.0**: Professional background image generation via Google AI
-- **Azure Vision API**: Color analysis and image understanding
+3. **Access**:
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:8080
 
-## 🎨 **Background Generation System**
+## 📚 Documentation
 
-The application features a sophisticated dual-approach background generation system:
+- [Quick Start Guide](docs/QUICK-START.md) - Setup and running instructions
+- [Architecture](docs/ARCHITECTURE.md) - Technical architecture details
+- [Project Documentation](docs/PROJECT_DOCUMENTATION.md) - Comprehensive project documentation
 
-### **1. CSS Generation** (Fast & Economical)
-- **Technology**: Gemini Pro / OpenAI GPT-4
-- **Cost**: ~$0.002 per generation
-- **Output**: CSS gradients, patterns, and color schemes
-- **Use Case**: Quick prototypes, budget-conscious designs
+## 🔧 Environment Setup
 
-### **2. AI Image Generation** (Premium Quality)
-- **Technology**: Google Imagen 3.0
-- **Cost**: ~$0.12 per generation
-- **Output**: Professional PNG images (1024x1024)
-- **Features**: 
-  - Real image brightness analysis
-  - Automatic text color optimization
-  - Business-specific visual prompting
-  - Parallel generation for speed
-
-## 🔧 **Technology Stack**
-
-### **Frontend**:
-- **React.js**: Component-based UI framework
-- **JavaScript/CSS**: Modern web technologies
-- **Responsive Design**: Mobile and desktop compatible
-
-### **Backend**:
-- **Spring Boot**: Java-based REST API framework
-- **Maven**: Dependency management
-- **RESTful APIs**: Clean HTTP endpoints
-
-### **AI & Cloud Services**:
-- **Google Gemini Pro**: Text and image generation
-- **OpenAI GPT-4**: Advanced text generation
-- **Claude (Anthropic)**: High-quality text generation
-- **Azure Cognitive Services**: Vision and color analysis
-- **Groq**: Ultra-fast text generation
-
-## 🚀 **Getting Started**
-
-### **📋 System Requirements**:
-- **Node.js**: 18.20.4 (specified in `.nvmrc`)
-- **npm**: 8.0.0 or higher
-- **Java**: 17+ (for backend)
-- **Operating System**: Windows 10/11, macOS, or Linux
-
-### **🔧 Installation Steps**:
-
-#### **Step 1: Clone the Repository**
-```bash
-git clone <repository-url>
-cd JS-AI-PROMOTE
-```
-
-#### **Step 2: Install Node.js (Recommended Method)**
-```bash
-# Using Node Version Manager (nvm) - RECOMMENDED
-# Windows: Install nvm-windows first
-nvm install 18.20.4
-nvm use 18.20.4
-
-# Verify installation
-node --version  # Should show v18.20.4
-npm --version   # Should show 8.0.0+
-```
-
-#### **Step 3: Install Frontend Dependencies**
-```bash
-# Install exact versions from package-lock.json
-npm ci
-
-# Verify installation success
-npm list --depth=0
-```
-
-#### **Step 4: Start Both Servers (One Command)**
-```bash
-# This starts both frontend and backend automatically
-npm run dev
-```
-
-**Alternative: Manual Setup**
-```bash
-# Backend (Terminal 1)
-cd backend && ./mvnw spring-boot:run
-
-# Frontend (Terminal 2) 
-npm start
-```
-
-### **🔒 Environment Configuration**:
 Create `backend/.env` with your API keys:
-```bash
-# AI Text Generation
+```env
 CLAUDE_API_KEY=your_claude_key
 GEMINI_API_KEY=your_gemini_key
 OPENAI_API_KEY=your_openai_key
 GROQ_API_KEY=your_groq_key
-
-# Image Services
 AZURE_VISION_API_KEY=your_azure_key
 AZURE_VISION_ENDPOINT=your_azure_endpoint
-
-# File Storage (Update path as needed)
-BACKGROUND_IMAGES_PATH=./generated-backgrounds
 ```
 
-### **✅ Verification Checklist**:
-- [ ] Node.js version is exactly 18.20.4: `node --version`
-- [ ] npm version is 8.0.0+: `npm --version`
-- [ ] All dependencies installed without errors: `npm ci`
-- [ ] Backend starts without errors: `./mvnw spring-boot:run`
-- [ ] Frontend accessible at http://localhost:3000
-- [ ] No console errors in browser developer tools
+## 🎯 Key Features
 
-### **🆘 Troubleshooting**:
+- AI-powered text generation
+- Professional background creation
+- Smart color analysis
+- Real-time preview
+- Multi-language support (English/Hebrew)
 
-#### **Common Issues & Solutions**:
+## 🆘 Need Help?
 
-1. **Node.js Version Mismatch**:
-   ```bash
-   # Use nvm to switch versions
-   nvm use 18.20.4
-   ```
-
-2. **Dependencies Installation Fails**:
-   ```bash
-   # Clear npm cache and reinstall
-   npm cache clean --force
-   rm -rf node_modules
-   npm ci
-   ```
-
-3. **Port Already in Use**:
-   ```bash
-   # Kill process on port 3000
-   npx kill-port 3000
-   # Or run on different port
-   PORT=3001 npm start
-   ```
-
-4. **Backend Won't Start**:
-   ```bash
-   # Check Java version
-   java --version
-   # Clean and rebuild
-   ./mvnw clean install
-   ```
-
-## 🌟 **Key Features**
-
-### **Intelligent Flyer Creation**:
-1. **Multi-language Support**: English and Hebrew interface
-2. **Business Context Awareness**: Adapts to different business types
-3. **AI-Powered Content**: Automatic title and description generation
-4. **Smart Color Analysis**: Azure Vision API analyzes uploaded images
-5. **Professional Backgrounds**: Dual CSS/Image generation approach
-
-### **User Experience**:
-1. **Progressive Flow**: Guided step-by-step process
-2. **Real-time Preview**: Live flyer preview as you build
-3. **Multiple Options**: 3 background variants per generation
-4. **Responsive Design**: Works on all device sizes
-
-### **Developer Experience**:
-1. **Clean Architecture**: Organized service layers
-2. **Comprehensive Logging**: Detailed debug information
-3. **Error Handling**: Robust fallback systems
-4. **Cost Monitoring**: Built-in cost estimation
-
-## 💰 **Cost Analysis**
-
-### **Per Flyer Generation**:
-```
-Text Generation (Claude):     ~$0.001
-Color Analysis (Azure):       ~$0.0002
-Background Generation:
-  ├── CSS Generation:         ~$0.002
-  └── Image Generation:       ~$0.12
-
-Total Cost Range: $0.003 - $0.123 per flyer
-```
-
-### **API Usage Optimization**:
-- Smart fallback chains reduce costs
-- Caching for repeated requests
-- Parallel processing for speed
-- Optional premium features
-
-## 📊 **Current Status**
-
-### **✅ Working Features**:
-- Multi-language interface (English/Hebrew)
-- AI text generation with multiple providers
-- Azure color analysis from user images
-- Imagen 3.0 background image generation
-- CSS background generation
-- Professional flyer preview
-- File-based image serving
-
-### **🔧 Architecture Achievements**:
-- Zero compilation errors
-- Clean service separation
-- Comprehensive error handling
-- Professional documentation
-- Organized folder structure
-
-## 🛡️ **Error Handling & Reliability**
-
-### **Robust Fallback Systems**:
-1. **Text Generation**: Claude → Gemini → OpenAI → Groq
-2. **Background Generation**: Imagen → CSS → Hardcoded
-3. **Service Failures**: Graceful degradation with user feedback
-
-### **Monitoring & Debugging**:
-- Comprehensive console logging
-- Service health endpoints
-- Cost tracking and estimation
-- Performance monitoring
-
-## 🚀 **Future Roadmap**
-
-### **Planned Enhancements**:
-1. **Database Integration**: User accounts and flyer history
-2. **Template System**: Pre-designed flyer templates
-3. **Advanced Customization**: More design options
-4. **Batch Processing**: Multiple flyer generation
-5. **Analytics**: Usage and performance metrics
-6. **Export Options**: PDF, PNG, and print formats
-
-### **AI Improvements**:
-1. **Smart Caching**: Reuse similar backgrounds
-2. **User Learning**: Adapt to user preferences
-3. **A/B Testing**: Compare generation approaches
-4. **Advanced Prompting**: More sophisticated AI prompts
-
-## 🏆 **Project Highlights**
-
-- **Multiple AI Integration**: Successfully combines 6+ AI services
-- **Cost-Effective**: Intelligent fallbacks keep costs low
-- **Professional Quality**: Imagen 3.0 delivers commercial-grade backgrounds
-- **Developer-Friendly**: Clean architecture and comprehensive documentation
-- **Production-Ready**: Robust error handling and monitoring
-
-## 👥 **Development Team**
-
-- **Project Architecture**: Full-stack development with AI integration
-- **Backend**: Spring Boot with RESTful API design
-- **Frontend**: React.js with modern UX patterns
-- **AI Integration**: Multi-provider AI service orchestration
+Check the [Quick Start Guide](docs/QUICK-START.md) for troubleshooting steps.
 
 ---
-
-**Last Updated**: May 31, 2025  
-**Version**: 2.0  
-**License**: Private Development Project
-
-🎯 **Ready for Production**: All core features implemented and tested 
