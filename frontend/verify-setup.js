@@ -86,11 +86,12 @@ try {
 }
 
 // Check backend directory
-if (fs.existsSync('backend')) {
+const backendPath = path.join(__dirname, '..', 'backend');
+if (fs.existsSync(backendPath)) {
   checkPassed('Backend directory found');
   
   // Check for Maven wrapper
-  if (fs.existsSync('backend/mvnw') || fs.existsSync('backend/mvnw.cmd')) {
+  if (fs.existsSync(path.join(backendPath, 'mvnw')) || fs.existsSync(path.join(backendPath, 'mvnw.cmd'))) {
     checkPassed('Maven wrapper found');
   } else {
     checkFailed('Maven wrapper missing in backend directory');
@@ -100,7 +101,7 @@ if (fs.existsSync('backend')) {
 }
 
 // Check for environment template
-if (fs.existsSync('backend/.env.example') || fs.existsSync('backend/.env')) {
+if (fs.existsSync(path.join(backendPath, '.env.example')) || fs.existsSync(path.join(backendPath, '.env'))) {
   checkPassed('Environment configuration ready');
 } else {
   console.log('⚠️  Consider creating backend/.env for API keys');

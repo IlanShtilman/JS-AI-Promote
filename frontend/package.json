@@ -1,0 +1,67 @@
+{
+  "name": "ai-flier-creator",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@google/generative-ai": "^0.24.0",
+    "@mui/icons-material": "^5.15.6",
+    "@mui/material": "^5.15.6",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.8.4",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^10.18.0",
+    "groq-sdk": "^0.20.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
+    "openai": "^4.96.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.2.0",
+    "react-color": "^2.19.3",
+    "react-dom": "^18.2.0",
+    "react-draggable": "^4.4.6",
+    "react-router-dom": "^6.22.3",
+    "react-scripts": "5.0.1",
+    "stylis": "^4.3.1",
+    "stylis-plugin-rtl": "^2.1.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "verify": "node verify-setup.js",
+    "check-deps": "node check-dependencies.js",
+    "dev": "concurrently --names \"FRONTEND,BACKEND\" --prefix-colors \"cyan,yellow\" \"npm start\" \"cd ../backend && mvnw.cmd spring-boot:run\""
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
