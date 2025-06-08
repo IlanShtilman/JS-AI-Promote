@@ -48,6 +48,11 @@ AZURE_VISION_API_KEY=your_azure_key
 AZURE_VISION_ENDPOINT=your_azure_endpoint
 ```
 
+Create `frontend/.env` with your API keys:
+```env
+CREACT_APP_ELEVENLABS_API_KEY="Your_Key_Here"
+```
+
 ## 🎯 Key Features
 
 - AI-powered text generation

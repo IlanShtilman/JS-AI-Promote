@@ -7,6 +7,7 @@ import {
   Alert,
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { BrowserRouter, Routes, Route, useNavigate} from 'react-router-dom';
 import DesignModeSelection from './components/DesignModeSelection/DesignModeSelection';
 import ManualFlierDesigner from './components/ManualFlierDesigner/ManualFlierDesigner';
 import AIInfoCollection from './components/AIFlierDesigner/AIInfoProcess/AIInfoCollection';
@@ -15,10 +16,104 @@ import AIFlier from './components/AIFlier/AIFlier';
 import StageUserInfo from './components/StageUserInfo/StageUserInfo';
 import AITextResults from './components/AITextResults/AITextResults';
 
+// Styles
+const styles = {
+  container: {
+    minHeight: '100vh',
+    py: 4,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  backButton: {
+    mt: 2,
+    display: 'flex',
+    justifyContent: 'center',
+  }
+};
+
 // Wrap MUI components with motion
 const MotionContainer = motion(Container);
 
-function App() {
+// ErrorSnackbar component
+const ErrorSnackbar = ({ error, setError }) => (
+  <Snackbar 
+    open={!!error} 
+    autoHideDuration={6000} 
+    onClose={() => setError(null)}
+    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+  >
+    <Alert onClose={() => setError(null)} severity={error?.severity || "error"} sx={{ width: '100%' }}>
+      {error?.message || error}
+    </Alert>
+  </Snackbar>
+);
+
+// HomePage component
+const HomePage = ({ 
+  loading, 
+  selectedText, 
+  handleSelectText, 
+  handleContinueWithSelected, 
+  handleGenerateTexts, 
+  setLogo, 
+  language, 
+  title, 
+  promotionalText, 
+  triggerGeneration, 
+  setError, 
+  handleLoadingChange, 
+  logo 
+}) => (
+  <>
+    <StageUserInfo
+      loading={loading}
+      selectedText={selectedText}
+      handleSelectText={handleSelectText}
+      handleContinueWithSelected={handleContinueWithSelected}
+      onGenerateTexts={handleGenerateTexts}
+      onLogoChange={setLogo}
+    />
+    <AITextResults
+      language={language}
+      title={title}
+      promotionalText={promotionalText}
+      triggerGeneration={triggerGeneration}
+      onSelectText={handleSelectText}
+      onContinue={handleContinueWithSelected}
+      onError={setError}
+      onLoadingChange={handleLoadingChange}
+      logo={logo}
+    />
+  </>
+);
+
+// AIFlierDesign component
+const AIFlierDesign = ({ summaryInfo, navigate }) => (
+  <>
+    <AIFlier
+      backgroundOptions={summaryInfo?.backgroundOptions || []}
+      flyerContent={{
+        title: summaryInfo?.title,
+        promotionalText: summaryInfo?.promotionalText,
+        logo: summaryInfo?.logo,
+        image: summaryInfo?.uploadedImage,
+        callToAction: summaryInfo?.callToAction || '',
+        qrUrl: summaryInfo?.qrUrl || 'https://example.com',
+        qrText: 'Scan the QR code!',
+        cta: 'Fill in the form and get the discount'
+      }}
+    />
+    <Box sx={styles.backButton}>
+      <Button variant="outlined" color="primary" onClick={() => navigate('/summary')}>
+        Back to Summary
+      </Button>
+    </Box>
+  </>
+);
+
+function AppContent() {
+  const navigate = useNavigate();
   const [language, setLanguage] = useState('Hebrew');
   const [title, setTitle] = useState('');
   const [promotionalText, setPromotionalText] = useState('');
@@ -26,16 +121,14 @@ function App() {
   const [error, setError] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [currentStage, setCurrentStage] = useState('input');
   const [summaryInfo, setSummaryInfo] = useState(null);
   const [triggerGeneration, setTriggerGeneration] = useState(false);
 
-  // Updated to trigger generation in AITextResults
   const handleGenerateTexts = (title, promotionalText, language) => {
     setTitle(title);
     setPromotionalText(promotionalText);
     setLanguage(language);
-    setTriggerGeneration(prev => !prev); // Toggle to trigger useEffect in AITextResults
+    setTriggerGeneration(prev => !prev);
   };
 
   const handleLoadingChange = (isLoading) => {
@@ -48,46 +141,38 @@ function App() {
 
   const handleModeSelect = (mode) => {
     if (mode === 'manual') {
-      setCurrentStage('manual-design');
+      navigate('/manual-design');
     } else if (mode === 'ai-suggested') {
-      setCurrentStage('ai-info-collection');
+      navigate('/ai-info-collection');
     }
   };
 
   const handleDesignModeBack = () => {
-    // Reset states to prevent AITextResults from showing previous results
     setSelectedText(null);
     setTriggerGeneration(false);
     setLoading(false);
     setError(null);
-    
-    // Go back to input stage
-    setCurrentStage('input');
+    navigate('/');
   };
 
   const handleManualDesignBack = () => {
-    setCurrentStage('design-mode');
+    navigate('/design-mode');
   };
 
   const handleSummaryBack = () => {
-    setCurrentStage('ai-info-collection');
+    navigate('/ai-info-collection');
   };
 
   const handleAIInfoCollectionBack = () => {
-    setCurrentStage('design-mode');
+    navigate('/design-mode');
   };
 
   const handleSummaryConfirm = async (enhancedSummaryInfo) => {
     try {
       setLoading(true);
       console.log('📋 Flier generation process starting with enhanced summary info:', enhancedSummaryInfo);
-      
-      // Store the enhanced summary info with background options
       setSummaryInfo(enhancedSummaryInfo);
-      
-      // Move directly to flier design since backgrounds are already generated
-      setCurrentStage('ai-flier-design');
-      
+      navigate('/ai-flier-design');
     } catch (err) {
       console.error('Error during flier generation:', err);
       setError('Failed to process flier: ' + err.message);
@@ -97,127 +182,104 @@ function App() {
   };
 
   const handleContinueWithSelected = (data) => {
-    // Handle both old format (just text) and new format (object with text and logo)
     if (data?.selectedText) {
       setSelectedText(data.selectedText);
-      // Logo is already stored in state, but if passed in data, use that
       if (data.logo && data.logo !== logo) {
         setLogo(data.logo);
       }
     } else {
-      // Backward compatibility - if data is just the text object
       setSelectedText(data);
     }
-    setCurrentStage('design-mode');
+    navigate('/design-mode');
   };
 
-  return (
+  const renderContent = () => (
     <Box>
       <MotionContainer
         maxWidth="xl"
-        sx={{
-          minHeight: '100vh',
-          py: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
+        sx={styles.container}
       >
-        {currentStage === 'input' ? (
-          <>
-            <StageUserInfo
+        <Routes>
+          <Route path="/" element={
+            <HomePage
               loading={loading}
               selectedText={selectedText}
               handleSelectText={handleSelectText}
               handleContinueWithSelected={handleContinueWithSelected}
-              onGenerateTexts={handleGenerateTexts}
-              onLogoChange={setLogo}
-            />
-            <AITextResults
+              handleGenerateTexts={handleGenerateTexts}
+              setLogo={setLogo}
               language={language}
               title={title}
               promotionalText={promotionalText}
               triggerGeneration={triggerGeneration}
-              onSelectText={handleSelectText}
-              onContinue={handleContinueWithSelected}
-              onError={setError}
-              onLoadingChange={handleLoadingChange}
+              setError={setError}
+              handleLoadingChange={handleLoadingChange}
               logo={logo}
             />
-          </>
-        ) : currentStage === 'design-mode' ? (
-          <DesignModeSelection 
-            language={language}
-            onModeSelect={handleModeSelect}
-            onBack={handleDesignModeBack}
-          />
-        ) : currentStage === 'manual-design' ? (
-          <ManualFlierDesigner
-            selectedText={selectedText?.text}
-            logo={logo}
-            language={language}
-            title={title}
-            promotionTitle={title}
-            promotionText={promotionalText}
-            onBack={handleManualDesignBack}
-          />
-        ) : currentStage === 'ai-info-collection' ? (
-          <AIInfoCollection
-            language={language}
-            onSubmit={(summaryInfo) => {
-              setSummaryInfo(summaryInfo);
-              setCurrentStage('summary');
-            }}
-            onBack={handleAIInfoCollectionBack}
-            initialData={{
-              businessType: '',
-              targetAudience: '',
-              logo, // Pass the logo state
-              title, // Pass the title
-              selectedText  // Pass the selected text
-            }}
-          />
-        ) : currentStage === 'summary' ? (
-          <AIFlierSummary
-            info={summaryInfo}
-            onBack={handleSummaryBack}
-            onConfirm={handleSummaryConfirm}
-            language={language}
-          />
-        ) : currentStage === 'ai-flier-design' ? (
-          <>
-            <AIFlier
-              backgroundOptions={summaryInfo?.backgroundOptions || []}
-              flyerContent={{
-                title: summaryInfo?.title,
-                promotionalText: summaryInfo?.promotionalText,
-                logo: summaryInfo?.logo,
-                image: summaryInfo?.uploadedImage,
-                callToAction: summaryInfo?.callToAction || '',
-                qrUrl: summaryInfo?.qrUrl || 'https://example.com',
-                qrText: 'Scan the QR code!',
-                cta: 'Fill in the form and get the discount'
+          } />
+          <Route path="/design-mode" element={
+            <DesignModeSelection 
+              language={language}
+              onModeSelect={handleModeSelect}
+              onBack={handleDesignModeBack}
+            />
+          } />
+          <Route path="/manual-design" element={
+            <ManualFlierDesigner
+              selectedText={selectedText?.text}
+              logo={logo}
+              language={language}
+              title={title}
+              promotionTitle={title}
+              promotionText={promotionalText}
+              onBack={handleManualDesignBack}
+            />
+          } />
+          <Route path="/ai-info-collection" element={
+            <AIInfoCollection
+              language={language}
+              onSubmit={(summaryInfo) => {
+                setSummaryInfo(summaryInfo);
+                navigate('/summary');
+              }}
+              onBack={handleAIInfoCollectionBack}
+              initialData={{
+                businessType: '',
+                targetAudience: '',
+                logo,
+                title,
+                selectedText
               }}
             />
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-              <Button variant="outlined" color="primary" onClick={() => setCurrentStage('summary')}>
-                Back to Summary
-              </Button>
-            </Box>
-          </>
-        ) : null}
-        <Snackbar 
-          open={!!error} 
-          autoHideDuration={6000} 
-          onClose={() => setError(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={() => setError(null)} severity={error?.severity || "error"} sx={{ width: '100%' }}>
-            {error?.message || error}
-          </Alert>
-        </Snackbar>
+          } />
+          <Route path="/summary" element={
+            <AIFlierSummary
+              info={summaryInfo}
+              onBack={handleSummaryBack}
+              onConfirm={handleSummaryConfirm}
+              language={language}
+            />
+          } />
+          <Route path="/ai-flier-design" element={
+            <AIFlierDesign 
+              summaryInfo={summaryInfo}
+              navigate={navigate}
+            />
+          } />
+        </Routes>
+        <ErrorSnackbar error={error} setError={setError} />
       </MotionContainer>
     </Box>
+  );
+
+  return renderContent();
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 

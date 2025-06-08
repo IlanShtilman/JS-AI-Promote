@@ -6,9 +6,9 @@
     "start": "cd frontend && npm start",
     "build": "cd frontend && npm run build",
     "install-all": "npm install && cd frontend && npm install",
-    "dev": "concurrently \"cd frontend && npm start\" \"cd backend && npm start\"",
-    "verify": "node docs/verify-setup.js",
-    "check-deps": "node docs/check-dependencies.js"
+    "dev": "concurrently --names \"Frontend,Backend\" --prefix-colors \"blue,green\" \"cd frontend && npm start\" \"cd backend && mvnw.cmd spring-boot:run\"",
+    "verify": "node frontend/verify-setup.js",
+    "check-deps": "node frontend/check-dependencies.js"
   },
   "dependencies": {
     "concurrently": "^8.2.2"
