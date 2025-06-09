@@ -4,18 +4,23 @@ import './StageUserInfo.css';
 import LanguageSelector from './components/LanguageSelector/LanguageSelector';
 import LogoUpload from './components/LogoUpload/LogoUpload';
 import TextInput from './components/TextInput/TextInput';
+import AITextResults from '../AITextResults/AITextResults';
+import DesignModeSelection from '../DesignModeSelection/DesignModeSelection';
+import { useLanguage } from '../../context/LanguageContext';
 
 const StageUserInfo = ({
   loading,
   onGenerateTexts,
   onLogoChange
 }) => {
-  // Local state for input fields
-  const [language, setLanguage] = useState('Hebrew');
+  const { language, setLanguage } = useLanguage();
   const [title, setTitle] = useState('');
   const [promotionalText, setPromotionalText] = useState('');
   const [logo, setLogo] = useState(null);
   const [error, setError] = useState('');
+  const [triggerGeneration, setTriggerGeneration] = useState(false);
+  const [mode, setMode] = useState('input');
+  const [selectedText, setSelectedText] = useState(null);
   
   // Speech-to-text state
   const [isRecording, setIsRecording] = useState(false);
@@ -41,10 +46,43 @@ const StageUserInfo = ({
     }
 
     setError('');
-    if (onGenerateTexts) {
-      onGenerateTexts(title, promotionalText, language);
-    }
+    setTriggerGeneration(true);
   };
+
+  const handleSelectText = (selected) => {
+    setSelectedText(selected);
+  };
+
+  const handleContinue = (data) => {
+    if (data?.selectedText) {
+      setSelectedText(data.selectedText);
+      if (data.logo && data.logo !== logo) {
+        setLogo(data.logo);
+      }
+    } else {
+      setSelectedText(data);
+    }
+    setMode('design');
+  };
+
+  if (mode === 'design') {
+    return (
+      <DesignModeSelection
+        language={language}
+        selectedText={selectedText}
+        logo={logo}
+        onBack={() => {
+          setMode('input');
+          setTitle('');
+          setPromotionalText('');
+          setLogo(null);
+          setSelectedText(null);
+          setTriggerGeneration(false);
+          setError('');
+        }}
+      />
+    );
+  }
 
   return (
     <Box className="stage-user-info-outer" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
@@ -59,7 +97,7 @@ const StageUserInfo = ({
             <Stack spacing={3}>
               <LanguageSelector
                 language={language}
-                onLanguageChange={e => setLanguage(e.target.value)}
+                onLanguageChange={setLanguage}
               />
 
               <LogoUpload
@@ -113,6 +151,15 @@ const StageUserInfo = ({
             </Stack>
           </Grid>
         </Grid>
+        <AITextResults
+          language={language}
+          onSelectText={handleSelectText}
+          onContinue={handleContinue}
+          title={title}
+          promotionalText={promotionalText}
+          triggerGeneration={triggerGeneration}
+          logo={logo}
+        />
       </Paper>
     </Box>
   );

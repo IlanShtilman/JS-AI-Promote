@@ -15,6 +15,7 @@ import AIFlierSummary from './components/AIFlierDesigner/AIFlierSummary/AIFlierS
 import AIFlier from './components/AIFlier/AIFlier';
 import StageUserInfo from './components/StageUserInfo/StageUserInfo';
 import AITextResults from './components/AITextResults/AITextResults';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
 // Styles
 const styles = {
@@ -57,36 +58,39 @@ const HomePage = ({
   handleContinueWithSelected, 
   handleGenerateTexts, 
   setLogo, 
-  language, 
   title, 
   promotionalText, 
   triggerGeneration, 
   setError, 
   handleLoadingChange, 
   logo 
-}) => (
-  <>
-    <StageUserInfo
-      loading={loading}
-      selectedText={selectedText}
-      handleSelectText={handleSelectText}
-      handleContinueWithSelected={handleContinueWithSelected}
-      onGenerateTexts={handleGenerateTexts}
-      onLogoChange={setLogo}
-    />
-    <AITextResults
-      language={language}
-      title={title}
-      promotionalText={promotionalText}
-      triggerGeneration={triggerGeneration}
-      onSelectText={handleSelectText}
-      onContinue={handleContinueWithSelected}
-      onError={setError}
-      onLoadingChange={handleLoadingChange}
-      logo={logo}
-    />
-  </>
-);
+}) => {
+  const { language } = useLanguage();
+  return (
+    <>
+      <StageUserInfo
+        loading={loading}
+        selectedText={selectedText}
+        handleSelectText={handleSelectText}
+        handleContinueWithSelected={handleContinueWithSelected}
+        onGenerateTexts={handleGenerateTexts}
+        onLogoChange={setLogo}
+        language={language}
+      />
+      <AITextResults
+        language={language}
+        title={title}
+        promotionalText={promotionalText}
+        triggerGeneration={triggerGeneration}
+        onSelectText={handleSelectText}
+        onContinue={handleContinueWithSelected}
+        onError={setError}
+        onLoadingChange={handleLoadingChange}
+        logo={logo}
+      />
+    </>
+  );
+};
 
 // AIFlierDesign component
 const AIFlierDesign = ({ summaryInfo, navigate }) => (
@@ -114,7 +118,7 @@ const AIFlierDesign = ({ summaryInfo, navigate }) => (
 
 function AppContent() {
   const navigate = useNavigate();
-  const [language, setLanguage] = useState('Hebrew');
+  const { language } = useLanguage();
   const [title, setTitle] = useState('');
   const [promotionalText, setPromotionalText] = useState('');
   const [logo, setLogo] = useState(null);
@@ -124,10 +128,9 @@ function AppContent() {
   const [summaryInfo, setSummaryInfo] = useState(null);
   const [triggerGeneration, setTriggerGeneration] = useState(false);
 
-  const handleGenerateTexts = (title, promotionalText, language) => {
+  const handleGenerateTexts = (title, promotionalText) => {
     setTitle(title);
     setPromotionalText(promotionalText);
-    setLanguage(language);
     setTriggerGeneration(prev => !prev);
   };
 
@@ -208,7 +211,6 @@ function AppContent() {
               handleContinueWithSelected={handleContinueWithSelected}
               handleGenerateTexts={handleGenerateTexts}
               setLogo={setLogo}
-              language={language}
               title={title}
               promotionalText={promotionalText}
               triggerGeneration={triggerGeneration}
@@ -277,9 +279,11 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }
 
