@@ -25,8 +25,8 @@ const LogoUpload = ({ onLogoChange, language, error, logo }) => {
   return (
     <div className="logo-upload-container">
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mb: 0.5 }}>
-        <Typography variant="subtitle1">{language === 'he' ? 'לוגו' : 'Logo'}</Typography>
-        <Box sx={{ mt: 0.2, ml: language === 'he' ? 0 : 1, mr: language === 'he' ? 1 : 0 }}>
+        <Typography variant="subtitle1">{language === 'Hebrew' ? 'לוגו' : 'Logo'}</Typography>
+        <Box sx={{ mt: 0.2, ml: language === 'Hebrew' ? 0 : 1, mr: language === 'Hebrew' ? 1 : 0 }}>
           <HelpIcon topic="logo" language={language} />
         </Box>
       </Box>
@@ -46,7 +46,7 @@ const LogoUpload = ({ onLogoChange, language, error, logo }) => {
         onClick={handleButtonClick}
         className="logo-upload-button"
       >
-        {language === 'he' ? 'העלה לוגו' : 'Upload Logo'}
+        {language === 'Hebrew' ? 'העלה לוגו' : 'Upload Logo'}
       </Button>
       {error && <Typography className="logo-upload-error">{error}</Typography>}
     </div>

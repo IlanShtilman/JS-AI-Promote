@@ -1,9 +1,11 @@
 import { convertToStyleOptions, getFallbackStyleConfig } from './flier/styleConfigService';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8081';
+
 // Unified function to handle AI service calls
 const callAIService = async (endpoint, title, promotionalText, language) => {
   try {
-    const response = await fetch(`http://localhost:8081/api/v1/${endpoint}/generate`, {
+    const response = await fetch(`${BACKEND_URL}/api/v1/${endpoint}/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -108,7 +110,7 @@ export async function getAIStyleAdvice(infoObject) {
   try {
     console.log("Requesting AI style advice for flier:", infoObject);
     
-    const response = await fetch('http://localhost:8081/api/flier/generate', {
+    const response = await fetch(`${BACKEND_URL}/api/flier/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(infoObject)

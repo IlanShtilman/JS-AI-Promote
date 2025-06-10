@@ -96,13 +96,13 @@ const AITextResults = ({
     <>
       <Box className="ai-text-results-container" ref={resultsRef}>
         <Typography variant="h5" gutterBottom align="center">
-          {language === 'he' ? 'בחר את הטקסט המועדף עליך' : 'Choose Your Preferred Text'}
+          {language === 'Hebrew' ? 'בחר את הטקסט המועדף עליך' : 'Choose Your Preferred Text'}
         </Typography>
         {loading ? (
           <Box className="ai-text-results-loading">
             <CircularProgress />
             <Typography variant="body1" align="center" sx={{ mt: 2 }}>
-              {language === 'he' ? 'מייצר טקסטים...' : 'Generating texts...'}
+              {language === 'Hebrew' ? 'מייצר טקסטים...' : 'Generating texts...'}
             </Typography>
           </Box>
         ) : (
@@ -128,7 +128,7 @@ const AITextResults = ({
             onClick={handleContinue}
             className="ai-text-results-continue-btn-inner"
           >
-            {language === 'he' ? 'המשך עם הטקסט הנבחר' : 'Continue with Selected Item'}
+            {language === 'Hebrew' ? 'המשך עם הטקסט הנבחר' : 'Continue with Selected Item'}
           </Button>
         </Box>
       )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Stack, Button, Alert, Paper, Typography, Grid, Divider } from '@mui/material';
 import './StageUserInfo.css';
 import LanguageSelector from './components/LanguageSelector/LanguageSelector';
@@ -11,7 +11,12 @@ import { useLanguage } from '../../context/LanguageContext';
 const StageUserInfo = ({
   loading,
   onGenerateTexts,
-  onLogoChange
+  onLogoChange,
+  onError,
+  onLoadingChange,
+  stage,
+  user,
+  onLanguageChange
 }) => {
   const { language, setLanguage } = useLanguage();
   const [title, setTitle] = useState('');
@@ -26,26 +31,40 @@ const StageUserInfo = ({
   const [isRecording, setIsRecording] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
 
+  useEffect(() => {
+    // Initialize language from user preferences if available
+    if (user?.preferences?.language) {
+      console.log('Initializing language from user preferences:', user.preferences.language);
+      setLanguage(user.preferences.language);
+    }
+  }, [user, setLanguage]);
+
+  // Handle local error state and propagate to parent
+  const handleError = (errorMessage) => {
+    setError(errorMessage);
+    if (onError) onError(errorMessage);
+  };
+
   // Logo change handler
   const handleLogoChange = (newLogo, error) => {
     setLogo(newLogo);
-    setError(error || '');
+    handleError(error || '');
     if (onLogoChange) onLogoChange(newLogo);
   };
 
   // Generate button handler with validation
   const handleGenerateClick = () => {
     if (!title.trim()) {
-      setError(language === 'Hebrew' ? 'אנא הזן כותרת' : 'Please enter a title');
+      handleError(language === 'Hebrew' ? 'אנא הזן כותרת' : 'Please enter a title');
       return;
     }
 
     if (!promotionalText.trim()) {
-      setError(language === 'Hebrew' ? 'אנא הזן טקסט פרסומי' : 'Please enter promotional text');
+      handleError(language === 'Hebrew' ? 'אנא הזן טקסט פרסומי' : 'Please enter promotional text');
       return;
     }
 
-    setError('');
+    handleError('');
     setTriggerGeneration(true);
   };
 
@@ -65,6 +84,21 @@ const StageUserInfo = ({
     setMode('design');
   };
 
+  // Effect to handle loading state changes
+  useEffect(() => {
+    if (onLoadingChange) {
+      onLoadingChange(loading);
+    }
+  }, [loading, onLoadingChange]);
+
+  const handleLanguageChange = (newLanguage) => {
+    console.log('StageUserInfo handling language change to:', newLanguage);
+    setLanguage(newLanguage);
+    if (onLanguageChange) {
+      onLanguageChange(newLanguage);
+    }
+  };
+
   if (mode === 'design') {
     return (
       <DesignModeSelection
@@ -78,7 +112,7 @@ const StageUserInfo = ({
           setLogo(null);
           setSelectedText(null);
           setTriggerGeneration(false);
-          setError('');
+          handleError('');
         }}
       />
     );
@@ -88,7 +122,7 @@ const StageUserInfo = ({
     <Box className="stage-user-info-outer" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
       <Paper elevation={3} className="stage-user-info-container" sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, minWidth: 340, maxWidth: 900, width: '100%' }}>
         <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 700, color: '#1976d2', letterSpacing: 1, textAlign: 'center' }}>
-          AI Flier Generator
+          {language === 'Hebrew' ? 'מחולל פליירים AI' : 'AI Flier Generator'}
         </Typography>
         <Divider sx={{ mb: 3 }} />
         {error && <Alert severity="error" className="stage-user-info-error-alert">{error}</Alert>}
@@ -97,7 +131,7 @@ const StageUserInfo = ({
             <Stack spacing={3}>
               <LanguageSelector
                 language={language}
-                onLanguageChange={setLanguage}
+                onLanguageChange={handleLanguageChange}
               />
 
               <LogoUpload
@@ -117,7 +151,7 @@ const StageUserInfo = ({
                 language={language}
                 isRecording={isRecording}
                 activeInput={activeInput}
-                onError={setError}
+                onError={handleError}
                 onRecordingStateChange={(recording, input) => {
                   setIsRecording(recording);
                   setActiveInput(input);
@@ -131,7 +165,7 @@ const StageUserInfo = ({
                 language={language}
                 isRecording={isRecording}
                 activeInput={activeInput}
-                onError={setError}
+                onError={handleError}
                 onRecordingStateChange={(recording, input) => {
                   setIsRecording(recording);
                   setActiveInput(input);
@@ -146,7 +180,7 @@ const StageUserInfo = ({
                 disabled={loading}
                 className="stage-user-info-generate"
               >
-                {language === 'he' ? 'צור טקסטים' : 'Generate Texts'}
+                {language === 'Hebrew' ? 'צור טקסטים' : 'Generate Texts'}
               </Button>
             </Stack>
           </Grid>

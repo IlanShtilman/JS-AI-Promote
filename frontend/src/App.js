@@ -76,6 +76,8 @@ const HomePage = ({
         onGenerateTexts={handleGenerateTexts}
         onLogoChange={setLogo}
         language={language}
+        onError={setError}
+        onLoadingChange={handleLoadingChange}
       />
       <AITextResults
         language={language}
@@ -142,15 +144,8 @@ function AppContent() {
     setSelectedText(selected);
   }, []);
 
-  const handleModeSelect = (mode) => {
-    if (mode === 'manual') {
-      navigate('/manual-design');
-    } else if (mode === 'ai-suggested') {
-      navigate('/ai-info-collection');
-    }
-  };
-
   const handleDesignModeBack = () => {
+    console.log('Going back from design mode');
     setSelectedText(null);
     setTriggerGeneration(false);
     setLoading(false);
@@ -159,14 +154,17 @@ function AppContent() {
   };
 
   const handleManualDesignBack = () => {
+    console.log('Going back from manual design');
     navigate('/design-mode');
   };
 
   const handleSummaryBack = () => {
+    console.log('Going back from summary');
     navigate('/ai-info-collection');
   };
 
   const handleAIInfoCollectionBack = () => {
+    console.log('Going back from AI info collection');
     navigate('/design-mode');
   };
 
@@ -219,55 +217,69 @@ function AppContent() {
               logo={logo}
             />
           } />
-          <Route path="/design-mode" element={
-            <DesignModeSelection 
-              language={language}
-              onModeSelect={handleModeSelect}
-              onBack={handleDesignModeBack}
-            />
-          } />
-          <Route path="/manual-design" element={
-            <ManualFlierDesigner
-              selectedText={selectedText?.text}
-              logo={logo}
-              language={language}
-              title={title}
-              promotionTitle={title}
-              promotionText={promotionalText}
-              onBack={handleManualDesignBack}
-            />
-          } />
-          <Route path="/ai-info-collection" element={
-            <AIInfoCollection
-              language={language}
-              onSubmit={(summaryInfo) => {
-                setSummaryInfo(summaryInfo);
-                navigate('/summary');
-              }}
-              onBack={handleAIInfoCollectionBack}
-              initialData={{
-                businessType: '',
-                targetAudience: '',
-                logo,
-                title,
-                selectedText
-              }}
-            />
-          } />
-          <Route path="/summary" element={
-            <AIFlierSummary
-              info={summaryInfo}
-              onBack={handleSummaryBack}
-              onConfirm={handleSummaryConfirm}
-              language={language}
-            />
-          } />
-          <Route path="/ai-flier-design" element={
-            <AIFlierDesign 
-              summaryInfo={summaryInfo}
-              navigate={navigate}
-            />
-          } />
+          <Route 
+            path="/design-mode" 
+            element={
+              <DesignModeSelection 
+                onBack={handleDesignModeBack}
+              />
+            }
+          />
+          <Route 
+            path="/manual-design" 
+            element={
+              <ManualFlierDesigner
+                selectedText={selectedText?.text}
+                logo={logo}
+                language={language}
+                title={title}
+                promotionTitle={title}
+                promotionText={promotionalText}
+                onBack={handleManualDesignBack}
+              />
+            }
+          />
+          <Route 
+            path="/ai-info-collection" 
+            element={
+              <AIInfoCollection
+                language={language}
+                onSubmit={(summaryInfo) => {
+                  console.log('AI Info Collection submitted:', summaryInfo); // Debug log
+                  setSummaryInfo(summaryInfo);
+                  navigate('/summary');
+                }}
+                onBack={handleAIInfoCollectionBack}
+                initialData={{
+                  businessType: '',
+                  targetAudience: '',
+                  logo,
+                  title,
+                  selectedText
+                }}
+              />
+            }
+          />
+          <Route 
+            path="/summary" 
+            element={
+              <AIFlierSummary
+                info={summaryInfo}
+                onBack={handleSummaryBack}
+                onConfirm={handleSummaryConfirm}
+                language={language}
+              />
+            }
+          />
+          <Route 
+            path="/ai-flier-design" 
+            element={
+              <AIFlierDesign 
+                summaryInfo={summaryInfo}
+                navigate={navigate}
+              />
+            }
+          />
         </Routes>
         <ErrorSnackbar error={error} setError={setError} />
       </MotionContainer>

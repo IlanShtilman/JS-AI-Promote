@@ -3,6 +3,8 @@
 
 import axios from 'axios';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8081';
+
 /**
  * Generate 3 background options using AI (CSS-based)
  * @param {Object} backgroundParams - Parameters from background parameters generator
@@ -53,7 +55,7 @@ async function callAIBackgroundGenerator(params) {
   try {
     console.log("🚀 Calling backend AI service for CSS backgrounds...");
     
-    const response = await axios.post('http://localhost:8081/api/backgrounds/generate', {
+    const response = await axios.post(`${BACKEND_URL}/api/backgrounds/generate`, {
       businessType: params.businessType,
       targetAudience: params.targetAudience,
       colorScheme: params.colorScheme,
@@ -85,7 +87,7 @@ async function callImagenBackgroundGenerator(params) {
   try {
     console.log("🚀 Calling backend Imagen service for background images...");
     
-    const response = await axios.post('http://localhost:8081/api/backgrounds/generate-images', {
+    const response = await axios.post(`${BACKEND_URL}/api/backgrounds/generate-images`, {
       businessType: params.businessType,
       targetAudience: params.targetAudience,
       colorScheme: params.colorScheme,

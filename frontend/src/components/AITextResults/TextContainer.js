@@ -18,11 +18,11 @@ const TextContainer = ({ model, text, selectedText, handleSelectText, language }
       elevation={3}
       className={`ai-text-results-text-container${selectedText?.model === model ? ' ai-text-results-selected' : ''}`}
     >
-      <Box className={`ai-text-results-header ${language === 'he' ? 'ai-text-results-header-rtl' : ''}`}>
+      <Box className={`ai-text-results-header ${language === 'Hebrew' ? 'ai-text-results-header-rtl' : ''}`}>
         <Typography
           variant="h6"
           component="div"
-          className={`ai-text-results-model-name ${language === 'he' ? 'ai-text-results-model-name-rtl' : ''}`}
+          className={`ai-text-results-model-name ${language === 'Hebrew' ? 'ai-text-results-model-name-rtl' : ''}`}
         >
           {model}
         </Typography>
@@ -34,8 +34,8 @@ const TextContainer = ({ model, text, selectedText, handleSelectText, language }
               color="primary"
             />
           }
-          label={language === 'he' ? 'בחר' : 'Select'}
-          labelPlacement={language === 'he' ? 'start' : 'end'}
+          label={language === 'Hebrew' ? 'בחר' : 'Select'}
+          labelPlacement={language === 'Hebrew' ? 'start' : 'end'}
           className="ai-text-results-radio-label"
         />
       </Box>

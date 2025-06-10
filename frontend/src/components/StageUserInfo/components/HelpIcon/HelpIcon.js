@@ -4,14 +4,14 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import './HelpIcon.css';
 
 const contentMap = {
-  he: {
+  Hebrew: {
     language: { title: 'בחירת שפה', description: 'בחר את השפה המועדפת עליך לתוכן הפלייר' },
     logo: { title: 'העלאת לוגו', description: 'הוסף את הלוגו של העסק שלך' },
     title: { title: 'כותרת', description: 'הזן כותרת קצרה ומושכת שתהיה במוקד הפלייר' },
     promotional: { title: 'טקסט פרסומי', description: 'הזן טקסט פרסומי או השתמש ב-AI ליצירת רעיונות' },
     generate: { title: 'יצירת טקסטים', description: 'לחץ כדי ליצור מספר גרסאות של טקסט פרסומי באמצעות AI' }
   },
-  en: {
+  English: {
     language: { title: 'Language', description: 'Select your preferred language for the flyer content' },
     logo: { title: 'Upload Logo', description: 'Add your business logo' },
     title: { title: 'Title', description: 'Enter a short catchy title for the flyer' },
@@ -20,12 +20,12 @@ const contentMap = {
   }
 };
 
-const HelpIcon = ({ topic, language = 'he' }) => {
+const HelpIcon = ({ topic, language = 'English' }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0, right: 0 });
   const iconRef = useRef(null);
 
-  const langKey = language === 'he' ? 'he' : 'en';
+  const langKey = language === 'Hebrew' ? 'Hebrew' : 'English';
   const helpContent = contentMap[langKey][topic];
 
   const handleMouseEnter = (event) => {
