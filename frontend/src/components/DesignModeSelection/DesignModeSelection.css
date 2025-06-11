@@ -201,4 +201,28 @@
   .design-mode-selection-video {
     max-height: 300px;
   }
+}
+
+.design-mode-selection--rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.design-mode-selection--rtl .design-mode-selection-header {
+  flex-direction: row-reverse;
+}
+
+.design-mode-selection--rtl .design-mode-selection-back-btn {
+  margin-right: 0;
+  margin-left: 16px;
+}
+
+.mode-selection-window--rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.mode-selection-window--rtl .mode-selection-window-icon {
+  margin-right: 0;
+  margin-left: 16px;
 } 

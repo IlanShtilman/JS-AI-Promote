@@ -23,7 +23,7 @@ This backend provides endpoints for various AI services:
 
 1. **User** uploads logo/photo in AI flier designer
 2. **Frontend** converts images to base64 and sends to `/api/vision/analyze`
-3. **AzureVisionController** receives base64 image data
+3. **AzureVisionController** receives base64 image data and applies rate limiting
 4. **AzureVisionService** processes image and calls Azure Vision API
 5. **Azure Vision API** analyzes image for colors, objects, scene type
 6. **Backend** processes response and returns structured `AzureVisionResponse`
@@ -41,6 +41,10 @@ This backend provides endpoints for various AI services:
 - `controller/azure/AzureVisionController.java`
 - `service/azure/AzureVisionService.java` 
 - `model/azure/AzureVisionResponse.java`
+
+### Rate Limiting
+- `TokenBucketRateLimiter.java` - Token bucket implementation for rate limiting
+- `RateLimiter.java` - Base rate limiter interface
 
 ## Adding a New Text Generation Provider
 1. Create a new service interface and implementation in its own subfolder.
@@ -64,6 +68,8 @@ service/
   groq/
     GroqService.java
     GroqServiceImpl.java
+  TokenBucketRateLimiter.java         # Token bucket rate limiting implementation
+  RateLimiter.java                    # Rate limiter interface
 
 controller/
   azure/
@@ -94,6 +100,7 @@ model/
 - **Features:** Color analysis, object detection, scene categorization
 - **Processing:** Simplified photo-focused approach trusting Azure's analysis
 - **Integration:** Used in AI flier designer for automatic color palette generation
+- **Rate Limiting:** Token bucket implementation (5 initial requests, 1 request per 10 seconds)
 
 ## API Endpoints
 
@@ -107,7 +114,14 @@ model/
 - `POST /api/vision/analyze` - Analyze image for colors and scene
 - `GET /api/vision/test` - Test Azure Vision API connection
 
+## Rate Limiting
+- **Token Bucket Algorithm:** Implements a token bucket for rate limiting
+- **Azure Vision:** 5 initial requests, then 1 request per 10 seconds
+- **IP Tracking:** Uses X-Forwarded-For and X-Real-IP headers for client identification
+- **Response:** Returns 429 Too Many Requests when rate limit is exceeded
+
 ## Error Handling
 - **Text Generation:** Fallback responses when AI providers fail
 - **Azure Vision:** Default color palettes when image analysis fails
+- **Rate Limiting:** Proper error responses with 429 status code
 - **Logging:** Comprehensive error logging for debugging and monitoring 

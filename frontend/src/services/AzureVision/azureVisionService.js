@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8081';
+console.log('🔧 Azure Vision Service - Backend URL:', BACKEND_URL);
 
 /**
  * Analyze a single image using Azure Vision API via our backend
@@ -27,9 +29,10 @@ export const analyzeImageWithAzure = async (imageInput) => {
     }
 
     console.log('🔍 Sending image to simplified backend Azure Vision API...');
+    console.log('🌐 Using backend URL:', `${BACKEND_URL}/api/vision/analyze`);
     
     // Call our simplified backend endpoint
-    const backendResponse = await axios.post('http://localhost:8081/api/vision/analyze', base64Image, {
+    const backendResponse = await axios.post(`${BACKEND_URL}/api/vision/analyze`, base64Image, {
       headers: {
         'Content-Type': 'text/plain',
         'Accept': 'application/json'
@@ -302,19 +305,16 @@ const createFallbackMultiAnalysis = (images) => ({
 });
 
 /**
- * Test backend connection
+ * Test the backend connection
+ * @returns {Promise<boolean>} True if connection is successful
  */
 export const testBackendConnection = async () => {
   try {
-    console.log('🔍 Testing Azure Vision backend connection...');
-    const response = await axios.get('http://localhost:8081/api/vision/test');
-    console.log('✅ Backend is accessible:', response.data);
-    return { success: true, message: response.data };
+    const response = await axios.get(`${BACKEND_URL}/api/vision/test`);
+    console.log('✅ Backend connection test successful:', response.data);
+    return true;
   } catch (error) {
-    console.error('❌ Backend connection failed:', error);
-    return { 
-      success: false, 
-      message: 'Could not connect to Azure Vision backend. Please ensure the backend is running.'
-    };
+    console.error('❌ Backend connection test failed:', error);
+    return false;
   }
 }; 

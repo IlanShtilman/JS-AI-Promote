@@ -12,6 +12,7 @@ public class AzureVisionResponse {
     private String lighting;
     private String description;
     private String businessType;
+    private String error;
 
     @Data
     public static class Colors {
@@ -21,5 +22,13 @@ public class AzureVisionResponse {
         private String background;
         private List<String> dominantColors;
         private Object semanticColors;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
     }
 } 

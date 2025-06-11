@@ -1,0 +1,29 @@
+.text-input-container {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.text-input-label {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-input-field {
+  width: 100%;
+}
+
+.text-input-field[dir="rtl"] {
+  text-align: right;
+}
+
+.text-input-field textarea {
+  min-height: 100px;
+}
+
+.text-input-controls {
+  padding-left: 8px;
+  padding-right: 8px;
+  pointer-events: auto;
+} 

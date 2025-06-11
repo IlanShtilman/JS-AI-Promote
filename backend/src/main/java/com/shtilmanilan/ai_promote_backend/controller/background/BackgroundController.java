@@ -48,7 +48,7 @@ public class BackgroundController {
     /**
      * Generate 3 CSS-based background options (Fast & Cheap)
      * Uses Gemini/OpenAI to create CSS gradients and patterns
-     * Cost: ~$0.002 per generation
+     * That used when Imagen is failed!
      */
     @PostMapping("/generate")
     public ResponseEntity<List<BackgroundOption>> generateBackgrounds(
@@ -76,7 +76,6 @@ public class BackgroundController {
     /**
      * Generate 3 actual background images using Google Imagen 3.0 (Premium Quality)
      * Creates real PNG images with advanced AI analysis
-     * Cost: ~$0.12 per generation (3 images)
      */
     @PostMapping("/generate-images")
     public ResponseEntity<List<BackgroundOption>> generateBackgroundImages(
@@ -117,40 +116,9 @@ public class BackgroundController {
         
         // Cost estimates
         Map<String, String> costs = new HashMap<>();
-        costs.put("css_generation", "$0.002 for 3 backgrounds");
-        costs.put("imagen_generation", "$" + imagenBackgroundService.estimateCost() + " for 3 images");
         testResponse.put("estimated_costs", costs);
         
         return ResponseEntity.ok(testResponse);
-    }
-
-    /**
-     * Get generation statistics and costs
-     */
-    @GetMapping("/stats")
-    public ResponseEntity<Map<String, Object>> getGenerationStats() {
-        
-        Map<String, Object> stats = new HashMap<>();
-        
-        // CSS Generation stats
-        Map<String, Object> cssStats = new HashMap<>();
-        cssStats.put("cost_per_generation", backgroundGenerationService.estimateCost("gemini-1.5-flash"));
-        cssStats.put("speed", "Fast (~2-5 seconds)");
-        cssStats.put("quality", "Good for simple backgrounds");
-        cssStats.put("type", "CSS gradients and patterns");
-        
-        // Imagen Generation stats  
-        Map<String, Object> imagenStats = new HashMap<>();
-        imagenStats.put("cost_per_generation", imagenBackgroundService.estimateCost());
-        imagenStats.put("speed", "Medium (~15-30 seconds)");
-        imagenStats.put("quality", "Professional image backgrounds");
-        imagenStats.put("type", "AI-generated images (PNG)");
-        
-        stats.put("css_generation", cssStats);
-        stats.put("imagen_generation", imagenStats);
-        stats.put("recommendation", "Use Imagen for high-quality flyers, CSS for quick prototypes");
-        
-        return ResponseEntity.ok(stats);
     }
 
     /**
